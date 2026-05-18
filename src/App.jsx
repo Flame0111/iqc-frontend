@@ -8,7 +8,7 @@ import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
 // 🌟 เปลี่ยนตรงนี้ให้เป็นลิงก์ Render ตอนเอาขึ้น Production!
-export const API_URL = "http://localhost:3000"; 
+export const API_URL = "https://iqc-api-server.onrender.com"; 
 
 export default function App() {
   const [auth, setAuth] = useState(null); 
