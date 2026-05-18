@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Sarabun:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif;
+    background-color: #0b0c10;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  .glass-table th { @apply bg-white/5 text-white/80 font-bold border-b border-white/10 py-3 uppercase tracking-widest text-[10px]; }
+  .glass-table td { @apply border-b border-white/5 py-3; }
+  .glass-table tr:hover td { @apply bg-white/[0.03] transition-colors duration-300; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* ======================================================= */
+  /* โหมดปริ้นท์ (PDF) - บังคับ Layout ให้เหมือนฟอร์ม Excel ต้นฉบับ */
+  /* ======================================================= */
+  @media print {
+    * { 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important; 
+      color: #000 !important; /* บังคับตัวอักษรสีดำทั้งหมด */
+      text-shadow: none !important; 
+      box-shadow: none !important;
+    }
+    
+    @page { 
+      size: A4 portrait; 
+      margin: 10mm; /* ขอบกระดาษ A4 เพื่อไม่ให้เนื้อหาชิดขอบเกินไป */
+    }
+    
+    body { 
+      background-color: #ffffff !important; 
+      background-image: none !important; 
+      zoom: 0.65; /* 💡 ปรับสเกลตรงนี้ได้ (0.6 - 0.7) เพื่อให้เนื้อหาฟิตพอดี 1-2 แผ่น */
+    }
+    
+    /* ซ่อนปุ่ม ลูกเล่น และภาษาไทยที่ไม่ต้องการแสดงใน PDF */
+    .no-print, .print-hide-th { 
+      display: none !important; 
+    }
+    
+    /* ป้องกันการ์ด (Section) โดนตัดครึ่งหน้ากระดาษ */
+    .print-reset { 
+      background: transparent !important; 
+      border: none !important; 
+      padding: 0 !important; 
+      margin: 0 0 15px 0 !important; 
+      backdrop-filter: none !important; 
+      page-break-inside: avoid !important; /* สำคัญมาก: ห้ามหั่นครึ่ง Section กลางกระดาษ */
+    }
+    
+    /* บังคับตารางให้มีเส้นขอบสีดำชัดเจน เหมือนทำใน Excel */
+    table { 
+      border-collapse: collapse !important; 
+      width: 100% !important; 
+      margin-bottom: 8px !important;
+      page-break-inside: avoid !important; /* ป้องกันตารางขาดครึ่ง */
+    }
+    .glass-table th, .glass-table td, th, td { 
+      border: 1px solid #000000 !important; /* เส้นขอบตารางสีดำ */
+      padding: 4px 6px !important; 
+      font-size: 11px !important; 
+      background-color: transparent !important; 
+      vertical-align: middle !important;
+    }
+    .glass-table th { 
+      background-color: #f8f9fa !important; /* พื้นหลังหัวตารางสีเทาอ่อนแบบฟอร์มเอกสาร */
+      color: #000000 !important; 
+      font-weight: bold !important;
+    }
+
+    /* จัดระเบียบช่องกรอก Input */
+    input[type="text"], input[type="date"], select, textarea { 
+      border: none !important; 
+      background: transparent !important; 
+      padding: 0 !important; 
+      height: auto !important; 
+      font-size: 11px !important; 
+      color: #000 !important;
+    }
+
+    /* รูปภาพหลักฐาน ป้องกันไม่ให้ข้ามหน้าแบบเละเทะ */
+    img {
+      page-break-inside: avoid !important;
+    }
+  }
+}
