@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Printer, Home, ClipboardList, LogOut, Lock, LayoutDashboard } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
@@ -7,11 +7,14 @@ import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
-// 🌟 เปลี่ยนตรงนี้ให้เป็นลิงก์ Render ตอนเอาขึ้น Production!
-export const API_URL = "https://iqc-api-server.onrender.com"; 
+export const API_URL = "http://localhost:3000"; 
 
 export default function App() {
-  const [auth, setAuth] = useState(null); 
+  const [auth, setAuth] = useState(() => {
+    const savedAuth = localStorage.getItem('iqc_auth');
+    return savedAuth ? JSON.parse(savedAuth) : null;
+  }); 
+
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
@@ -45,9 +48,30 @@ export default function App() {
         body: JSON.stringify(loginForm)
       });
       const data = await res.json();
-      if (data.success) setAuth(data);
-      else setLoginError("Invalid credentials.");
+      if (data.success) {
+        setAuth(data);
+        localStorage.setItem('iqc_auth', JSON.stringify(data)); 
+      } else {
+        setLoginError("Invalid credentials.");
+      }
     } catch (err) { setLoginError("Server offline."); }
+  };
+
+  const handleLogout = () => {
+    setAuth(null);
+    localStorage.removeItem('iqc_auth');
+  };
+
+  const resetFormAndGoHome = () => {
+    setFormData({
+      hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "",
+      chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
+    });
+    setUploadedDocs({ pkg: [], sck: [], pin: [], mnt: [] });
+    setUploadedImages({});
+    setStep(1);
+    setPage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // 🌟 เลื่อนจอกลับขึ้นบนแบบสมูท
   };
 
   if (!auth) {
@@ -71,6 +95,13 @@ export default function App() {
     );
   }
 
+  // 🌟 แอนิเมชันตอนเปลี่ยนหน้า (ใช้แบบ Spring ให้นุ่มขึ้น)
+  const pageVariants = {
+    initial: (direction) => ({ opacity: 0, x: direction > 0 ? 30 : -30 }),
+    animate: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 200, damping: 20 } },
+    exit: (direction) => ({ opacity: 0, x: direction > 0 ? -30 : 30, transition: { duration: 0.2 } })
+  };
+
   return (
     <div className="min-h-screen relative text-slate-200 overflow-x-hidden font-sans">
       <div className="fixed inset-0 z-[-1] no-print bg-[#0b0c10] flex items-center justify-center overflow-hidden">
@@ -86,11 +117,11 @@ export default function App() {
           </div>
           
           <div className="flex justify-center gap-3 w-[50%]">
-            <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}>
+            <button onClick={() => { setPage('home'); setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}>
               <LayoutDashboard size={16} /> Status Query
             </button>
             {auth.role !== 'viewer' && (
-              <button onClick={() => setPage('iqc')} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}>
+              <button onClick={() => { setPage('iqc'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}>
                 <ClipboardList size={16} /> + New IQC Form
               </button>
             )}
@@ -102,29 +133,29 @@ export default function App() {
                <span className="text-[9px] uppercase tracking-widest text-[#6f7bf7]">{auth.role}</span>
              </div>
              <button onClick={() => window.print()} className="bg-white/10 p-2.5 rounded-xl border border-white/10 hover:bg-white/20 transition-all text-white/70 hover:text-white"><Printer size={18}/></button>
-             <button onClick={() => setAuth(null)} className="bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"><LogOut size={18}/></button>
+             <button onClick={handleLogout} className="bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"><LogOut size={18}/></button>
           </div>
         </div>
       </header>
 
       <main className="max-w-[1500px] mx-auto px-4 md:px-8 pt-32 pb-40 print:p-0 print:pb-0">
-        {page === 'home' ? (
-          <motion.div key="home" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <HomePage setPage={setPage} auth={auth} />
-          </motion.div>
-        ) : (
-          <AnimatePresence mode="wait">
-            {step === 1 ? (
-              <motion.div key="step1" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }} transition={{ duration: 0.4, ease: "easeInOut" }}>
-                <FormPage formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo(0,0); }} />
-              </motion.div>
-            ) : (
-              <motion.div key="step2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.4, ease: "easeInOut" }} className="print:mt-10">
-                <PhotoPage auth={auth} formData={formData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo(0,0); }} isDocComplete={isDocComplete} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
+        <AnimatePresence mode="wait" custom={step}>
+          {page === 'home' && (
+            <motion.div key="home" custom={-1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <HomePage setPage={setPage} auth={auth} />
+            </motion.div>
+          )}
+          {page === 'iqc' && step === 1 && (
+            <motion.div key="step1" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <FormPage formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+            </motion.div>
+          )}
+          {page === 'iqc' && step === 2 && (
+            <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit" className="print:mt-10">
+              <PhotoPage auth={auth} formData={formData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
       <style dangerouslySetInnerHTML={{ __html: `@media print { .no-print { display: none !important; } main { display: block !important; padding: 0 !important; overflow: visible !important; } }`}} />
     </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, ListFilter } from 'lucide-react';
+import { Trash2, ListFilter, Loader2 } from 'lucide-react';
 import { GlassCard } from '../components/UIComponents.jsx';
-import { API_URL } from '../App.jsx'; // 🌟 ดึง API_URL มาจาก App
+import { API_URL } from '../App.jsx'; 
 
 export default function HomePage({ setPage, auth }) {
   const [listData, setListData] = useState([]);
@@ -17,7 +17,10 @@ export default function HomePage({ setPage, auth }) {
         if (data.success) { setListData(data.data); setStats(data.stats); }
         setLoading(false); 
       })
-      .catch(err => console.error("Error fetching list:", err));
+      .catch(err => {
+        console.error("Error fetching list:", err);
+        setLoading(false);
+      });
   };
 
   useEffect(() => { fetchList(); }, []);
@@ -25,21 +28,40 @@ export default function HomePage({ setPage, auth }) {
   const handleDelete = async (id) => {
     if(!window.confirm("Admin Warning: ยืนยันการลบ Record นี้พร้อมไฟล์แนบถาวร?")) return;
     try {
+      // Optimistic Delete: ลบออกจากหน้าจอก่อนเลยให้เนียนๆ
+      setListData(prev => prev.filter(item => item.id !== id));
+      
       const res = await fetch(`${API_URL}/api/iqc/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${auth.token}` }});
-      if(res.ok) fetchList();
-      else alert("Error deleting record");
-    } catch(err) { alert(err.message); }
+      if(res.ok) fetchList(); // ซิงค์ข้อมูลสถิติใหม่
+      else { alert("Error deleting record"); fetchList(); } // ถ้ายกเลิกไม่ได้ผล ให้โหลดกลับมา
+    } catch(err) { alert(err.message); fetchList(); }
   }
 
+  // 🌟 เทคนิค Optimistic UI: อัปเดตหน้าจอทันที ไม่ต้องรอเซิร์ฟเวอร์ตอบกลับ!
   const handleStatusChange = async (id, newStatus) => {
+    // 1. จำข้อมูลเก่าไว้เผื่อพัง
+    const previousData = [...listData];
+    
+    // 2. อัปเดต State ให้ UI เปลี่ยนทันที! 
+    setListData(prev => prev.map(item => item.id === id ? { ...item, job_status: newStatus } : item));
+
     try {
+      // 3. ส่งคำสั่งไปคุยกับ Server แบบเงียบๆ
       const res = await fetch(`${API_URL}/api/iqc-status/${id}`, { 
         method: 'PUT', 
         headers: { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      if(res.ok) fetchList(); 
-    } catch(err) { alert("Update failed: " + err.message); }
+      if(!res.ok) throw new Error("Update failed");
+      // ถ้าสำเร็จ ก็ดึงสถิติด้านบนแบบแอบๆ
+      fetch(`${API_URL}/api/iqc-list`, { headers: { 'Authorization': `Bearer ${auth.token}` }})
+        .then(r => r.json()).then(d => { if(d.success) setStats(d.stats); });
+
+    } catch(err) { 
+      // 4. ถ้าเน็ตหลุดหรือเซิร์ฟเวอร์พัง ให้ตีกลับข้อมูลเป็นเหมือนเดิม
+      alert("Update failed: " + err.message); 
+      setListData(previousData); 
+    }
   };
 
   const getWW = (dateString) => {
@@ -69,11 +91,11 @@ export default function HomePage({ setPage, auth }) {
           <p className="text-white/40 text-sm mt-1">ภาพรวมและติดตามสถานะงานตรวจสอบ IQC ทั้งหมด</p>
         </div>
         <div className="flex gap-3 bg-black/40 border border-white/5 rounded-2xl p-2 px-6 shadow-inner">
-          <div className="text-center px-4"><p className="text-[10px] font-bold text-white/40 uppercase">Total</p><p className="text-lg font-black text-white">{stats.total}</p></div>
+          <div className="text-center px-4"><p className="text-[10px] font-bold text-white/40 uppercase">Total</p><p className="text-lg font-black text-white transition-all">{stats.total}</p></div>
           <div className="w-px bg-white/10"></div>
-          <div className="text-center px-4"><p className="text-[10px] font-bold text-emerald-400/70 uppercase">Pass</p><p className="text-lg font-black text-emerald-400">{stats.pass_count}</p></div>
+          <div className="text-center px-4"><p className="text-[10px] font-bold text-emerald-400/70 uppercase">Pass</p><p className="text-lg font-black text-emerald-400 transition-all">{stats.pass_count}</p></div>
           <div className="w-px bg-white/10"></div>
-          <div className="text-center px-4"><p className="text-[10px] font-bold text-rose-400/70 uppercase">Fail</p><p className="text-lg font-black text-rose-400">{stats.fail_count}</p></div>
+          <div className="text-center px-4"><p className="text-[10px] font-bold text-rose-400/70 uppercase">Fail</p><p className="text-lg font-black text-rose-400 transition-all">{stats.fail_count}</p></div>
         </div>
       </div>
 
@@ -100,12 +122,19 @@ export default function HomePage({ setPage, auth }) {
             </thead>
             <tbody className="divide-y divide-white/5">
               {loading ? (
-                <tr><td colSpan="14" className="py-8 text-center text-white/30 font-medium">Loading data...</td></tr>
+                <tr>
+                  <td colSpan="14" className="py-16 text-center text-[#6f7bf7] font-medium">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="animate-spin w-8 h-8" />
+                      <span className="text-white/40 text-xs tracking-widest uppercase">Loading Database...</span>
+                    </div>
+                  </td>
+                </tr>
               ) : listData.length === 0 ? (
-                <tr><td colSpan="14" className="py-8 text-center text-white/30 font-medium">No records found.</td></tr>
+                <tr><td colSpan="14" className="py-12 text-center text-white/30 font-medium">No records found.</td></tr>
               ) : (
                 listData.map((row) => (
-                  <tr key={row.id} className="hover:bg-white/[0.03] transition-colors">
+                  <tr key={row.id} className="hover:bg-white/[0.04] transition-colors duration-200 group">
                     <td className="py-3 px-4 text-white/80 font-medium">{row.location || '-'}</td>
                     <td className="py-3 px-4 text-white/60">#{row.id}</td>
                     <td className="py-3 px-4 text-white/60">{getWW(row.created_at)}</td>
@@ -124,7 +153,7 @@ export default function HomePage({ setPage, auth }) {
                         <select 
                           value={row.job_status || 'Awaiting'} 
                           onChange={(e) => handleStatusChange(row.id, e.target.value)}
-                          className={`appearance-none outline-none cursor-pointer px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wider border text-center text-ellipsis ${getStatusColor(row.job_status)}`}
+                          className={`appearance-none outline-none cursor-pointer px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wider border text-center text-ellipsis transition-all duration-300 hover:brightness-110 ${getStatusColor(row.job_status)}`}
                         >
                           {statusOptions.map(opt => <option key={opt} value={opt} className="bg-[#1a1f35] text-white">{opt}</option>)}
                         </select>
@@ -139,8 +168,8 @@ export default function HomePage({ setPage, auth }) {
                     <td className="py-3 px-4 text-center text-white/60">1</td>
                     
                     {auth.role === 'admin' && (
-                      <td className="py-3 px-4 text-right">
-                        <button onClick={()=>handleDelete(row.id)} className="text-white/20 hover:text-rose-500 transition-colors p-1.5 rounded hover:bg-rose-500/10"><Trash2 size={16}/></button>
+                      <td className="py-3 px-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={()=>handleDelete(row.id)} className="text-white/30 hover:text-rose-500 transition-all p-1.5 rounded hover:bg-rose-500/10 active:scale-95"><Trash2 size={16}/></button>
                       </td>
                     )}
                   </tr>
