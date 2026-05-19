@@ -38,7 +38,10 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     { id: 'pnp3', label: '2.3 Pocket size alignment', th: '', hint: "Must not deviated from 50% of device's width." }
   ];
 
-  const peList = ["Yada Ch.", "Somchai P.", "Natacha K."];
+  const peList = ["Yada Ch.", "Ekaphat W.", "Bhamornkiat Ch.","Kiattisak C.", "Natthakarn P.", "Natdanai Ch", "Weera T.", "Saranyu L."
+    , "Saranyu L.", "Kasipat M.", "Pakapol S.", "Jettanat P.", "Sasiwan L.", "Chayanon S.", "Phongphon P.", "Ekkaraj J.", "Alisa T."
+    , "Warisa P.", "Orawan B.", "Thanapol Pu.", "Peephat Th.", "Kittisak Y.", "Jutamas Ch.", "Chollitha A.", "Kittithon T."
+  ];
   const managerList = ["Aroon S.", "Wichai M."];
 
   const handleChange = (e) => {
