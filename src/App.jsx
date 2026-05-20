@@ -7,7 +7,7 @@ import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
-export const API_URL = "http://localhost:3000"; 
+export const API_URL = "https://iqc-api-server.onrender.com"; 
 
 export default function App() {
   const [auth, setAuth] = useState(() => {
