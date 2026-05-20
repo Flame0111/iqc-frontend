@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play, User, MapPin, Hash, Calendar } from 'lucide-react';
 import { GlassCard } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx'; 
 
-export default function HomePage({ auth, triggerRefresh }) {
+export default function HomePage({ setPage, auth, triggerRefresh }) {
   const [listData, setListData] = useState([]);
   const [stats, setStats] = useState({ total: 0, pass_count: 0, fail_count: 0 });
   const [loading, setLoading] = useState(true);
-
-  // 🌟 ฟีเจอร์ย่อตาราง (Minify Compact Mode) เพื่ออัด Data ให้แน่นขึ้น
   const [isCompact, setIsCompact] = useState(false);
-
-  // 🌟 NEW DATA STATE: สำหรับหน้าต่างเก็บคิวงานเปลี่ยนพิน
   const [pinChangeQueue, setPinChangeQueue] = useState([]);
   const [alertCount, setAlertCount] = useState(0);
 
@@ -24,14 +21,12 @@ export default function HomePage({ auth, triggerRefresh }) {
       .catch(err => console.error(err));
   };
 
-  // 🌟 ดึงข้อมูลคิวงานเปลี่ยนพินและคำนวณตัวแจ้งเตือน Alert
   const fetchPinChangeQueue = () => {
     fetch(`${API_URL}/api/pin-change-list`, { headers: { 'Authorization': `Bearer ${auth.token}` }})
       .then(res => res.json())
       .then(data => {
         if (data.success) {
           setPinChangeQueue(data.data);
-          // นับจำนวนเฉพาะงานที่เป็น 'Awaiting' เพื่อทำ Live Alert Badge เม็ดกระดุมแจ้งเตือน
           const newAlerts = data.data.filter(item => item.status === 'Awaiting').length;
           setAlertCount(newAlerts);
         }
@@ -63,40 +58,24 @@ export default function HomePage({ auth, triggerRefresh }) {
     } catch(err) { setListData(previousData); }
   };
 
-  // ==========================================
-  // 🚀 PIN CHANGING HANDLER CORE LOGIC
-  // ==========================================
-
-  // ฟังก์ชันกดรับงานเปลี่ยนพิน (สำหรับสิทธิ์ User และ Admin) -> เปลี่ยนเป็น Pending ทันทีแบบ Auto
   const handleAcceptPinRequest = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/api/pin-change-accept/${id}`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${auth.token}` }
-      });
-      if(res.ok) fetchPinChangeQueue(); // โหลดอัปเดตคิวงานใหม่ทันที
+      const res = await fetch(`${API_URL}/api/pin-change-accept/${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${auth.token}` } });
+      if(res.ok) fetchPinChangeQueue(); 
     } catch(err) { alert(err.message); }
   };
 
-  // ฟังก์ชันอัปเดตสถานะเปลี่ยนพินเสร็จสิ้น -> เปลี่ยนเป็น Done (สำหรับสิทธิ์ User และ Admin)
   const handleCompletePinRequest = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/api/pin-change-complete/${id}`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${auth.token}` }
-      });
+      const res = await fetch(`${API_URL}/api/pin-change-complete/${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${auth.token}` } });
       if(res.ok) fetchPinChangeQueue();
     } catch(err) { alert(err.message); }
   };
 
-  // ฟังก์ชันสั่งลบคิวงานเปลี่ยนพินทิ้งออกจากฐานข้อมูลหลังบ้าน (สิทธิ์แอดมินสูงสุด)
   const handleDeletePinRequest = async (id) => {
     if(!window.confirm("Admin Warning: ยืนยันการลบคิว Request เปลี่ยนพินชิ้นนี้?")) return;
     try {
-      const res = await fetch(`${API_URL}/api/pin-change/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${auth.token}` }
-      });
+      const res = await fetch(`${API_URL}/api/pin-change/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${auth.token}` } });
       if(res.ok) fetchPinChangeQueue();
     } catch (err) { alert(err.message); }
   };
@@ -119,120 +98,40 @@ export default function HomePage({ auth, triggerRefresh }) {
   };
 
   return (
-    <div className="space-y-10 w-full">
+    <div className="flex flex-col xl:flex-row gap-6 w-full items-start fade-in">
       
       {/* ========================================================= */}
-      {/* 🚀 WINDOWS 1: หน้าต่างคิวงาน REQUEST PIN CHANGING QUEUE   */}
+      {/* 📊 LEFT/CENTER AREA: PRIMARY IQC STATUS QUERY LIST (75%)  */}
       {/* ========================================================= */}
-      <GlassCard className="border-fuchsia-500/20">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-fuchsia-500/20 flex items-center justify-center text-fuchsia-400 relative">
-              <Cpu size={20} />
-              {/* 🔔 Live Alert Badge: ขึ้นจุดนับเตือนออโต้เมื่อมีงาน Awaiting ขาเข้า */}
-              {alertCount > 0 && (
-                <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -top-1.5 -right-1.5 bg-rose-500 border border-black text-white text-[9px] px-1.5 py-0.5 rounded-full font-black flex items-center gap-1 shadow-lg">
-                  <Bell size={8} className="animate-bounce" /> {alertCount}
-                </motion.span>
-              )}
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">Pin Changing Request Queue</h2>
-              <p className="text-white/40 text-xs mt-0.5">หน้าต่างตรวจสอบคิวคำขอและอนุมัติอัปเดตสถานะรับพินเปลี่ยน</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ตารางงานคิวเปลี่ยนพิน */}
-        <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30 max-h-64 custom-scrollbar">
-          <table className="w-full text-sm min-w-[900px]">
-            <thead>
-              <tr className="bg-white/5 border-b border-white/10 text-left">
-                <th className="py-3 px-4 text-[11px] font-bold text-white/50 uppercase tracking-wider">Req ID</th>
-                <th className="py-3 px-4 text-[11px] font-bold text-white/50 uppercase tracking-wider">Loc</th>
-                <th className="py-3 px-4 text-[11px] font-bold text-white/50 uppercase tracking-wider">Contac No.</th>
-                <th className="py-3 px-4 text-[11px] font-bold text-white/50 uppercase tracking-wider">Contac S/N</th>
-                <th className="py-3 px-4 text-[11px] font-bold text-white/50 uppercase tracking-wider">Requested By</th>
-                <th className="py-3 px-4 text-[11px] font-bold text-white/50 uppercase tracking-wider">Accepted By</th>
-                <th className="py-3 px-4 text-center text-[11px] font-bold text-white/50 uppercase tracking-wider">Status</th>
-                <th className="py-3 px-4 text-left text-[11px] font-bold text-white/50 uppercase tracking-wider">Timestamp</th>
-                <th className="py-3 px-4 text-center text-[11px] font-bold text-white/50 uppercase tracking-wider">Workflows Management</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {pinChangeQueue.length === 0 ? (
-                <tr><td colSpan="9" className="py-6 text-center text-white/30 text-xs">No active pin changing requests in queue.</td></tr>
-              ) : (
-                pinChangeQueue.map((req) => (
-                  <tr key={req.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3 px-4 text-fuchsia-400 font-bold">#PC-{req.id}</td>
-                    <td className="py-3 px-4 text-white font-black">{req.location}</td>
-                    <td className="py-3 px-4 text-white/80">{req.contac_no}</td>
-                    <td className="py-3 px-4 text-white/60">{req.contac_sn || '-'}</td>
-                    <td className="py-3 px-4 text-white/70">{req.requested_by}</td>
-                    <td className="py-3 px-4 text-amber-400 text-xs font-medium">{req.accepted_by || '-'}</td>
-                    <td className="py-2 px-2 text-center">
-                      <span className={`inline-block px-2.5 py-1 rounded-lg text-[9px] font-black tracking-widest border uppercase ${getStatusColor(req.status)}`}>
-                        {req.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-white/40 text-xs">{new Date(req.created_at).toLocaleString('en-GB')}</td>
-                    
-                    {/* 🌟 ส่วนควบคุมการกดเปลี่ยนสิทธิ์ตามบทบาทที่ได้รับมอบหมาย */}
-                    <td className="py-2 px-4 text-center">
-                      {auth.role === 'viewer' ? (
-                        <span className="text-[10px] text-white/20 font-bold uppercase">View Only</span>
-                      ) : (
-                        <div className="flex justify-center items-center gap-1.5">
-                          {req.status === 'Awaiting' && (
-                            <button onClick={() => handleAcceptPinRequest(req.id)} className="bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] font-black tracking-widest uppercase px-3 py-1.5 rounded-lg hover:bg-amber-500 hover:text-black transition-all flex items-center gap-1">
-                              <Play size={10} /> Accept Job
-                            </button>
-                          )}
-                          {req.status === 'Pending' && (
-                            <button onClick={() => handleCompletePinRequest(req.id)} className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-black tracking-widest uppercase px-3 py-1.5 rounded-lg hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-1">
-                              <Check size={10} /> Mark Done
-                            </button>
-                          )}
-                          {req.status === 'Done' && (
-                            <span className="text-[10px] text-emerald-400/50 font-bold uppercase tracking-wider flex items-center gap-1"><Check size={10}/> Finished</span>
-                          )}
-                          {auth.role === 'admin' && (
-                            <button onClick={() => handleDeletePinRequest(req.id)} className="text-white/20 hover:text-rose-400 p-1 rounded ml-2"><Trash2 size={12}/></button>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </GlassCard>
-
-      {/* ========================================================= */}
-      {/* 📊 WINDOWS 2: หน้าต่างตารางตรวจสอบสถิติหลัก IQC PROTOCOL   */}
-      {/* ========================================================= */}
-      <div>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="w-full xl:w-[75%] flex flex-col gap-4 min-w-0">
+        
+        {/* Header Section for IQC List */}
+        <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-2">
           <div>
-            <h1 className="text-3xl font-black text-white flex items-center gap-3"><ListFilter className="text-[#6f7bf7]"/> Primary Status Query List</h1>
-            <p className="text-white/40 text-sm mt-1">ฐานข้อมูลกลางสำหรับบันทึกและจัดการใบตรวจสอบคุณภาพขาเข้าทั้งหมด</p>
+            <h1 className="text-3xl font-black text-white flex items-center gap-3"><ListFilter className="text-[#6f7bf7]"/> Primary Status Query</h1>
+            <p className="text-white/40 text-sm mt-1">ฐานข้อมูลจัดการใบตรวจสอบคุณภาพและสถานะงานทั้งหมด</p>
           </div>
           
-          {/* 🌟 ปุ่มบีบ/ย่อตารางหลักย่อตัวย่อใจ (Compact Mode Toggle Toggle) */}
-          <button 
-            onClick={() => setIsCompact(!isCompact)} 
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase border transition-all no-print ${isCompact ? 'bg-[#6f7bf7]/20 border-[#6f7bf7] text-[#6f7bf7]' : 'bg-white/5 border-white/10 text-white/60 hover:text-white'}`}
-            title={isCompact ? "Switch to Normal Row View" : "Switch to Compact Minified View"}
-          >
-            {isCompact ? <Maximize2 size={14} /> : <Minimize2 size={14} />} 
-            {isCompact ? "NORMAL VIEW" : "COMPACT MINIFY"}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex gap-3 bg-black/40 border border-white/5 rounded-2xl p-2 px-4 shadow-inner">
+              <div className="text-center px-3"><p className="text-[10px] font-bold text-white/40 uppercase">Total</p><p className="text-lg font-black text-white">{stats.total}</p></div>
+              <div className="w-px bg-white/10"></div>
+              <div className="text-center px-3"><p className="text-[10px] font-bold text-emerald-400/70 uppercase">Pass</p><p className="text-lg font-black text-emerald-400">{stats.pass_count}</p></div>
+              <div className="w-px bg-white/10"></div>
+              <div className="text-center px-3"><p className="text-[10px] font-bold text-rose-400/70 uppercase">Fail</p><p className="text-lg font-black text-rose-400">{stats.fail_count}</p></div>
+            </div>
+
+            <button 
+              onClick={() => setIsCompact(!isCompact)} 
+              className={`flex items-center justify-center gap-2 h-[52px] px-4 rounded-xl text-xs font-black tracking-widest uppercase border transition-all no-print ${isCompact ? 'bg-[#6f7bf7]/20 border-[#6f7bf7] text-[#6f7bf7]' : 'bg-white/5 border-white/10 text-white/60 hover:text-white'}`}
+            >
+              {isCompact ? <Maximize2 size={14} /> : <Minimize2 size={14} />} 
+              <span className="hidden sm:block">{isCompact ? "NORMAL" : "COMPACT"}</span>
+            </button>
+          </div>
         </div>
 
-        <GlassCard className="!p-4 md:!p-6 overflow-hidden flex flex-col">
+        <GlassCard className="!p-4 overflow-hidden flex flex-col">
           <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/20 pb-2 custom-scrollbar">
             <table className="w-full text-sm min-w-[1200px] transition-all">
               <thead>
@@ -259,12 +158,12 @@ export default function HomePage({ auth, triggerRefresh }) {
                     <td colSpan="14" className="py-16 text-center text-[#6f7bf7] font-medium">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <Loader2 className="animate-spin w-8 h-8" />
-                        <span className="text-white/40 text-xs tracking-widest uppercase">Loading Systems Database...</span>
+                        <span className="text-white/40 text-xs tracking-widest uppercase">Loading Systems...</span>
                       </div>
                     </td>
                   </tr>
                 ) : listData.length === 0 ? (
-                  <tr><td colSpan="14" className="py-12 text-center text-white/30 font-medium">No records found inside core systems.</td></tr>
+                  <tr><td colSpan="14" className="py-12 text-center text-white/30 font-medium">No records found.</td></tr>
                 ) : (
                   listData.map((row) => (
                     <tr key={row.id} className="hover:bg-white/[0.04] transition-all duration-200 group">
@@ -313,6 +212,92 @@ export default function HomePage({ auth, triggerRefresh }) {
           </div>
         </GlassCard>
       </div>
+
+      {/* ========================================================= */}
+      {/* 🚀 RIGHT AREA: PIN CHANGING REQUEST QUEUE (25%)           */}
+      {/* ========================================================= */}
+      <div className="w-full xl:w-[25%] flex flex-col shrink-0 min-w-0">
+        <GlassCard className="border-fuchsia-500/30 !p-5 sticky top-24">
+          <div className="flex items-center justify-between mb-5 border-b border-white/5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-fuchsia-500/20 flex items-center justify-center text-fuchsia-400 relative shrink-0">
+                <Cpu size={20} />
+                {alertCount > 0 && (
+                  <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -top-1.5 -right-1.5 bg-rose-500 border border-black text-white text-[9px] px-1.5 py-0.5 rounded-full font-black flex items-center gap-1 shadow-lg">
+                    <Bell size={8} className="animate-bounce" /> {alertCount}
+                  </motion.span>
+                )}
+              </div>
+              <div>
+                <h2 className="text-sm font-black text-white uppercase tracking-wider leading-tight">Pin Changing<br/>Queue</h2>
+              </div>
+            </div>
+            <span className="text-[10px] bg-white/5 px-2 py-1 rounded-lg text-white/40 font-bold">{pinChangeQueue.length} Req</span>
+          </div>
+
+          {/* 🌟 แสดงเป็น Feed Card แนวตั้งเพื่อให้พอดีกับ Sidebar โดยไม่ตกหล่นข้อมูลใดๆ */}
+          <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar pr-1">
+            {pinChangeQueue.length === 0 ? (
+              <div className="py-8 text-center border border-dashed border-white/10 rounded-xl">
+                <p className="text-white/30 text-xs font-medium">No active pin requests.</p>
+              </div>
+            ) : (
+              pinChangeQueue.map((req) => (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={req.id} className="bg-black/30 border border-white/5 rounded-xl p-4 hover:border-white/10 hover:bg-white/[0.03] transition-all group relative">
+                  
+                  {/* Card Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="text-fuchsia-400 font-black text-sm tracking-wider">#PC-{req.id}</span>
+                    <span className={`inline-block px-2 py-0.5 rounded-md text-[9px] font-black tracking-widest uppercase border ${getStatusColor(req.status)}`}>
+                      {req.status}
+                    </span>
+                  </div>
+
+                  {/* Card Body (All Data Included) */}
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-4">
+                    <div><p className="text-[9px] font-bold text-white/40 uppercase flex items-center gap-1"><MapPin size={10}/> Location</p><p className="text-xs text-white font-bold">{req.location}</p></div>
+                    <div><p className="text-[9px] font-bold text-white/40 uppercase flex items-center gap-1"><Hash size={10}/> Contac No</p><p className="text-xs text-white/80">{req.contac_no}</p></div>
+                    <div className="col-span-2"><p className="text-[9px] font-bold text-white/40 uppercase flex items-center gap-1"><Hash size={10}/> Contac S/N</p><p className="text-xs text-white/60">{req.contac_sn || '-'}</p></div>
+                    
+                    <div><p className="text-[9px] font-bold text-white/40 uppercase flex items-center gap-1"><User size={10}/> Req By</p><p className="text-[11px] text-white/70">{req.requested_by}</p></div>
+                    <div><p className="text-[9px] font-bold text-white/40 uppercase flex items-center gap-1"><Check size={10}/> Acc By</p><p className="text-[11px] text-amber-400 font-medium">{req.accepted_by || '-'}</p></div>
+                    
+                    <div className="col-span-2"><p className="text-[9px] font-bold text-white/40 uppercase flex items-center gap-1"><Calendar size={10}/> Timestamp</p><p className="text-[10px] text-white/40">{new Date(req.created_at).toLocaleString('en-GB')}</p></div>
+                  </div>
+
+                  {/* Card Footer (Actions) */}
+                  <div className="pt-3 border-t border-white/5 flex justify-end gap-2 items-center">
+                    {auth.role === 'admin' && (
+                       <button onClick={() => handleDeletePinRequest(req.id)} className="text-white/20 hover:text-rose-400 p-1.5 rounded mr-auto hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12}/></button>
+                    )}
+
+                    {auth.role === 'viewer' ? (
+                      <span className="text-[9px] text-white/20 font-bold uppercase tracking-widest px-2 py-1 bg-white/5 rounded-md">View Only</span>
+                    ) : (
+                      <>
+                        {req.status === 'Awaiting' && (
+                          <button onClick={() => handleAcceptPinRequest(req.id)} className="w-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] font-black tracking-widest uppercase px-3 py-2 rounded-lg hover:bg-amber-500 hover:text-black transition-all flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.2)] hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                            <Play size={12} fill="currentColor" /> Accept Request
+                          </button>
+                        )}
+                        {req.status === 'Pending' && (
+                          <button onClick={() => handleCompletePinRequest(req.id)} className="w-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-black tracking-widest uppercase px-3 py-2 rounded-lg hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                            <Check size={12} strokeWidth={3} /> Mark as Done
+                          </button>
+                        )}
+                        {req.status === 'Done' && (
+                          <span className="w-full text-[10px] text-emerald-400/30 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 py-1"><Check size={12}/> Finished</span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        </GlassCard>
+      </div>
+
     </div>
   );
 }
