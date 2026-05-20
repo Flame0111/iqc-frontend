@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Printer, Home, ClipboardList, LogOut, Lock, LayoutDashboard } from 'lucide-react';
+import { Printer, Home, ClipboardList, LogOut, Lock, LayoutDashboard, Cpu, Plus } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
 import HomePage from './pages/HomePage.jsx';
 import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
-export const API_URL = "https://iqc-api-server.onrender.com"; 
+export const API_URL = "http://localhost:3000"; 
 
 export default function App() {
   const [auth, setAuth] = useState(() => {
@@ -22,6 +22,11 @@ export default function App() {
   const [step, setStep] = useState(1);
   const [uploadedDocs, setUploadedDocs] = useState({ pkg: [], sck: [], pin: [], mnt: [] });
   const [uploadedImages, setUploadedImages] = useState({});
+  
+  // 🌟 State ควบคุมหน้าต่างป๊อปอัพคำขอส่งใบเปลี่ยนพิน
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [pinRequestForm, setPinRequestForm] = useState({ location: '', contac_no: '', contac_sn: '' });
+  const [triggerRefresh, setTriggerRefresh] = useState(0);
 
   const [formData, setFormData] = useState({
     hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "",
@@ -62,6 +67,25 @@ export default function App() {
     localStorage.removeItem('iqc_auth');
   };
 
+  // ส่งใบคำขอไปเก็บยังคิวของฐานข้อมูลหลังบ้าน
+  const handlePinRequestSubmit = async (e) => {
+    e.preventDefault();
+    if(!pinRequestForm.location || !pinRequestForm.contac_no) return alert("Please fill in location and Contac No.");
+    try {
+      const res = await fetch(`${API_URL}/api/pin-change-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token}` },
+        body: JSON.stringify(pinRequestForm)
+      });
+      if(res.ok) {
+        alert("✅ Request Pin Changing Submitted Successfully!");
+        setPinRequestForm({ location: '', contac_no: '', contac_sn: '' });
+        setIsPinModalOpen(false);
+        setTriggerRefresh(prev => prev + 1); // ยิงสัญญาณรีเฟรชตารางหน้า Home อัตโนมัติ
+      }
+    } catch (err) { alert(err.message); }
+  };
+
   const resetFormAndGoHome = () => {
     setFormData({
       hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "",
@@ -71,7 +95,7 @@ export default function App() {
     setUploadedImages({});
     setStep(1);
     setPage('home');
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // 🌟 เลื่อนจอกลับขึ้นบนแบบสมูท
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (!auth) {
@@ -95,7 +119,6 @@ export default function App() {
     );
   }
 
-  // 🌟 แอนิเมชันตอนเปลี่ยนหน้า (ใช้แบบ Spring ให้นุ่มขึ้น)
   const pageVariants = {
     initial: (direction) => ({ opacity: 0, x: direction > 0 ? 30 : -30 }),
     animate: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 200, damping: 20 } },
@@ -110,39 +133,46 @@ export default function App() {
 
       <header className="fixed top-0 inset-x-0 z-[999] bg-black/40 backdrop-blur-3xl border-b border-white/5 no-print shadow-sm">
         <div className="max-w-[1500px] mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4 w-[25%]">
+          
+          <div className="flex items-center gap-4 w-[20%]">
             <img src={logoUtac} alt="UTAC" className="h-10 w-auto object-contain" />
-            <div className="h-8 w-px bg-white/10 mx-1 hidden lg:block"></div>
-            <h1 className="text-xl font-black text-white uppercase tracking-tighter hidden lg:block">IQC Protocol</h1>
+            <h1 className="text-xl font-black text-white uppercase tracking-tighter hidden lg:block">IQC Hub</h1>
           </div>
           
-          <div className="flex justify-center gap-3 w-[50%]">
-            <button onClick={() => { setPage('home'); setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}>
-              <LayoutDashboard size={16} /> Status Query
+          {/* 🌟 Center Menu: มีปุ่มเปิด Request Pin Changing โชว์เด่นอยู่ตรงกลางสำหรับทุกๆ Role */}
+          <div className="flex justify-center items-center gap-3 w-[60%]">
+            <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+              <LayoutDashboard size={14} /> Status Query
             </button>
+
+            {/* ปุ่มเวทมนตร์ส่งคำขอเปลี่ยนพิน เปิดสิทธิ์เสรีภาพให้ทุกสิทธิ์กดได้จากใจกลางแดชบอร์ด */}
+            <button onClick={() => setIsPinModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all bg-fuchsia-600/80 hover:bg-fuchsia-600 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)]">
+              <Cpu size={14} /> Request Pin Changing
+            </button>
+            
             {auth.role !== 'viewer' && (
-              <button onClick={() => { setPage('iqc'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}>
-                <ClipboardList size={16} /> + New IQC Form
+              <button onClick={() => { setPage('iqc'); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                <ClipboardList size={14} /> + IQC Form
               </button>
             )}
           </div>
 
-          <div className="flex justify-end items-center gap-3 w-[25%]">
-             <div className="hidden md:flex flex-col text-right justify-center pr-3 border-r border-white/10">
+          <div className="flex justify-end items-center gap-3 w-[20%]">
+             <div className="hidden xl:flex flex-col text-right justify-center pr-3 border-r border-white/10">
                <span className="text-xs font-bold text-white leading-tight">{auth.name}</span>
                <span className="text-[9px] uppercase tracking-widest text-[#6f7bf7]">{auth.role}</span>
              </div>
-             <button onClick={() => window.print()} className="bg-white/10 p-2.5 rounded-xl border border-white/10 hover:bg-white/20 transition-all text-white/70 hover:text-white"><Printer size={18}/></button>
+             <button onClick={() => window.print()} className="bg-white/10 p-2.5 rounded-xl border border-white/10 hover:bg-white/20 transition-all text-white/70"><Printer size={18}/></button>
              <button onClick={handleLogout} className="bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"><LogOut size={18}/></button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-[1500px] mx-auto px-4 md:px-8 pt-32 pb-40 print:p-0 print:pb-0">
+      <main className="max-w-[1540px] mx-auto px-4 md:px-6 pt-32 pb-40 print:p-0">
         <AnimatePresence mode="wait" custom={step}>
           {page === 'home' && (
-            <motion.div key="home" custom={-1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <HomePage setPage={setPage} auth={auth} />
+            <motion.div key={`home_${triggerRefresh}`} custom={-1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <HomePage setPage={setPage} auth={auth} triggerRefresh={triggerRefresh} />
             </motion.div>
           )}
           {page === 'iqc' && step === 1 && (
@@ -151,13 +181,38 @@ export default function App() {
             </motion.div>
           )}
           {page === 'iqc' && step === 2 && (
-            <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit" className="print:mt-10">
+            <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <PhotoPage auth={auth} formData={formData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
             </motion.div>
           )}
         </AnimatePresence>
       </main>
-      <style dangerouslySetInnerHTML={{ __html: `@media print { .no-print { display: none !important; } main { display: block !important; padding: 0 !important; overflow: visible !important; } }`}} />
+
+      {/* 🌟 WINDOWS MODAL OVERLAY: หน้าต่างป๊อปอัพสำหรับสร้าง Request Pin Changing */}
+      <AnimatePresence>
+        {isPinModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="w-full max-w-md">
+              <GlassCard className="!p-8 relative border-fuchsia-500/30">
+                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                  <Cpu className="text-fuchsia-400" />
+                  <h3 className="text-lg font-black text-white uppercase tracking-widest">Pin Changing Request</h3>
+                </div>
+                <form onSubmit={handlePinRequestSubmit} className="space-y-5">
+                  <GlassInput name="location" label="Machine Location *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. LC-04" />
+                  <GlassInput name="contac_no" label="Contac No. *" value={pinRequestForm.contac_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, contac_no: e.target.value})} placeholder="e.g. CON-9981" />
+                  <GlassInput name="contac_sn" label="Contac S/N" value={pinRequestForm.contac_sn} onChange={(e)=>setPinRequestForm({...pinRequestForm, contac_sn: e.target.value})} placeholder="e.g. SN-8827" />
+                  
+                  <div className="flex gap-3 pt-4">
+                    <button type="button" onClick={() => setIsPinModalOpen(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-3.5 rounded-xl transition-all">CANCEL</button>
+                    <button type="submit" className="flex-1 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:brightness-110 text-white text-xs font-black tracking-widest uppercase py-3.5 rounded-xl transition-all flex items-center justify-center gap-1"><Plus size={14}/> SUBMIT REQ</button>
+                  </div>
+                </form>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
