@@ -73,7 +73,7 @@ export default function App() {
   const handlePinRequestSubmit = async (e) => {
     e.preventDefault();
     if(!pinRequestForm.location || !pinRequestForm.pin_no || !pinRequestForm.req_name) {
-      return alert("Please fill in Machine Number, Pin No. and Requester Name.");
+      return alert("Please fill in Machine Name, Pin No. and Requester Name.");
     }
     try {
       const res = await fetch(`${API_URL}/api/pin-change-request`, {
@@ -213,16 +213,16 @@ export default function App() {
                 </div>
                 {/* 🌟 เพิ่มช่อง Customer Name และ Requester Name พร้อมปรับ Label M/C No */}
                 <form onSubmit={handlePinRequestSubmit} className="space-y-4">
-                  <GlassInput name="location" label="Machine Number *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. MC-01" />
+                  <GlassInput name="location" label="Machine Name *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. EXCEED-03" />
                   
                   <div className="grid grid-cols-2 gap-4">
                     <GlassInput name="customer_name" label="Customer Name" value={pinRequestForm.customer_name} onChange={(e)=>setPinRequestForm({...pinRequestForm, customer_name: e.target.value})} placeholder="e.g. SONY" />
                     <GlassInput name="req_name" label="Requester Name *" value={pinRequestForm.req_name} onChange={(e)=>setPinRequestForm({...pinRequestForm, req_name: e.target.value})} placeholder="e.g. Somchai" />
                   </div>
 
-                  <GlassInput name="pin_no" label="Pin No. *" value={pinRequestForm.pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, pin_no: e.target.value})} placeholder="e.g. PIN-9981" />
-                  <GlassInput name="stock_pin_no" label="Stock Pin No." value={pinRequestForm.stock_pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, stock_pin_no: e.target.value})} placeholder="e.g. STK-8827" />
-                  <GlassInput name="name_socket" label="Name Socket" value={pinRequestForm.name_socket} onChange={(e)=>setPinRequestForm({...pinRequestForm, name_socket: e.target.value})} placeholder="e.g. Socket A" />
+                  <GlassInput name="pin_no" label="Pin No. *" value={pinRequestForm.pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, pin_no: e.target.value})} placeholder="e.g. PIN NUMBER" />
+                  <GlassInput name="stock_pin_no" label="Stock Pin No." value={pinRequestForm.stock_pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, stock_pin_no: e.target.value})} placeholder="SOCKET NUMBER" />
+                  <GlassInput name="name_socket" label="Name Socket" value={pinRequestForm.name_socket} onChange={(e)=>setPinRequestForm({...pinRequestForm, name_socket: e.target.value})} placeholder="SOCKET NAME" />
                   
                   <div className="flex gap-3 pt-4">
                     <button type="button" onClick={() => setIsPinModalOpen(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-3.5 rounded-xl transition-all">CANCEL</button>
