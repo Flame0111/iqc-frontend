@@ -114,7 +114,7 @@ export default function PhotoPage({
                 className="bg-[#0f111a] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold cursor-pointer flex justify-between items-center shadow-inner hover:border-[#6f7bf7]/50 transition-all"
               >
                 <span className={formData.checkedBy ? "text-white" : "text-white/40"}>
-                  {formData.checkedBy || "-- เลือกชื่อ --"}
+                  {formData.checkedBy || "Select Name"}
                 </span>
                 <ChevronDown size={16} className={`text-white/40 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-[#6f7bf7]' : ''}`} />
               </div>
@@ -128,7 +128,7 @@ export default function PhotoPage({
                     transition={{ duration: 0.2 }}
                     className="absolute top-full left-0 right-0 mt-2 bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[999]"
                   >
-                    {["Benyathip C.", "Kanyarat N."].map((name) => (
+                    {["Benyathip C.", "Sukkasem S."].map((name) => (
                       <div 
                         key={name}
                         onClick={() => {
