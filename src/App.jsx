@@ -7,7 +7,7 @@ import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
-export const API_URL = "https://iqc-api-server.onrender.com"; 
+export const API_URL = "https://ชื่อแอปของคุณเฟม.onrender.com"; // 🔴 เปลี่ยนลิงก์ Render ตรงนี้
 
 export default function App() {
   const [auth, setAuth] = useState(() => {
@@ -23,9 +23,10 @@ export default function App() {
   const [uploadedDocs, setUploadedDocs] = useState({ pkg: [], sck: [], pin: [], mnt: [] });
   const [uploadedImages, setUploadedImages] = useState({});
   
-  // 🌟 State ควบคุมหน้าต่างป๊อปอัพคำขอส่งใบเปลี่ยนพิน
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  const [pinRequestForm, setPinRequestForm] = useState({ location: '', contac_no: '', contac_sn: '' });
+  
+  // 🌟 ใช้โครงสร้างข้อมูลใหม่
+  const [pinRequestForm, setPinRequestForm] = useState({ location: '', pin_no: '', stock_pin_no: '', name_socket: '' });
   const [triggerRefresh, setTriggerRefresh] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -67,10 +68,9 @@ export default function App() {
     localStorage.removeItem('iqc_auth');
   };
 
-  // ส่งใบคำขอไปเก็บยังคิวของฐานข้อมูลหลังบ้าน
   const handlePinRequestSubmit = async (e) => {
     e.preventDefault();
-    if(!pinRequestForm.location || !pinRequestForm.contac_no) return alert("Please fill in location and Contac No.");
+    if(!pinRequestForm.location || !pinRequestForm.pin_no) return alert("Please fill in location and Pin No.");
     try {
       const res = await fetch(`${API_URL}/api/pin-change-request`, {
         method: 'POST',
@@ -78,10 +78,10 @@ export default function App() {
         body: JSON.stringify(pinRequestForm)
       });
       if(res.ok) {
-        alert("✅ Request Pin Changing Submitted Successfully!");
-        setPinRequestForm({ location: '', contac_no: '', contac_sn: '' });
+        setPinRequestForm({ location: '', pin_no: '', stock_pin_no: '', name_socket: '' });
         setIsPinModalOpen(false);
-        setTriggerRefresh(prev => prev + 1); // ยิงสัญญาณรีเฟรชตารางหน้า Home อัตโนมัติ
+        // 🌟 ยิงคำสั่งให้หน้าตารางรีเฟรชทันที
+        setTriggerRefresh(prev => prev + 1); 
       }
     } catch (err) { alert(err.message); }
   };
@@ -139,13 +139,11 @@ export default function App() {
             <h1 className="text-xl font-black text-white uppercase tracking-tighter hidden lg:block">IQC Hub</h1>
           </div>
           
-          {/* 🌟 Center Menu: มีปุ่มเปิด Request Pin Changing โชว์เด่นอยู่ตรงกลางสำหรับทุกๆ Role */}
           <div className="flex justify-center items-center gap-3 w-[60%]">
             <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <LayoutDashboard size={14} /> Status Query
             </button>
 
-            {/* ปุ่มเวทมนตร์ส่งคำขอเปลี่ยนพิน เปิดสิทธิ์เสรีภาพให้ทุกสิทธิ์กดได้จากใจกลางแดชบอร์ด */}
             <button onClick={() => setIsPinModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all bg-fuchsia-600/80 hover:bg-fuchsia-600 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)]">
               <Cpu size={14} /> Request Pin Changing
             </button>
@@ -188,7 +186,6 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* 🌟 WINDOWS MODAL OVERLAY: หน้าต่างป๊อปอัพสำหรับสร้าง Request Pin Changing */}
       <AnimatePresence>
         {isPinModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
@@ -198,10 +195,12 @@ export default function App() {
                   <Cpu className="text-fuchsia-400" />
                   <h3 className="text-lg font-black text-white uppercase tracking-widest">Pin Changing Request</h3>
                 </div>
+                {/* 🌟 อัปเดตฟอร์มให้ตรงกับฟิลด์ใหม่ทั้งหมด */}
                 <form onSubmit={handlePinRequestSubmit} className="space-y-5">
                   <GlassInput name="location" label="Machine Location *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. LC-04" />
-                  <GlassInput name="contac_no" label="Contac No. *" value={pinRequestForm.contac_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, contac_no: e.target.value})} placeholder="e.g. CON-9981" />
-                  <GlassInput name="contac_sn" label="Contac S/N" value={pinRequestForm.contac_sn} onChange={(e)=>setPinRequestForm({...pinRequestForm, contac_sn: e.target.value})} placeholder="e.g. SN-8827" />
+                  <GlassInput name="pin_no" label="Pin No. *" value={pinRequestForm.pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, pin_no: e.target.value})} placeholder="e.g. PIN-9981" />
+                  <GlassInput name="stock_pin_no" label="Stock Pin No." value={pinRequestForm.stock_pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, stock_pin_no: e.target.value})} placeholder="e.g. STK-8827" />
+                  <GlassInput name="name_socket" label="Name Socket" value={pinRequestForm.name_socket} onChange={(e)=>setPinRequestForm({...pinRequestForm, name_socket: e.target.value})} placeholder="e.g. Socket A" />
                   
                   <div className="flex gap-3 pt-4">
                     <button type="button" onClick={() => setIsPinModalOpen(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-3.5 rounded-xl transition-all">CANCEL</button>
