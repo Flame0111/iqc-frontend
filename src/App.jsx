@@ -7,7 +7,7 @@ import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
-export const API_URL = "https://ชื่อแอปของคุณเฟม.onrender.com"; // 🔴 เปลี่ยนลิงก์ Render ตรงนี้
+export const API_URL = "https://iqc-api-server.onrender.com"; // 🔴 เปลี่ยนลิงก์ Render ตรงนี้
 
 export default function App() {
   const [auth, setAuth] = useState(() => {
