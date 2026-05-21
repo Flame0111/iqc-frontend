@@ -11,6 +11,9 @@ export default function PhotoPage({
 }) {
   const resultOptions = ["PASS", "FAIL"];
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 🌟 State สำหรับเปิด/ปิด Dropdown แบบ Custom
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const submitToDatabase = async () => {
     if (!isDocComplete) return;
@@ -19,7 +22,6 @@ export default function PhotoPage({
     try {
       const payload = new FormData();
       
-      // 🌟 ดึงค่าจาก formData หลักส่งไป API ได้เลย ไม่ต้อง Hack ด้วย State ปลอมแล้ว
       const textData = { 
         ...formData, 
         finalResult: formData.finalResult || "PASS", 
@@ -101,23 +103,51 @@ export default function PhotoPage({
           <div className="flex gap-6 w-full md:w-2/3 items-end">
             <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" value="Good Condition" gridClass="flex-1" />
             
-            {/* 🌟 กล่องเลือกชื่อ (ใช้ formData จาก App.jsx) */}
-            <div className="relative flex flex-col w-48 z-50">
+            {/* 🌟 Custom Dropdown: สวยงาม คุม Style ได้ 100% และเซฟข้อมูลลง State ได้จริง */}
+            <div className="relative flex flex-col w-48 z-[999] no-print">
               <label className="text-[10px] font-bold text-white/50 mb-1 uppercase flex items-center gap-1">
                 Checked By <span className="text-[9px] text-white/30 font-normal">(ตรวจสอบโดย)</span>
               </label>
-              <select
-                value={formData.checkedBy || ""}
-                onChange={(e) => setFormData({ ...formData, checkedBy: e.target.value })}
-                className="bg-[#0f111a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-bold outline-none focus:border-[#6f7bf7] transition-all cursor-pointer appearance-none shadow-inner"
+              
+              <div 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="bg-[#0f111a] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold cursor-pointer flex justify-between items-center shadow-inner hover:border-[#6f7bf7]/50 transition-all"
               >
-                <option value="" disabled className="text-white/40">-- เลือกชื่อ --</option>
-                <option value="Benyathip C.">Benyathip C.</option>
-                <option value="Kanyarat N.">Kanyarat N.</option>
-              </select>
-              <div className="absolute right-4 bottom-[14px] pointer-events-none text-white/40">
-                <ChevronDown size={16} />
+                <span className={formData.checkedBy ? "text-white" : "text-white/40"}>
+                  {formData.checkedBy || "-- เลือกชื่อ --"}
+                </span>
+                <ChevronDown size={16} className={`text-white/40 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-[#6f7bf7]' : ''}`} />
               </div>
+
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -10 }} 
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[999]"
+                  >
+                    {["Benyathip C.", "Kanyarat N."].map((name) => (
+                      <div 
+                        key={name}
+                        onClick={() => {
+                          setFormData({ ...formData, checkedBy: name });
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`px-4 py-3 text-sm font-bold cursor-pointer transition-colors ${formData.checkedBy === name ? 'bg-[#6f7bf7]/20 text-[#6f7bf7]' : 'text-white hover:bg-white/5'}`}
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            {/* ตัวแสดงผลตอน Print เพื่อไม่ให้ Dropdown ไปโผล่ในกระดาษ */}
+            <div className="hidden print:block w-48">
+               <label className="text-[10px] font-bold text-black mb-1 uppercase block">Checked By (ตรวจสอบโดย)</label>
+               <div className="border-b border-black text-sm font-bold pb-1">{formData.checkedBy || "-"}</div>
             </div>
             
             <GlassInput label="Date" thLabel="(วันที่)" type="date" gridClass="w-36"/>
@@ -134,7 +164,6 @@ export default function PhotoPage({
               )}
             </AnimatePresence>
 
-            {/* 🌟 ปรับ Radio Button ให้เซ็ตค่าลง formData จริงๆ และแก้บั๊กจัดกลุ่มผิด */}
             <label className="flex items-center gap-3 cursor-pointer group">
                <input 
                  type="radio" 
