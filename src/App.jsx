@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Printer, Home, ClipboardList, LogOut, Lock, LayoutDashboard, Cpu, Plus } from 'lucide-react';
+import { Printer, Lock, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
 import HomePage from './pages/HomePage.jsx';
 import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
-export const API_URL = "https://iqc-api-server.onrender.com"; // 🔴 เปลี่ยนลิงก์ Render ตรงนี้
+export const API_URL = "https://iqc-api-server.onrender.com";
 
 export default function App() {
   const [auth, setAuth] = useState(() => {
@@ -25,12 +25,12 @@ export default function App() {
   
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   
-  // 🌟 ใช้โครงสร้างข้อมูลใหม่
   const [pinRequestForm, setPinRequestForm] = useState({ location: '', pin_no: '', stock_pin_no: '', name_socket: '' });
   const [triggerRefresh, setTriggerRefresh] = useState(0);
 
+  // 🌟 เพิ่ม checkedBy และ finalResult เข้าไปเป็นโครงสร้างหลักของฟอร์มเลย
   const [formData, setFormData] = useState({
-    hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "",
+    hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
     chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
   });
 
@@ -80,7 +80,6 @@ export default function App() {
       if(res.ok) {
         setPinRequestForm({ location: '', pin_no: '', stock_pin_no: '', name_socket: '' });
         setIsPinModalOpen(false);
-        // 🌟 ยิงคำสั่งให้หน้าตารางรีเฟรชทันที
         setTriggerRefresh(prev => prev + 1); 
       }
     } catch (err) { alert(err.message); }
@@ -88,7 +87,7 @@ export default function App() {
 
   const resetFormAndGoHome = () => {
     setFormData({
-      hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "",
+      hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
       chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
     });
     setUploadedDocs({ pkg: [], sck: [], pin: [], mnt: [] });
@@ -170,7 +169,7 @@ export default function App() {
         <AnimatePresence mode="wait" custom={step}>
           {page === 'home' && (
             <motion.div key={`home_${triggerRefresh}`} custom={-1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <HomePage setPage={setPage} auth={auth} triggerRefresh={triggerRefresh} />
+              <HomePage auth={auth} triggerRefresh={triggerRefresh} />
             </motion.div>
           )}
           {page === 'iqc' && step === 1 && (
@@ -180,7 +179,21 @@ export default function App() {
           )}
           {page === 'iqc' && step === 2 && (
             <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <PhotoPage auth={auth} formData={formData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
+              {/* 🌟 จุดสำคัญ: ส่ง setFormData ให้ PhotoPage ใช้งานได้เต็มตัว */}
+              <PhotoPage 
+                auth={auth} 
+                formData={formData} 
+                setFormData={setFormData} 
+                uploadedDocs={uploadedDocs} 
+                uploadedImages={uploadedImages} 
+                handleImageChange={handleImageChange} 
+                removeImage={removeImage} 
+                handleMultiImageChange={handleMultiImageChange} 
+                removeMultiImage={removeMultiImage} 
+                onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
+                isDocComplete={isDocComplete} 
+                onSuccess={resetFormAndGoHome} 
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -195,7 +208,6 @@ export default function App() {
                   <Cpu className="text-fuchsia-400" />
                   <h3 className="text-lg font-black text-white uppercase tracking-widest">Pin Changing Request</h3>
                 </div>
-                {/* 🌟 อัปเดตฟอร์มให้ตรงกับฟิลด์ใหม่ทั้งหมด */}
                 <form onSubmit={handlePinRequestSubmit} className="space-y-5">
                   <GlassInput name="location" label="Machine Location *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. LC-04" />
                   <GlassInput name="pin_no" label="Pin No. *" value={pinRequestForm.pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, pin_no: e.target.value})} placeholder="e.g. PIN-9981" />
