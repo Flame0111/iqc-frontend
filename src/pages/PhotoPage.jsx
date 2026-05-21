@@ -96,15 +96,21 @@ export default function PhotoPage({
           <div className="flex gap-6 w-full md:w-2/3 items-end">
             <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" value="Good Condition" gridClass="flex-1" />
             
-            {/* 🌟 จุดที่แก้: เพิ่ม value และ onChange ให้ Dropdown บันทึกชื่อลง formData.checkedBy */}
-            <CustomSelect 
-              label="Checked By" 
-              thLabel="(ตรวจสอบโดย)" 
-              options={["Benyathip C.", "Kanyarat N."]} 
-              value={formData.checkedBy || ""}
-              onChange={(e) => setFormData({ ...formData, checkedBy: e.target.value })}
-              gridClass="w-48" 
-            />
+            {/* 🌟 กล่องเลือกชื่อ (ใช้ Native HTML รับประกันการส่งค่าลง Database 100%) */}
+            <div className="flex flex-col w-48 z-50">
+              <label className="text-[10px] font-bold text-white/50 mb-1 uppercase flex items-center gap-1">
+                Checked By <span className="text-[9px] text-white/30 font-normal">(ตรวจสอบโดย)</span>
+              </label>
+              <select
+                value={formData.checkedBy || ""}
+                onChange={(e) => setFormData({ ...formData, checkedBy: e.target.value })}
+                className="bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white font-bold outline-none focus:border-[#6f7bf7] transition-all cursor-pointer appearance-none"
+              >
+                <option value="" disabled className="bg-[#1a1f35] text-white/50">-- เลือกชื่อ --</option>
+                <option value="Benyathip C." className="bg-[#1a1f35] text-white">Benyathip C.</option>
+                <option value="Kanyarat N." className="bg-[#1a1f35] text-white">Kanyarat N.</option>
+              </select>
+            </div>
             
             <GlassInput label="Date" thLabel="(วันที่)" type="date" gridClass="w-36"/>
           </div>
