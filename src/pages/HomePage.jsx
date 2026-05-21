@@ -15,27 +15,23 @@ export default function HomePage({ auth, triggerRefresh }) {
   const pinStatusOptions = ["Pending", "Done"];
 
   const fetchData = () => {
-    // ดึงข้อมูล IQC
     fetch(`${API_URL}/api/iqc-list`, { headers: { 'Authorization': `Bearer ${auth.token}` }})
       .then(res => res.json())
       .then(data => { if (data.success) { setListData(data.data); setStats(data.stats); } })
       .catch(err => console.error(err));
     
-    // ดึงข้อมูล Pin Changing
     fetch(`${API_URL}/api/pin-change-list`, { headers: { 'Authorization': `Bearer ${auth.token}` }})
       .then(res => res.json())
       .then(data => { if (data.success) { setPinChangeQueue(data.data); } setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
   };
 
-  // 🌟 Auto-Refresh ดึงข้อมูลใหม่ทุกๆ 15 วินาทีแบบ Real-time
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [triggerRefresh]);
 
-  // Handler สำหรับลบงานหลัก IQC
   const handleDeleteMainIqc = async (id) => {
     if(!window.confirm("Admin Warning: ยืนยันการลบ Record IQC นี้ถาวร?")) return;
     try {
@@ -44,7 +40,6 @@ export default function HomePage({ auth, triggerRefresh }) {
     } catch(err) { console.error(err); }
   };
 
-  // Handler สำหรับลบคิวเปลี่ยนพิน
   const handleDeletePinRequest = async (id) => {
     if(!window.confirm("Admin Warning: ยืนยันการลบคิว Request เปลี่ยนพินชิ้นนี้?")) return;
     try {
@@ -53,7 +48,6 @@ export default function HomePage({ auth, triggerRefresh }) {
     } catch (err) { console.error(err); }
   };
 
-  // Handler สำหรับอัปเดตสถานะงาน IQC
   const handleMainStatusChange = async (id, newStatus) => {
     try {
       await fetch(`${API_URL}/api/iqc-status/${id}`, { 
@@ -65,7 +59,6 @@ export default function HomePage({ auth, triggerRefresh }) {
     } catch(err) { console.error(err); }
   };
 
-  // Handler สำหรับอัปเดตสถานะงานเปลี่ยนพิน (Done)
   const handleCompletePinRequest = async (id) => {
     try {
       await fetch(`${API_URL}/api/pin-change-complete/${id}`, { 
@@ -93,7 +86,6 @@ export default function HomePage({ auth, triggerRefresh }) {
     }
   };
 
-  // 🌟 [Senior Logic] รวมข้อมูลจากทั้งสองตารางเข้าด้วยกัน และเรียงตามเวลาล่าสุดจากบนลงล่าง
   const unifiedQueue = [
     ...listData.map(item => ({
       ...item,
@@ -109,21 +101,20 @@ export default function HomePage({ auth, triggerRefresh }) {
       ...item,
       queueType: 'Pin Changing',
       displayId: `PC-${item.id}`,
-      details: `Pin: ${item.pin_no}`,
+      // 🌟 ดึงข้อมูล Customer มาต่อท้าย Pin 
+      details: item.customer_name ? `Pin: ${item.pin_no} | Cust: ${item.customer_name}` : `Pin: ${item.pin_no}`,
       subDetails: item.stock_pin_no ? `Stock: ${item.stock_pin_no} | Socket: ${item.name_socket}` : '-',
-      operator: item.requested_by || '-',
+      // 🌟 ดึงข้อมูล Req Name มาเป็น Operator (ถ้าไม่มีจะใช้บัญชีคน Login)
+      operator: item.req_name || item.requested_by || '-',
       currentStatus: item.status || 'Pending',
       remark: 'Auto-Accepted Queue'
     }))
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  // นับจำนวนคิวที่ยังค้างคาอยู่ระบบเพื่อโชว์ Alert Badge
   const pendingCount = unifiedQueue.filter(q => q.currentStatus !== 'Done').length;
 
   return (
     <div className="w-full space-y-6 fade-in">
-      
-      {/* 📊 Top Info Bar & Filter Controllers */}
       <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
@@ -157,14 +148,14 @@ export default function HomePage({ auth, triggerRefresh }) {
         </div>
       </div>
 
-      {/* 🌟 MAIN CENTRALIZED QUEUE TABLE */}
       <GlassCard className="!p-4 overflow-hidden flex flex-col">
         <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/20 pb-2 custom-scrollbar">
           <table className="w-full text-sm min-w-[1200px] transition-all">
             <thead>
               <tr className="bg-white/5 border-b border-white/10">
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Queue Type</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Loc</th>
+                {/* 🌟 เปลี่ยน Loc เป็น M/C No. */}
+                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>M/C No.</th>
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Queue ID</th>
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>WW</th>
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Date / Time</th>
@@ -193,8 +184,6 @@ export default function HomePage({ auth, triggerRefresh }) {
               ) : (
                 unifiedQueue.map((row) => (
                   <tr key={row.displayId} className="hover:bg-white/[0.04] transition-all duration-200 group">
-                    
-                    {/* Badge แสดงประเภทคิว */}
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-xs'} font-bold transition-all`}>
                       <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-black tracking-wider uppercase text-[10px] ${row.queueType === 'IQC Check' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20'}`}>
                         {row.queueType === 'IQC Check' ? <FileText size={10}/> : <Settings size={10}/>}
@@ -210,7 +199,6 @@ export default function HomePage({ auth, triggerRefresh }) {
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white font-bold`}>{row.details}</td>
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-xs'} text-white/60`}>{row.subDetails}</td>
                     
-                    {/* ส่วนจัดการ Workflow สถานะแยกระบบอัตโนมัติ */}
                     <td className="py-1 px-2 text-center bg-black/20">
                       {auth.role === 'viewer' ? (
                         <span className={`inline-block px-2.5 py-1 rounded-lg text-[9px] font-black tracking-wider border ${getStatusColor(row.currentStatus)}`}>
@@ -225,7 +213,6 @@ export default function HomePage({ auth, triggerRefresh }) {
                           {iqcStatusOptions.map(opt => <option key={opt} value={opt} className="bg-[#1a1f35] text-white">{opt}</option>)}
                         </select>
                       ) : (
-                        // ส่วนคิวเปลี่ยนพิน (มีปุ่มให้กดเปลี่ยนสถานะเป็น Done ได้ทันทีจากหน้ารวม)
                         row.currentStatus === 'Pending' ? (
                           <button onClick={() => handleCompletePinRequest(row.id)} className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-lg hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center gap-1 mx-auto">
                             <Check size={10} strokeWidth={3} /> Mark Done
@@ -238,24 +225,15 @@ export default function HomePage({ auth, triggerRefresh }) {
                       )}
                     </td>
                     
-                    {/* วันที่เสร็จสิ้นภารกิจ */}
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} text-white/60 whitespace-nowrap`}>
                       {row.currentStatus === 'Done' ? (row.completed_at ? new Date(row.completed_at).toLocaleDateString('en-GB') : new Date(row.created_at).toLocaleDateString('en-GB')) : '-'}
                     </td>
-                    
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-emerald-400 font-medium`}>{row.checked_by || row.accepted_by || '-'}</td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-xs'} text-white/50 max-w-[200px] truncate`} title={row.remark}>
-                      {row.remark}
-                    </td>
+                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-xs'} text-white/50 max-w-[200px] truncate`} title={row.remark}>{row.remark}</td>
                     
-                    {/* ปุ่มลบข้อมูลเฉพาะสิทธิ์ Admin ดักลบแยกระบบตาม Queue Type */}
                     {auth.role === 'admin' && (
                       <td className="py-1 px-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => row.queueType === 'IQC Check' ? handleDeleteMainIqc(row.id) : handleDeletePinRequest(row.id)} 
-                          className="text-white/30 hover:text-rose-500 p-1 rounded hover:bg-rose-500/10"
-                        >
-                          <Trash2 size={14}/></button>
+                        <button onClick={() => row.queueType === 'IQC Check' ? handleDeleteMainIqc(row.id) : handleDeletePinRequest(row.id)} className="text-white/30 hover:text-rose-500 p-1 rounded hover:bg-rose-500/10"><Trash2 size={14}/></button>
                       </td>
                     )}
                   </tr>
