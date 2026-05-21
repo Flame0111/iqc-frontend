@@ -25,10 +25,12 @@ export default function App() {
   
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   
-  const [pinRequestForm, setPinRequestForm] = useState({ location: '', pin_no: '', stock_pin_no: '', name_socket: '' });
+  // 🌟 เพิ่ม customer_name และ req_name เข้าไปใน State ของฟอร์ม Pin
+  const [pinRequestForm, setPinRequestForm] = useState({ 
+    location: '', pin_no: '', stock_pin_no: '', name_socket: '', customer_name: '', req_name: '' 
+  });
   const [triggerRefresh, setTriggerRefresh] = useState(0);
 
-  // 🌟 เพิ่ม checkedBy และ finalResult เข้าไปเป็นโครงสร้างหลักของฟอร์มเลย
   const [formData, setFormData] = useState({
     hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
     chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
@@ -70,7 +72,9 @@ export default function App() {
 
   const handlePinRequestSubmit = async (e) => {
     e.preventDefault();
-    if(!pinRequestForm.location || !pinRequestForm.pin_no) return alert("Please fill in location and Pin No.");
+    if(!pinRequestForm.location || !pinRequestForm.pin_no || !pinRequestForm.req_name) {
+      return alert("Please fill in Machine Number, Pin No. and Requester Name.");
+    }
     try {
       const res = await fetch(`${API_URL}/api/pin-change-request`, {
         method: 'POST',
@@ -78,7 +82,7 @@ export default function App() {
         body: JSON.stringify(pinRequestForm)
       });
       if(res.ok) {
-        setPinRequestForm({ location: '', pin_no: '', stock_pin_no: '', name_socket: '' });
+        setPinRequestForm({ location: '', pin_no: '', stock_pin_no: '', name_socket: '', customer_name: '', req_name: '' });
         setIsPinModalOpen(false);
         setTriggerRefresh(prev => prev + 1); 
       }
@@ -179,7 +183,6 @@ export default function App() {
           )}
           {page === 'iqc' && step === 2 && (
             <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              {/* 🌟 จุดสำคัญ: ส่ง setFormData ให้ PhotoPage ใช้งานได้เต็มตัว */}
               <PhotoPage 
                 auth={auth} 
                 formData={formData} 
@@ -201,18 +204,25 @@ export default function App() {
 
       <AnimatePresence>
         {isPinModalOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="w-full max-w-md">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="w-full max-w-md my-8">
               <GlassCard className="!p-8 relative border-fuchsia-500/30">
                 <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
                   <Cpu className="text-fuchsia-400" />
                   <h3 className="text-lg font-black text-white uppercase tracking-widest">Pin Changing Request</h3>
                 </div>
-                <form onSubmit={handlePinRequestSubmit} className="space-y-5">
-                  <GlassInput name="location" label="Machine Name *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="EXCEED-03" />
-                  <GlassInput name="pin_no" label="Pin No. *" value={pinRequestForm.pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, pin_no: e.target.value})} placeholder="PIN NUMBER" />
-                  <GlassInput name="stock_pin_no" label="Stock Pin No." value={pinRequestForm.stock_pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, stock_pin_no: e.target.value})} placeholder="SOCKET NUMBER" />
-                  <GlassInput name="name_socket" label="Name Socket" value={pinRequestForm.name_socket} onChange={(e)=>setPinRequestForm({...pinRequestForm, name_socket: e.target.value})} placeholder="SOCKET NAME" />
+                {/* 🌟 เพิ่มช่อง Customer Name และ Requester Name พร้อมปรับ Label M/C No */}
+                <form onSubmit={handlePinRequestSubmit} className="space-y-4">
+                  <GlassInput name="location" label="Machine Number *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. MC-01" />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <GlassInput name="customer_name" label="Customer Name" value={pinRequestForm.customer_name} onChange={(e)=>setPinRequestForm({...pinRequestForm, customer_name: e.target.value})} placeholder="e.g. SONY" />
+                    <GlassInput name="req_name" label="Requester Name *" value={pinRequestForm.req_name} onChange={(e)=>setPinRequestForm({...pinRequestForm, req_name: e.target.value})} placeholder="e.g. Somchai" />
+                  </div>
+
+                  <GlassInput name="pin_no" label="Pin No. *" value={pinRequestForm.pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, pin_no: e.target.value})} placeholder="e.g. PIN-9981" />
+                  <GlassInput name="stock_pin_no" label="Stock Pin No." value={pinRequestForm.stock_pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, stock_pin_no: e.target.value})} placeholder="e.g. STK-8827" />
+                  <GlassInput name="name_socket" label="Name Socket" value={pinRequestForm.name_socket} onChange={(e)=>setPinRequestForm({...pinRequestForm, name_socket: e.target.value})} placeholder="e.g. Socket A" />
                   
                   <div className="flex gap-3 pt-4">
                     <button type="button" onClick={() => setIsPinModalOpen(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-3.5 rounded-xl transition-all">CANCEL</button>
