@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImagePlus, ArrowLeft, Save, Lock, Loader2 } from 'lucide-react';
 import { GlassCard, ImageUploadBox, MultiImageUploadBox, CustomSelect, GlassInput } from '../components/UIComponents.jsx';
-import { API_URL } from '../App.jsx'; // 🌟 ดึง API_URL มาใช้
+import { API_URL } from '../App.jsx';
 
 export default function PhotoPage({ 
   auth, formData, uploadedDocs, uploadedImages, 
   handleImageChange, removeImage, handleMultiImageChange, removeMultiImage, 
-  onBack, isDocComplete 
+  onBack, isDocComplete, onSuccess, setFormData 
 }) {
   const resultOptions = ["PASS", "FAIL"];
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,7 +18,8 @@ export default function PhotoPage({
 
     try {
       const payload = new FormData();
-      const textData = { ...formData, finalResult: "PASS", checkedBy: auth.name };
+      // 🌟 ใช้ formData.checkedBy จาก Dropdown ถ้าไม่เลือกจะดึงชื่อ Login แทน
+      const textData = { ...formData, finalResult: "PASS", checkedBy: formData.checkedBy || auth.name };
       payload.append("iqcData", JSON.stringify(textData));
 
       Object.keys(uploadedDocs).forEach(docKey => {
@@ -39,7 +40,7 @@ export default function PhotoPage({
 
       if (response.ok) {
         alert("✅ บันทึกข้อมูลและไฟล์ลงระบบเรียบร้อยแล้ว!");
-        window.location.reload(); 
+        onSuccess(); 
       } else {
         const errData = await response.json();
         throw new Error(errData.error || errData.message || `Server Error`);
@@ -94,7 +95,17 @@ export default function PhotoPage({
         <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
           <div className="flex gap-6 w-full md:w-2/3 items-end">
             <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" value="Good Condition" gridClass="flex-1" />
-            <CustomSelect label="Checked By" thLabel="(ตรวจสอบโดย)" options={["Benyathip C.", "Kanyarat N."]} gridClass="w-48" />
+            
+            {/* 🌟 จุดที่แก้: เพิ่ม value และ onChange ให้ Dropdown บันทึกชื่อลง formData.checkedBy */}
+            <CustomSelect 
+              label="Checked By" 
+              thLabel="(ตรวจสอบโดย)" 
+              options={["Benyathip C.", "Kanyarat N."]} 
+              value={formData.checkedBy || ""}
+              onChange={(e) => setFormData({ ...formData, checkedBy: e.target.value })}
+              gridClass="w-48" 
+            />
+            
             <GlassInput label="Date" thLabel="(วันที่)" type="date" gridClass="w-36"/>
           </div>
           
