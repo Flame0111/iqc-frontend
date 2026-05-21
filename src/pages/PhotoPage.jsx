@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImagePlus, ArrowLeft, Save, Lock, Loader2 } from 'lucide-react';
+import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown } from 'lucide-react';
 import { GlassCard, ImageUploadBox, MultiImageUploadBox, CustomSelect, GlassInput } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -18,8 +18,13 @@ export default function PhotoPage({
 
     try {
       const payload = new FormData();
-      // 🌟 ใช้ formData.checkedBy จาก Dropdown ถ้าไม่เลือกจะดึงชื่อ Login แทน
-      const textData = { ...formData, finalResult: "PASS", checkedBy: formData.checkedBy || auth.name };
+      
+      // 🌟 ดึงค่าจาก formData หลักส่งไป API ได้เลย ไม่ต้อง Hack ด้วย State ปลอมแล้ว
+      const textData = { 
+        ...formData, 
+        finalResult: formData.finalResult || "PASS", 
+        checkedBy: formData.checkedBy || auth.name 
+      };
       payload.append("iqcData", JSON.stringify(textData));
 
       Object.keys(uploadedDocs).forEach(docKey => {
@@ -96,20 +101,23 @@ export default function PhotoPage({
           <div className="flex gap-6 w-full md:w-2/3 items-end">
             <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" value="Good Condition" gridClass="flex-1" />
             
-            {/* 🌟 กล่องเลือกชื่อ (ใช้ Native HTML รับประกันการส่งค่าลง Database 100%) */}
-            <div className="flex flex-col w-48 z-50">
+            {/* 🌟 กล่องเลือกชื่อ (ใช้ formData จาก App.jsx) */}
+            <div className="relative flex flex-col w-48 z-50">
               <label className="text-[10px] font-bold text-white/50 mb-1 uppercase flex items-center gap-1">
                 Checked By <span className="text-[9px] text-white/30 font-normal">(ตรวจสอบโดย)</span>
               </label>
               <select
                 value={formData.checkedBy || ""}
                 onChange={(e) => setFormData({ ...formData, checkedBy: e.target.value })}
-                className="bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white font-bold outline-none focus:border-[#6f7bf7] transition-all cursor-pointer appearance-none"
+                className="bg-[#0f111a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-bold outline-none focus:border-[#6f7bf7] transition-all cursor-pointer appearance-none shadow-inner"
               >
-                <option value="" disabled className="bg-[#1a1f35] text-white/50">-- เลือกชื่อ --</option>
-                <option value="Benyathip C." className="bg-[#1a1f35] text-white">Benyathip C.</option>
-                <option value="Kanyarat N." className="bg-[#1a1f35] text-white">Kanyarat N.</option>
+                <option value="" disabled className="text-white/40">-- เลือกชื่อ --</option>
+                <option value="Benyathip C.">Benyathip C.</option>
+                <option value="Kanyarat N.">Kanyarat N.</option>
               </select>
+              <div className="absolute right-4 bottom-[14px] pointer-events-none text-white/40">
+                <ChevronDown size={16} />
+              </div>
             </div>
             
             <GlassInput label="Date" thLabel="(วันที่)" type="date" gridClass="w-36"/>
@@ -126,15 +134,33 @@ export default function PhotoPage({
               )}
             </AnimatePresence>
 
+            {/* 🌟 ปรับ Radio Button ให้เซ็ตค่าลง formData จริงๆ และแก้บั๊กจัดกลุ่มผิด */}
             <label className="flex items-center gap-3 cursor-pointer group">
-               <input type="radio" name="final" className="w-6 h-6 accent-emerald-500 print:w-4 print:h-4 no-print" disabled={!isDocComplete} defaultChecked />
-               <div className="hidden print:block w-3 h-3 border border-black bg-black"></div>
-               <span className={`font-black text-3xl tracking-tighter print:text-black print:text-xl transition-colors ${isDocComplete ? 'text-emerald-400 group-hover:text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]' : 'text-white/20'}`}>PASS</span>
+               <input 
+                 type="radio" 
+                 name="final" 
+                 value="PASS"
+                 checked={(formData.finalResult || "PASS") === "PASS"}
+                 onChange={() => setFormData({ ...formData, finalResult: "PASS" })}
+                 className="w-6 h-6 accent-emerald-500 print:w-4 print:h-4 no-print" 
+                 disabled={!isDocComplete} 
+               />
+               <div className={`hidden print:block w-3 h-3 border border-black ${(formData.finalResult || 'PASS') === 'PASS' ? 'bg-black' : 'bg-white'}`}></div>
+               <span className={`font-black text-3xl tracking-tighter print:text-black print:text-xl transition-colors ${isDocComplete ? ((formData.finalResult || 'PASS') === 'PASS' ? 'text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]' : 'text-white/20 group-hover:text-white/40') : 'text-white/20'}`}>PASS</span>
             </label>
+
             <label className="flex items-center gap-3 cursor-pointer group">
-               <input type="radio" name="final" className="w-6 h-6 accent-rose-500 print:w-4 print:h-4 no-print" disabled={!isDocComplete} />
-               <div className="hidden print:block w-3 h-3 border border-black bg-white"></div>
-               <span className={`font-black text-3xl tracking-tighter print:text-black print:text-xl transition-colors ${isDocComplete ? 'text-rose-400 group-hover:text-rose-300 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'text-white/20'}`}>FAIL</span>
+               <input 
+                 type="radio" 
+                 name="final" 
+                 value="FAIL"
+                 checked={formData.finalResult === "FAIL"}
+                 onChange={() => setFormData({ ...formData, finalResult: "FAIL" })}
+                 className="w-6 h-6 accent-rose-500 print:w-4 print:h-4 no-print" 
+                 disabled={!isDocComplete} 
+               />
+               <div className={`hidden print:block w-3 h-3 border border-black ${formData.finalResult === 'FAIL' ? 'bg-black' : 'bg-white'}`}></div>
+               <span className={`font-black text-3xl tracking-tighter print:text-black print:text-xl transition-colors ${isDocComplete ? (formData.finalResult === 'FAIL' ? 'text-rose-400 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'text-white/20 group-hover:text-white/40') : 'text-white/20'}`}>FAIL</span>
             </label>
           </div>
         </div>
