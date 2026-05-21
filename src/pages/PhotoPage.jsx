@@ -128,7 +128,7 @@ export default function PhotoPage({
                     transition={{ duration: 0.2 }}
                     className="absolute top-full left-0 right-0 mt-2 bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[999]"
                   >
-                    {["Benyathip C.", "Sukkasem S."].map((name) => (
+                    {["Benyathip C.", "Sukkasem S.","Phanudet C.","Charukit Ch."].map((name) => (
                       <div 
                         key={name}
                         onClick={() => {
