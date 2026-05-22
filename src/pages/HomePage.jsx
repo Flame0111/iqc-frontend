@@ -126,7 +126,7 @@ export default function HomePage({ auth, triggerRefresh }) {
               </span>
             )}
           </h1>
-          <p className="text-white/40 text-sm mt-1">ศูนย์รวมคิวและตรวจสอบสถานะทุกประเภทภายในโรงงานแบบ Real-time (IQC & Pin Changing)</p>
+          <p className="text-white/40 text-sm mt-1">Central Que list</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 items-end">
