@@ -18,17 +18,18 @@ export default function App() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
+  // 🌟 แก้ไข: ให้เช็ค URL ตอนโหลดเว็บ ถ้ามี ?edit= ให้เปิดหน้า iqc เลย
   const [page, setPage] = useState(() => {
     const searchParams = new URLSearchParams(window.location.search);
     return searchParams.has('edit') ? 'iqc' : 'home';
   });
+
   const [step, setStep] = useState(1);
   const [uploadedDocs, setUploadedDocs] = useState({ pkg: [], sck: [], pin: [], mnt: [] });
   const [uploadedImages, setUploadedImages] = useState({});
   
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   
-  // 🌟 เพิ่ม customer_name และ req_name เข้าไปใน State ของฟอร์ม Pin
   const [pinRequestForm, setPinRequestForm] = useState({ 
     location: '', pin_no: '', stock_pin_no: '', name_socket: '', customer_name: '', req_name: '' 
   });
@@ -93,6 +94,7 @@ export default function App() {
   };
 
   const resetFormAndGoHome = () => {
+    window.history.pushState({}, '', '/'); // ล้าง URL ด้วย
     setFormData({
       hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
       chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
@@ -102,6 +104,19 @@ export default function App() {
     setStep(1);
     setPage('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 🌟 ฟังก์ชันเปิดหน้าฟอร์มใหม่เอี่ยม (เคลียร์ URL ไม่ให้จำของเก่า)
+  const handleOpenNewForm = () => {
+    window.history.pushState({}, '', '/');
+    setFormData({
+      hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
+      chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
+    });
+    setUploadedDocs({ pkg: [], sck: [], pin: [], mnt: [] });
+    setUploadedImages({});
+    setStep(1);
+    setPage('iqc');
   };
 
   if (!auth) {
@@ -146,7 +161,8 @@ export default function App() {
           </div>
           
           <div className="flex justify-center items-center gap-3 w-[60%]">
-            <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+            {/* 🌟 เพิ่มการเคลียร์ URL เวลาสลับกลับมาหน้าแรก */}
+            <button onClick={() => { window.history.pushState({}, '', '/'); setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <LayoutDashboard size={14} /> Status Query
             </button>
 
@@ -154,8 +170,9 @@ export default function App() {
               <Cpu size={14} /> Request Pin Changing
             </button>
             
+            {/* 🌟 เปลี่ยนมาเรียกฟังก์ชัน handleOpenNewForm เพื่อป้องกันบั๊กเซฟทับ */}
             {auth.role !== 'viewer' && (
-              <button onClick={() => { setPage('iqc'); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+              <button onClick={handleOpenNewForm} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
                 <ClipboardList size={14} /> + IQC Form
               </button>
             )}
@@ -181,7 +198,6 @@ export default function App() {
           )}
           {page === 'iqc' && step === 1 && (
             <motion.div key="step1" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              {/* 🌟 พระเอกของเราอยู่นี่ครับ! เติม auth={auth} ส่งลงไปให้ FormPage */}
               <FormPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
             </motion.div>
           )}
