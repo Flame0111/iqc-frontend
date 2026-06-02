@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
@@ -6,25 +7,36 @@ import { API_URL } from '../App.jsx';
 
 export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
   
-  // 🌟 ใช้ JavaScript พื้นฐานดึงค่าจาก URL แทน ป้องกัน React จอขาว
-  const searchParams = new URLSearchParams(window.location.search);
+  const [searchParams] = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
-  const userAuth = auth || JSON.parse(localStorage.getItem('auth'));
+
+  // 🌟 ฟังก์ชันค้นหา Token ครอบจักรวาล (ดักจับทุกรูปแบบที่คุณเฟมอาจจะใช้เซฟตอนล็อกอิน)
+  const getAuthToken = () => {
+    if (auth && auth.token) return auth.token; // ถ้า Parent ส่งมาให้ ใช้ได้เลย
+    const localAuth = localStorage.getItem('auth');
+    if (localAuth) try { return JSON.parse(localAuth).token || JSON.parse(localAuth); } catch(e) { return localAuth; }
+    const localUser = localStorage.getItem('user');
+    if (localUser) try { return JSON.parse(localUser).token; } catch(e) { return localUser; }
+    const justToken = localStorage.getItem('token');
+    if (justToken) return justToken;
+    return null; // ถ้าหาไม่เจอจริงๆ
+  };
+
+  const activeToken = getAuthToken();
 
   // 🌟 ดึงข้อมูล Draft จาก Database มาใส่ในฟอร์ม
   useEffect(() => {
-    if (editId && userAuth?.token) {
+    if (editId && activeToken) {
       setIsLoadingDraft(true);
-      fetch(`${API_URL}/api/iqc/${editId}`, { headers: { 'Authorization': `Bearer ${userAuth.token}` } })
+      fetch(`${API_URL}/api/iqc/${editId}`, { headers: { 'Authorization': `Bearer ${activeToken}` } })
         .then(res => res.json())
         .then(data => {
           if (data.success) {
             const r = data.data;
             const checklist = r.checklist_data || {};
             
-            // อัปเดตข้อมูลกลับไปยังไฟล์ตัวแม่
             setFormData(prev => ({
               ...prev,
               hwName: r.hw_name || '',
@@ -44,7 +56,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           setIsLoadingDraft(false);
         }).catch(err => { console.error(err); setIsLoadingDraft(false); });
     }
-  }, [editId, userAuth?.token, setFormData]);
+  }, [editId, activeToken, setFormData]);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -53,7 +65,11 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   // 🌟 ฟังก์ชันเซฟ Draft ทันทีจากหน้านี้
   const handleSaveDraft = async (e) => {
     e.preventDefault();
-    if (!userAuth?.token) return alert("Session expired!");
+    const currentToken = getAuthToken(); // เช็ค Token สดๆ ก่อนกดยิง API
+    
+    if (!currentToken) {
+      return alert("Session expired! หาข้อมูลการล็อกอินไม่เจอ รบกวนกลับไปล็อกอินใหม่อีกครั้งครับ");
+    }
 
     const submitData = new FormData();
     submitData.append('iqcData', JSON.stringify({ ...formData, jobStatus: 'Draft' }));
@@ -62,13 +78,23 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     const method = editId ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${userAuth.token}` }, body: submitData });
+      const res = await fetch(url, { 
+        method: method, 
+        headers: { 'Authorization': `Bearer ${currentToken}` }, 
+        body: submitData 
+      });
+      
       const data = await res.json();
       if (data.success) {
         alert("Draft Saved Successfully!");
         window.location.href = '/'; 
+      } else {
+        alert("Error: " + (data.error || data.message || "Failed to save draft."));
       }
-    } catch(err) { console.error(err); }
+    } catch(err) { 
+      console.error(err); 
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+    }
   };
 
   const contactPinItems = [
@@ -194,7 +220,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   </tr>
                 </thead>
                 <tbody>
-                  {/* --- หมวด 1: Contact pin --- */}
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">1.Contact pin</td></tr>
                   {contactPinItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
@@ -207,7 +232,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     </tr>
                   ))}
 
-                  {/* --- หมวด 2: Socket /Housing --- */}
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">2.Socket /Housing</td></tr>
                   {socketItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
@@ -220,7 +244,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     </tr>
                   ))}
 
-                  {/* --- หมวด 3: Alignment plate --- */}
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">3.Alignment plate</td></tr>
                   {alignmentItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
