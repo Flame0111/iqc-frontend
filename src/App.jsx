@@ -18,7 +18,10 @@ export default function App() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.has('edit') ? 'iqc' : 'home';
+  });
   const [step, setStep] = useState(1);
   const [uploadedDocs, setUploadedDocs] = useState({ pkg: [], sck: [], pin: [], mnt: [] });
   const [uploadedImages, setUploadedImages] = useState({});
