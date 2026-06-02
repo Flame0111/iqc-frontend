@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play, FileText, Settings } from 'lucide-react';
+import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play, FileText, Settings, Edit2 } from 'lucide-react';
 import { GlassCard } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx'; 
 
@@ -80,6 +80,7 @@ export default function HomePage({ auth, triggerRefresh }) {
     switch(status) {
       case 'Done': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
       case 'Pending': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+      case 'Draft': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 animate-pulse'; // 🌟 เพิ่มสีทองสําหรับสถานะ Draft
       case 'Return to store': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       case 'Return to production': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
       default: return 'bg-blue-500/20 text-blue-400 border-blue-500/30'; 
@@ -101,10 +102,8 @@ export default function HomePage({ auth, triggerRefresh }) {
       ...item,
       queueType: 'Pin Changing',
       displayId: `PC-${item.id}`,
-      // 🌟 ดึงข้อมูล Customer มาต่อท้าย Pin 
       details: item.customer_name ? `Pin: ${item.pin_no} | Cust: ${item.customer_name}` : `Pin: ${item.pin_no}`,
       subDetails: item.stock_pin_no ? `Stock: ${item.stock_pin_no} | Socket: ${item.name_socket}` : '-',
-      // 🌟 ดึงข้อมูล Req Name มาเป็น Operator (ถ้าไม่มีจะใช้บัญชีคน Login)
       operator: item.req_name || item.requested_by || '-',
       currentStatus: item.status || 'Pending',
       remark: 'Auto-Accepted Queue'
@@ -154,7 +153,6 @@ export default function HomePage({ auth, triggerRefresh }) {
             <thead>
               <tr className="bg-white/5 border-b border-white/10">
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Queue Type</th>
-                {/* 🌟 เปลี่ยน Loc เป็น M/C No. */}
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>M/C No.</th>
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Queue ID</th>
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>WW</th>
@@ -192,7 +190,21 @@ export default function HomePage({ auth, triggerRefresh }) {
                     </td>
 
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80 font-black`}>{row.location || '-'}</td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} font-bold text-white/40`}>#{row.displayId}</td>
+                    
+                    {/* 🌟 แสดงปุ่มดินสอ ✏️ ถัดจาก รหัสคิวเฉพาะตัวที่เป็น IQC Check และมีสถานะเป็น Draft เพื่อกลับเข้าไปแก้ไขใน IQCForm */}
+                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} font-bold text-white/40 flex items-center gap-2`}>
+                      #{row.displayId}
+                      {row.queueType === 'IQC Check' && row.currentStatus === 'Draft' && (
+                        <button 
+                          onClick={() => window.location.href = `/form?edit=${row.id}`}
+                          className="p-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 rounded hover:bg-yellow-500 hover:text-black transition-all inline-flex items-center"
+                          title="Edit Draft Data"
+                        >
+                          <Edit2 size={10} />
+                        </button>
+                      )}
+                    </td>
+                    
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} text-white/60`}>{getWW(row.created_at)}</td>
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80 whitespace-nowrap`}>{new Date(row.created_at).toLocaleString('en-GB')}</td>
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80`}>{row.operator}</td>
@@ -210,6 +222,7 @@ export default function HomePage({ auth, triggerRefresh }) {
                           onChange={(e) => handleMainStatusChange(row.id, e.target.value)}
                           className={`appearance-none outline-none cursor-pointer px-2.5 py-1 rounded-lg text-[9px] font-black tracking-wider border text-center transition-all ${getStatusColor(row.currentStatus)}`}
                         >
+                          {row.currentStatus === 'Draft' && <option value="Draft" className="bg-[#1a1f35] text-yellow-400">Draft</option>}
                           {iqcStatusOptions.map(opt => <option key={opt} value={opt} className="bg-[#1a1f35] text-white">{opt}</option>)}
                         </select>
                       ) : (
