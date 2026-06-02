@@ -178,7 +178,8 @@ export default function App() {
           )}
           {page === 'iqc' && step === 1 && (
             <motion.div key="step1" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <FormPage formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+              {/* 🌟 พระเอกของเราอยู่นี่ครับ! เติม auth={auth} ส่งลงไปให้ FormPage */}
+              <FormPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
             </motion.div>
           )}
           {page === 'iqc' && step === 2 && (
@@ -211,7 +212,6 @@ export default function App() {
                   <Cpu className="text-fuchsia-400" />
                   <h3 className="text-lg font-black text-white uppercase tracking-widest">Pin Changing Request</h3>
                 </div>
-                {/* 🌟 เพิ่มช่อง Customer Name และ Requester Name พร้อมปรับ Label M/C No */}
                 <form onSubmit={handlePinRequestSubmit} className="space-y-4">
                   <GlassInput name="location" label="Machine Name *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. EXCEED-03" />
                   
