@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
@@ -7,13 +6,14 @@ import { API_URL } from '../App.jsx';
 
 export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
   
-  const [searchParams] = useSearchParams();
+  // 🌟 ใช้ JavaScript พื้นฐานดึงค่าจาก URL แทน ป้องกัน React จอขาว
+  const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
-  const userAuth = auth || JSON.parse(localStorage.getItem('auth')); // เผื่อไฟล์แม่ลืมส่ง auth มาให้
+  const userAuth = auth || JSON.parse(localStorage.getItem('auth'));
 
-  // 🌟 1. ดึงข้อมูล Draft จาก Database มาใส่ในฟอร์ม
+  // 🌟 ดึงข้อมูล Draft จาก Database มาใส่ในฟอร์ม
   useEffect(() => {
     if (editId && userAuth?.token) {
       setIsLoadingDraft(true);
@@ -50,7 +50,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // 🌟 2. ฟังก์ชันเซฟ Draft ทันทีจากหน้านี้
+  // 🌟 ฟังก์ชันเซฟ Draft ทันทีจากหน้านี้
   const handleSaveDraft = async (e) => {
     e.preventDefault();
     if (!userAuth?.token) return alert("Session expired!");
@@ -135,7 +135,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           <GlassInput name="sendBy" label="Send by" thLabel="(ส่งมาโดย)" value={formData.sendBy || ''} onChange={handleChange} />
           <div className="hidden md:block print:hidden"></div>
           
-          {/* 🌟 3. ซ่อมแซม CustomSelect ให้แก้ไขได้ */}
           <CustomSelect name="peName" value={formData.peName || ''} onChange={handleChange} label="Engineer Name" thLabel="(ชื่อเอ็นจิเนียร์)" options={peList} gridClass="col-span-2" />
           
           <GlassInput name="location" label="HW Location" thLabel="(โลเคชั่น)" value={formData.location || ''} onChange={handleChange} gridClass="col-span-2" />
@@ -171,7 +170,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     { k: 'mnt', n: 'Maintenance guide line', th: '(คู่มือการบำรุงรักษา)', req: false, btnLabel: 'Optional' }
                   ].map((d) => (
                     <tr key={d.k} className="hover:bg-white/5">
-                      {/* เนื้อหาภาษาไทยอยู่ครบถ้วน */}
                       <td className="pl-4 py-2 leading-tight">{d.n} {d.req && <span className="text-rose-500">*</span>}<span className="print-hide-th text-[9px] text-white/40 block">{d.th}</span></td>
                       <GlassRadio name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} />
@@ -200,7 +198,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">1.Contact pin</td></tr>
                   {contactPinItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
-                      {/* เนื้อหาภาษาไทยอยู่ครบถ้วน */}
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
@@ -214,7 +211,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">2.Socket /Housing</td></tr>
                   {socketItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
-                      {/* เนื้อหาภาษาไทยอยู่ครบถ้วน */}
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
@@ -228,7 +224,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">3.Alignment plate</td></tr>
                   {alignmentItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
-                      {/* เนื้อหาภาษาไทยอยู่ครบถ้วน */}
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
@@ -306,7 +301,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     <tr className="bg-white/5 print-bg-white"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase">1.Map test socket</td></tr>
                     {specificMapItems.map(item => (
                       <tr key={item.id} className="hover:bg-white/5">
-                        {/* เนื้อหาภาษาไทยอยู่ครบถ้วน */}
                         <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2">{item.label} <br/><span className="text-[8px] text-white/30">{item.th}</span></td>
                         <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
                         <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
@@ -316,7 +310,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     <tr className="bg-white/5 print-bg-white"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase">2.PnP / Turret test socket</td></tr>
                     {specificPnpItems.map(item => (
                       <tr key={item.id} className="hover:bg-white/5">
-                        {/* เนื้อหาภาษาไทยอยู่ครบถ้วน */}
                         <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2">{item.label} <br/><span className="text-[8px] text-white/30">{item.th}</span></td>
                         <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
                         <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
@@ -359,7 +352,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
            </div>
            
            <div className="grid grid-cols-2 gap-5 p-6 rounded-3xl bg-[#000000]/40 border border-white/5 print:bg-transparent print:p-0 print:border-none">
-              {/* 🌟 3. ซ่อมแซม CustomSelect ให้แก้ไขได้ */}
               <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
               <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
               <CustomSelect name="approvalPE" value={formData.approvalPE || ''} onChange={handleChange} label="Approval (PE)" options={peList} gridClass="col-span-2" />
@@ -369,7 +361,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </div>
       </GlassCard>
 
-      {/* 🌟 4. ปุ่มควบคุมด้านล่าง (ปุ่ม Save Draft สีเหลือง จะทำหน้าที่เซฟแล้วเด้งกลับหน้าตาราง) */}
       <div className="flex justify-end items-center gap-4 no-print pt-10 pb-10">
         <motion.button 
           type="button"
