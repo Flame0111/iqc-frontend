@@ -1,16 +1,77 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
-import { API_URL } from '../App.jsx'; 
+import { API_URL } from '../App.jsx';
 
 export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
   
   const [searchParams] = useSearchParams();
-  const editId = searchParams.get('edit'); // 🌟 ดึง ID แบบร่างมาเช็คว่าเป็นการแก้ไขหรือไม่
+  const editId = searchParams.get('edit');
 
-  // 🌟 จัดกลุ่มข้อมูลเพื่อผูก ID และดึงค่าลง Database ได้ครบทุกแถว
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+
+  // 🌟 ดึงข้อมูล Draft จาก Database มาใส่ในฟอร์ม
+  useEffect(() => {
+    if (editId && auth?.token) {
+      setIsLoadingDraft(true);
+      fetch(`${API_URL}/api/iqc/${editId}`, { headers: { 'Authorization': `Bearer ${auth.token}` } })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const r = data.data;
+            const checklist = r.checklist_data || {};
+            
+            // 🌟 อัปเดตข้อมูลกลับไปยังไฟล์ตัวแม่ (Parent) เพื่อให้แก้ข้อมูลได้
+            setFormData(prev => ({
+              ...prev,
+              hwName: r.hw_name || '',
+              supplier: r.supplier || '',
+              dateRecv: r.date_recv ? r.date_recv.split('T')[0] : '',
+              invoiceNo: r.invoice_no || '',
+              hwDesc: r.hw_desc || '',
+              poNo: r.po_no || '',
+              serialNo: r.serial_no || '',
+              customer: r.customer || '',
+              owner: r.owner || '',
+              sendBy: r.send_by || '',
+              location: r.location || '',
+              peName: checklist.peName || '', // 👈 ผูกค่าให้ Select
+              ...checklist
+            }));
+          }
+          setIsLoadingDraft(false);
+        }).catch(err => { console.error(err); setIsLoadingDraft(false); });
+    }
+  }, [editId, auth?.token, setFormData]);
+
+  // ฟังก์ชันพื้นฐานสำหรับ Input ทุกตัว
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  // 🌟 ฟังก์ชันเซฟ Draft ทันทีจากหน้านี้
+  const handleSaveDraft = async (e) => {
+    e.preventDefault();
+    if (!auth?.token) return alert("Session expired!");
+
+    const submitData = new FormData();
+    submitData.append('iqcData', JSON.stringify({ ...formData, jobStatus: 'Draft' }));
+
+    const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${auth.token}` }, body: submitData });
+      const data = await res.json();
+      if (data.success) {
+        alert("Draft Saved Successfully!");
+        window.location.href = '/'; 
+      }
+    } catch(err) { console.error(err); }
+  };
+
   const contactPinItems = [
     {id: 'pin1', en: '1.1 Signal pin#1', th: '(พินสัญญาณ#1)'},
     {id: 'pin2', en: '1.2 Signal pin#2', th: '(พินสัญญาณ#2)'}, 
@@ -43,75 +104,15 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     { id: 'pnp3', label: '2.3 Pocket size alignment', th: '', hint: "Must not deviated from 50% of device's width." }
   ];
 
-  const peList = ["Yada Ch.", "Ekaphat W.", "Bhamornkiat Ch.","Kiattisak C.", "Natthakarn P.", "Natdanai Ch", "Weera T.", "Saranyu L."
-    , "Saranyu L.", "Kasipat M.", "Pakapol S.", "Jettanat P.", "Sasiwan L.", "Chayanon S.", "Phongphon P.", "Ekkaraj J.", "Alisa T."
-    , "Warisa P.", "Orawan B.", "Thanapol Pu.", "Peephat Th.", "Kittisak Y.", "Jutamas Ch.", "Chollitha A.", "Kittithon T."
-  ];
+  const peList = ["Yada Ch.", "Ekaphat W.", "Bhamornkiat Ch.","Kiattisak C.", "Natthakarn P.", "Natdanai Ch", "Weera T.", "Saranyu L.", "Kasipat M.", "Pakapol S.", "Jettanat P.", "Sasiwan L.", "Chayanon S.", "Phongphon P.", "Ekkaraj J.", "Alisa T.", "Warisa P.", "Orawan B.", "Thanapol Pu.", "Peephat Th.", "Kittisak Y.", "Jutamas Ch.", "Chollitha A.", "Kittithon T."];
   const managerList = ["Aroon S.", "Wichai M."];
 
-  // 🌟 ดึงข้อมูลแบบร่างเดิมกลับมาเติมเมื่อตรวจพบ editId ใน URL
-  useEffect(() => {
-    if (editId && auth?.token) {
-      fetch(`${API_URL}/api/iqc/${editId}`, { headers: { 'Authorization': `Bearer ${auth.token}` } })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            const r = data.data;
-            const checklist = r.checklist_data || {};
-            setFormData({
-              hwName: r.hw_name || '',
-              supplier: r.supplier || '',
-              dateRecv: r.date_recv ? r.date_recv.split('T')[0] : '',
-              invoiceNo: r.invoice_no || '',
-              hwDesc: r.hw_desc || '',
-              poNo: r.po_no || '',
-              serialNo: r.serial_no || '',
-              customer: r.customer || '',
-              owner: r.owner || '',
-              sendBy: r.send_by || '',
-              location: r.location || '',
-              checkedBy: r.checked_by || '',
-              finalResult: r.iqc_result || 'PENDING',
-              ...checklist
-            });
-          }
-        }).catch(err => console.error("Error loading draft data:", err));
-    }
-  }, [editId, auth?.token, setFormData]);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // 🌟 ฟังก์ชันบันทึกแบบร่าง (Draft) โดยตรงจากหน้าฟอร์มนี้
-  const handleSaveDraft = async (e) => {
-    e.preventDefault();
-    if (!auth?.token) return alert("Session authorized missing!");
-
-    const submitData = new FormData();
-    submitData.append('iqcData', JSON.stringify({ ...formData, jobStatus: 'Draft' }));
-
-    const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
-    const method = editId ? 'PUT' : 'POST';
-
-    try {
-      const res = await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${auth.token}` }, body: submitData });
-      const data = await res.json();
-      if (data.success) {
-        alert("บันทึกแบบร่าง (Save Draft) สำเร็จ!");
-        window.location.href = '/'; 
-      } else {
-        alert("ไม่สามารถบันทึกแบบร่างได้: " + (data.error || "Unknown Error"));
-      }
-    } catch(err) { console.error(err); alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์"); }
-  };
+  if (isLoadingDraft) return <div className="text-white text-center py-20 font-black tracking-widest uppercase animate-pulse">Loading Draft Record...</div>;
 
   return (
-    <div className="space-y-6 print:block">
+    <div className="space-y-6 print:block fade-in">
       
-      {/* ========================================== */}
-      {/* SECTION 1: RECEIVING PROFILE              */}
-      {/* ========================================== */}
+      {/* SECTION 1: RECEIVING PROFILE */}
       <GlassCard className="z-[50]">
         <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2">
           <FileText className="text-white no-print" />
@@ -121,30 +122,31 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 print:gap-x-4 print:gap-y-2">
-          <GlassInput name="hwName" label="Hardware Name" thLabel="(ชื่อฮาร์ดแวร์)" value={formData.hwName} onChange={handleChange} />
-          <GlassInput name="supplier" label="Supplier" thLabel="(ผู้ผลิต)" value={formData.supplier} onChange={handleChange} />
-          <GlassInput name="dateRecv" label="Date Received" thLabel="(วันที่รับ)" type="date" value={formData.dateRecv} onChange={handleChange} />
-          <GlassInput name="invoiceNo" label="Invoice No" thLabel="(หมายเลอยินวอยซ์)" value={formData.invoiceNo} onChange={handleChange} />
-          <GlassInput name="hwDesc" label="Hardware Description" thLabel="(รายละเอียดในอินวอยซ์)" value={formData.hwDesc} onChange={handleChange} gridClass="col-span-2" />
-          <GlassInput name="poNo" label="PO No#" thLabel="(หมายเลข PO#)" value={formData.poNo} onChange={handleChange} />
-          <GlassInput name="serialNo" label="S/N" thLabel="(ซีเรียลนัมเบอร์)" value={formData.serialNo} onChange={handleChange} />
-          <GlassInput name="customer" label="Customer" thLabel="(ลูกค้า)" value={formData.customer} onChange={handleChange} />
-          <GlassInput name="owner" label="Owner" thLabel="(เจ้าของฮาร์ดแวร์)" value={formData.owner} onChange={handleChange} />
-          <GlassInput name="sendBy" label="Send by" thLabel="(ส่งมาโดย)" value={formData.sendBy} onChange={handleChange} />
+          <GlassInput name="hwName" label="Hardware Name" thLabel="(ชื่อฮาร์ดแวร์)" value={formData.hwName || ''} onChange={handleChange} />
+          <GlassInput name="supplier" label="Supplier" thLabel="(ผู้ผลิต)" value={formData.supplier || ''} onChange={handleChange} />
+          <GlassInput name="dateRecv" label="Date Received" thLabel="(วันที่รับ)" type="date" value={formData.dateRecv || ''} onChange={handleChange} />
+          <GlassInput name="invoiceNo" label="Invoice No" thLabel="(หมายเลขอินวอยซ์)" value={formData.invoiceNo || ''} onChange={handleChange} />
+          <GlassInput name="hwDesc" label="Hardware Description" thLabel="(รายละเอียดในอินวอยซ์)" value={formData.hwDesc || ''} onChange={handleChange} gridClass="col-span-2" />
+          <GlassInput name="poNo" label="PO No#" thLabel="(หมายเลข PO#)" value={formData.poNo || ''} onChange={handleChange} />
+          <GlassInput name="serialNo" label="S/N" thLabel="(ซีเรียลนัมเบอร์)" value={formData.serialNo || ''} onChange={handleChange} />
+          <GlassInput name="customer" label="Customer" thLabel="(ลูกค้า)" value={formData.customer || ''} onChange={handleChange} />
+          <GlassInput name="owner" label="Owner" thLabel="(เจ้าของฮาร์ดแวร์)" value={formData.owner || ''} onChange={handleChange} />
+          <GlassInput name="sendBy" label="Send by" thLabel="(ส่งมาโดย)" value={formData.sendBy || ''} onChange={handleChange} />
           <div className="hidden md:block print:hidden"></div>
-          <CustomSelect label="Engineer Name" thLabel="(ชื่อเอ็นจิเนียร์)" options={peList} gridClass="col-span-2" />
-          <GlassInput name="location" label="HW Location" thLabel="(โลเคชั่น)" value={formData.location} onChange={handleChange} gridClass="col-span-2" />
+          
+          {/* 🌟 ซ่อม CustomSelect ให้มี name, value, onChange เรียบร้อย แก้ไขได้ 100% */}
+          <CustomSelect name="peName" value={formData.peName || ''} onChange={handleChange} label="Engineer Name" thLabel="(ชื่อเอ็นจิเนียร์)" options={peList} gridClass="col-span-2" />
+          
+          <GlassInput name="location" label="HW Location" thLabel="(โลเคชั่น)" value={formData.location || ''} onChange={handleChange} gridClass="col-span-2" />
         </div>
       </GlassCard>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 print:grid-cols-2 relative z-[40]">
         
-        {/* ========================================== */}
-        {/* SECTION 2: CHECKLIST                       */}
-        {/* ========================================== */}
+        {/* SECTION 2: CHECKLIST */}
         <GlassCard className="h-full">
           <h2 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black">
-            <CheckCircle2 className="w-5 h-5 no-print inline-block mr-2 text-fuchsia-400" /> Section 2: Checklist <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 2: รายการตรวจสอบ)</span>
+            <CheckCircle2 className="w-5 h-5 no-print inline-block mr-2 text-fuchsia-400" /> Section 2: Checklist
           </h2>
           <div className="space-y-6">
             
@@ -166,7 +168,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     { k: 'mnt', n: 'Maintenance guide line', th: '(คู่มือการบำรุงรักษา)', req: false, btnLabel: 'Optional' }
                   ].map((d) => (
                     <tr key={d.k} className="hover:bg-white/5">
-                      <td className="pl-4 py-2 leading-tight">{d.n} {d.req && <span className="text-rose-500">*</span>}<span className="print-hide-th text-[9px] text-white/40 block">{d.th}</span></td>
+                      <td className="pl-4 py-2 leading-tight">{d.n} {d.req && <span className="text-rose-500">*</span>}</td>
                       <GlassRadio name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} />
                       <td className="pl-4 pr-6 align-bottom pb-3">
@@ -190,11 +192,10 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   </tr>
                 </thead>
                 <tbody>
-                  {/* --- หมวด 1: Contact pin --- */}
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">1.Contact pin</td></tr>
                   {contactPinItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
-                      <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
+                      <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en}</td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
                       <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="-" /></td>
@@ -203,11 +204,10 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     </tr>
                   ))}
 
-                  {/* --- หมวด 2: Socket /Housing --- */}
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">2.Socket /Housing</td></tr>
                   {socketItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
-                      <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
+                      <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en}</td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
                       <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="-" /></td>
@@ -216,11 +216,10 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     </tr>
                   ))}
 
-                  {/* --- หมวด 3: Alignment plate --- */}
                   <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase">3.Alignment plate</td></tr>
                   {alignmentItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5">
-                      <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
+                      <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight">{i.en}</td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
                       <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="-" /></td>
@@ -234,9 +233,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           </div>
         </GlassCard>
 
-        {/* ========================================== */}
-        {/* SECTION 3: VISUAL AUDIT                    */}
-        {/* ========================================== */}
+        {/* SECTION 3: VISUAL AUDIT */}
         <GlassCard className="h-full">
           <h2 className="text-sm font-black text-cyan-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black">
             <Activity className="w-5 h-5 no-print inline-block mr-2 text-cyan-400" /> Section 3: Visual Inspection
@@ -297,7 +294,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     <tr className="bg-white/5 print-bg-white"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase">1.Map test socket</td></tr>
                     {specificMapItems.map(item => (
                       <tr key={item.id} className="hover:bg-white/5">
-                        <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2">{item.label} <br/><span className="text-[8px] text-white/30">{item.th}</span></td>
+                        <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2">{item.label}</td>
                         <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
                         <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
                         <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white" placeholder="Remarks..." /></td>
@@ -306,7 +303,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     <tr className="bg-white/5 print-bg-white"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase">2.PnP / Turret test socket</td></tr>
                     {specificPnpItems.map(item => (
                       <tr key={item.id} className="hover:bg-white/5">
-                        <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2">{item.label} <br/><span className="text-[8px] text-white/30">{item.th}</span></td>
+                        <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2">{item.label}</td>
                         <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
                         <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
                         <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white" placeholder="Remarks..." /></td>
@@ -338,38 +335,41 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                  </div>
               </div>
               <div className="grid grid-cols-2 gap-5">
-                <GlassInput name="vendorInfo" label="Vendor Info" value={formData.vendorInfo} onChange={handleChange} />
-                <GlassInput name="customerInfo" label="Customer Info" value={formData.customerInfo} onChange={handleChange} />
+                <GlassInput name="vendorInfo" label="Vendor Info" value={formData.vendorInfo || ''} onChange={handleChange} />
+                <GlassInput name="customerInfo" label="Customer Info" value={formData.customerInfo || ''} onChange={handleChange} />
               </div>
               <div className="space-y-4">
-                 <GlassInput name="probDesc" label="Problem Description" value={formData.probDesc} onChange={handleChange} />
-                 <GlassInput name="preventAction" label="Action Taken/Prevention" value={formData.preventAction} onChange={handleChange} />
+                 <GlassInput name="probDesc" label="Problem Description" value={formData.probDesc || ''} onChange={handleChange} />
+                 <GlassInput name="preventAction" label="Action Taken/Prevention" value={formData.preventAction || ''} onChange={handleChange} />
               </div>
            </div>
+           
            <div className="grid grid-cols-2 gap-5 p-6 rounded-3xl bg-[#000000]/40 border border-white/5 print:bg-transparent print:p-0 print:border-none">
-              <CustomSelect label="Rework By" options={peList} />
-              <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate} onChange={handleChange} />
-              <CustomSelect label="Approval (PE)" options={peList} gridClass="col-span-2" />
-              <CustomSelect label="Acknowledge (Manager)" options={managerList} />
-              <GlassInput name="empNo" label="Sign / Emp No." value={formData.empNo} onChange={handleChange} />
+              {/* 🌟 ซ่อม CustomSelect ทุกตัวให้รับค่าและแก้ไขได้ */}
+              <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
+              <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
+              <CustomSelect name="approvalPE" value={formData.approvalPE || ''} onChange={handleChange} label="Approval (PE)" options={peList} gridClass="col-span-2" />
+              <CustomSelect name="ackManager" value={formData.ackManager || ''} onChange={handleChange} label="Acknowledge (Manager)" options={managerList} />
+              <GlassInput name="empNo" label="Sign / Emp No." value={formData.empNo || ''} onChange={handleChange} />
            </div>
         </div>
       </GlassCard>
 
-      {/* 🌟 ปุ่มควบคุมด้านล่าง (ปุ่ม Save as Draft ทำงานร่วมกับปุ่ม Next เดิม) */}
-      <div className="flex justify-end no-print pt-10 pb-10 gap-4">
+      {/* ควบคุมหน้า (Draft & Next) */}
+      <div className="flex justify-end items-center gap-4 no-print pt-10 pb-10">
+        
+        {/* 🌟 ปุ่ม Save Draft จะกดเซฟแล้วเด้งกลับหน้าแรกทันที */}
         <motion.button 
           type="button"
           onClick={handleSaveDraft}
           whileHover={{ scale: 1.05 }} 
           whileTap={{ scale: 0.95 }} 
-          className="bg-yellow-500/10 text-yellow-400 border border-yellow-500/40 font-black py-4 px-8 rounded-2xl shadow-xl hover:bg-yellow-500 hover:text-black transition-all text-xs tracking-widest uppercase"
+          className="bg-zinc-800 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black font-black py-4 px-8 rounded-2xl shadow-xl transition-all"
         >
           SAVE AS DRAFT
         </motion.button>
-
+        
         <motion.button 
-          type="button"
           onClick={onNext} 
           whileHover={{ scale: 1.05, x: 5 }} 
           whileTap={{ scale: 0.95 }} 
