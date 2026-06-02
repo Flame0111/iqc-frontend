@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
+import { API_URL } from '../App.jsx'; 
 
-export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext }) {
+export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
   
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit'); // 🌟 ดึง ID แบบร่างมาเช็คว่าเป็นการแก้ไขหรือไม่
+
   // 🌟 จัดกลุ่มข้อมูลเพื่อผูก ID และดึงค่าลง Database ได้ครบทุกแถว
   const contactPinItems = [
     {id: 'pin1', en: '1.1 Signal pin#1', th: '(พินสัญญาณ#1)'},
@@ -44,15 +49,68 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   ];
   const managerList = ["Aroon S.", "Wichai M."];
 
+  // 🌟 ดึงข้อมูลแบบร่างเดิมกลับมาเติมเมื่อตรวจพบ editId ใน URL
+  useEffect(() => {
+    if (editId && auth?.token) {
+      fetch(`${API_URL}/api/iqc/${editId}`, { headers: { 'Authorization': `Bearer ${auth.token}` } })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const r = data.data;
+            const checklist = r.checklist_data || {};
+            setFormData({
+              hwName: r.hw_name || '',
+              supplier: r.supplier || '',
+              dateRecv: r.date_recv ? r.date_recv.split('T')[0] : '',
+              invoiceNo: r.invoice_no || '',
+              hwDesc: r.hw_desc || '',
+              poNo: r.po_no || '',
+              serialNo: r.serial_no || '',
+              customer: r.customer || '',
+              owner: r.owner || '',
+              sendBy: r.send_by || '',
+              location: r.location || '',
+              checkedBy: r.checked_by || '',
+              finalResult: r.iqc_result || 'PENDING',
+              ...checklist
+            });
+          }
+        }).catch(err => console.error("Error loading draft data:", err));
+    }
+  }, [editId, auth?.token, setFormData]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // 🌟 ฟังก์ชันบันทึกแบบร่าง (Draft) โดยตรงจากหน้าฟอร์มนี้
+  const handleSaveDraft = async (e) => {
+    e.preventDefault();
+    if (!auth?.token) return alert("Session authorized missing!");
+
+    const submitData = new FormData();
+    submitData.append('iqcData', JSON.stringify({ ...formData, jobStatus: 'Draft' }));
+
+    const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${auth.token}` }, body: submitData });
+      const data = await res.json();
+      if (data.success) {
+        alert("บันทึกแบบร่าง (Save Draft) สำเร็จ!");
+        window.location.href = '/'; 
+      } else {
+        alert("ไม่สามารถบันทึกแบบร่างได้: " + (data.error || "Unknown Error"));
+      }
+    } catch(err) { console.error(err); alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์"); }
   };
 
   return (
     <div className="space-y-6 print:block">
       
       {/* ========================================== */}
-      {/* SECTION 1: RECEIVING PROFILE             */}
+      {/* SECTION 1: RECEIVING PROFILE              */}
       {/* ========================================== */}
       <GlassCard className="z-[50]">
         <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2">
@@ -66,7 +124,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           <GlassInput name="hwName" label="Hardware Name" thLabel="(ชื่อฮาร์ดแวร์)" value={formData.hwName} onChange={handleChange} />
           <GlassInput name="supplier" label="Supplier" thLabel="(ผู้ผลิต)" value={formData.supplier} onChange={handleChange} />
           <GlassInput name="dateRecv" label="Date Received" thLabel="(วันที่รับ)" type="date" value={formData.dateRecv} onChange={handleChange} />
-          <GlassInput name="invoiceNo" label="Invoice No" thLabel="(หมายเลขอินวอยซ์)" value={formData.invoiceNo} onChange={handleChange} />
+          <GlassInput name="invoiceNo" label="Invoice No" thLabel="(หมายเลอยินวอยซ์)" value={formData.invoiceNo} onChange={handleChange} />
           <GlassInput name="hwDesc" label="Hardware Description" thLabel="(รายละเอียดในอินวอยซ์)" value={formData.hwDesc} onChange={handleChange} gridClass="col-span-2" />
           <GlassInput name="poNo" label="PO No#" thLabel="(หมายเลข PO#)" value={formData.poNo} onChange={handleChange} />
           <GlassInput name="serialNo" label="S/N" thLabel="(ซีเรียลนัมเบอร์)" value={formData.serialNo} onChange={handleChange} />
@@ -298,8 +356,25 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </div>
       </GlassCard>
 
-      <div className="flex justify-end no-print pt-10 pb-10">
-        <motion.button onClick={onNext} whileHover={{ scale: 1.05, x: 5 }} whileTap={{ scale: 0.95 }} className="bg-[#6f7bf7] hover:bg-[#5b66e0] text-white font-black py-4 px-10 rounded-2xl shadow-xl flex items-center gap-3 transition-colors">
+      {/* 🌟 ปุ่มควบคุมด้านล่าง (ปุ่ม Save as Draft ทำงานร่วมกับปุ่ม Next เดิม) */}
+      <div className="flex justify-end no-print pt-10 pb-10 gap-4">
+        <motion.button 
+          type="button"
+          onClick={handleSaveDraft}
+          whileHover={{ scale: 1.05 }} 
+          whileTap={{ scale: 0.95 }} 
+          className="bg-yellow-500/10 text-yellow-400 border border-yellow-500/40 font-black py-4 px-8 rounded-2xl shadow-xl hover:bg-yellow-500 hover:text-black transition-all text-xs tracking-widest uppercase"
+        >
+          SAVE AS DRAFT
+        </motion.button>
+
+        <motion.button 
+          type="button"
+          onClick={onNext} 
+          whileHover={{ scale: 1.05, x: 5 }} 
+          whileTap={{ scale: 0.95 }} 
+          className="bg-[#6f7bf7] hover:bg-[#5b66e0] text-white font-black py-4 px-10 rounded-2xl shadow-xl flex items-center gap-3 transition-colors"
+        >
           NEXT: PHOTO UPLOAD <ArrowRight size={20}/>
         </motion.button>
       </div>
