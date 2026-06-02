@@ -7,7 +7,7 @@ import { API_URL } from '../App.jsx';
 
 export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
   
-  const [searchParams] = new URLSearchParams(window.location.search);
+  const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
