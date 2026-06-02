@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
@@ -7,24 +6,34 @@ import { API_URL } from '../App.jsx';
 
 export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
   
+  // ใช้ JavaScript พื้นฐานดึงค่าจาก URL ป้องกัน React จอขาว
   const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
 
-  // 🌟 ฟังก์ชันค้นหา Token ครอบจักรวาล (ดักจับทุกรูปแบบที่คุณเฟมอาจจะใช้เซฟตอนล็อกอิน)
-  const getAuthToken = () => {
-    if (auth && auth.token) return auth.token; // ถ้า Parent ส่งมาให้ ใช้ได้เลย
-    const localAuth = localStorage.getItem('auth');
-    if (localAuth) try { return JSON.parse(localAuth).token || JSON.parse(localAuth); } catch(e) { return localAuth; }
-    const localUser = localStorage.getItem('user');
-    if (localUser) try { return JSON.parse(localUser).token; } catch(e) { return localUser; }
+  // 🌟 ระบบทะลวงหา Token ขั้นเด็ดขาด (ไม่ต้องง้อไฟล์ตัวแม่)
+  const getActiveToken = () => {
+    // 1. ถ้าไฟล์แม่ใจดีส่งมาให้ ก็ใช้ได้เลย
+    if (auth?.token) return auth.token;
+    
+    // 2. ถ้าไฟล์แม่ไม่ส่งมา ให้มุดไปหาใน Storage ของเบราว์เซอร์
+    try {
+      const localAuth = localStorage.getItem('auth');
+      if (localAuth) {
+         const parsed = JSON.parse(localAuth);
+         if (parsed.token) return parsed.token;
+      }
+    } catch(e) { console.error("Parse auth error", e); }
+    
+    // 3. เผื่อคุณเฟมเซฟชื่อตัวแปรแปลกๆ ไว้
     const justToken = localStorage.getItem('token');
     if (justToken) return justToken;
+    
     return null; // ถ้าหาไม่เจอจริงๆ
   };
 
-  const activeToken = getAuthToken();
+  const activeToken = getActiveToken();
 
   // 🌟 ดึงข้อมูล Draft จาก Database มาใส่ในฟอร์ม
   useEffect(() => {
@@ -37,6 +46,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             const r = data.data;
             const checklist = r.checklist_data || {};
             
+            // อัปเดตข้อมูลกลับไปยังไฟล์ตัวแม่
             setFormData(prev => ({
               ...prev,
               hwName: r.hw_name || '',
@@ -65,10 +75,10 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   // 🌟 ฟังก์ชันเซฟ Draft ทันทีจากหน้านี้
   const handleSaveDraft = async (e) => {
     e.preventDefault();
-    const currentToken = getAuthToken(); // เช็ค Token สดๆ ก่อนกดยิง API
-    
+    const currentToken = getActiveToken(); // ดึง Token สดๆ ก่อนกดเซฟ
+
     if (!currentToken) {
-      return alert("Session expired! หาข้อมูลการล็อกอินไม่เจอ รบกวนกลับไปล็อกอินใหม่อีกครั้งครับ");
+      return alert("Session expired! ระบบหาบัตรผ่านไม่เจอ รบกวนกลับไปล็อกอินใหม่อีกครั้งครับ");
     }
 
     const submitData = new FormData();
@@ -83,17 +93,16 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         headers: { 'Authorization': `Bearer ${currentToken}` }, 
         body: submitData 
       });
-      
       const data = await res.json();
       if (data.success) {
-        alert("Draft Saved Successfully!");
+        alert("บันทึกข้อมูลฉบับร่าง (Save Draft) สำเร็จเรียบร้อย!");
         window.location.href = '/'; 
       } else {
-        alert("Error: " + (data.error || data.message || "Failed to save draft."));
+        alert("ไม่สามารถบันทึกได้: " + (data.error || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์"));
       }
     } catch(err) { 
       console.error(err); 
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+      alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้");
     }
   };
 
