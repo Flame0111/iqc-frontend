@@ -80,7 +80,7 @@ export default function HomePage({ auth, triggerRefresh }) {
     switch(status) {
       case 'Done': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
       case 'Pending': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      case 'Draft': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 animate-pulse'; // 🌟 เพิ่มสีทองสําหรับสถานะ Draft
+      case 'Draft': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 animate-pulse'; 
       case 'Return to store': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       case 'Return to production': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
       default: return 'bg-blue-500/20 text-blue-400 border-blue-500/30'; 
@@ -164,7 +164,7 @@ export default function HomePage({ auth, triggerRefresh }) {
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Completed At</th>
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Inspection By</th>
                 <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>System Remark</th>
-                {auth.role === 'admin' && <th className="py-1.5 px-3"></th>}
+                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-right font-bold text-white/50 uppercase tracking-wider`}>Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -191,18 +191,20 @@ export default function HomePage({ auth, triggerRefresh }) {
 
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80 font-black`}>{row.location || '-'}</td>
                     
-                    {/* 🌟 แสดงปุ่มดินสอ ✏️ ถัดจาก รหัสคิวเฉพาะตัวที่เป็น IQC Check และมีสถานะเป็น Draft เพื่อกลับเข้าไปแก้ไขใน IQCForm */}
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} font-bold text-white/40 flex items-center gap-2`}>
-                      #{row.displayId}
-                      {row.queueType === 'IQC Check' && row.currentStatus === 'Draft' && (
-                        <button 
-                          onClick={() => window.location.href = `/form?edit=${row.id}`}
-                          className="p-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 rounded hover:bg-yellow-500 hover:text-black transition-all inline-flex items-center"
-                          title="Edit Draft Data"
-                        >
-                          <Edit2 size={10} />
-                        </button>
-                      )}
+                    {/* 🌟 บล็อก QUEUE ID ซ่อมสมบูรณ์แบบ! ถอด flex ออกเพื่อให้แนวตั้งอยู่กึ่งกลางบรรทัดมาตรฐาน และครอบ div flex จัดเรียงรหัสกับปุ่มดินสอด้านในแทน */}
+                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} font-bold text-white/40`}>
+                      <div className="flex items-center gap-2">
+                        #{row.displayId}
+                        {row.queueType === 'IQC Check' && row.currentStatus === 'Draft' && (
+                          <button 
+                            onClick={() => window.location.href = `/?edit=${row.id}`}
+                            className="p-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 rounded hover:bg-yellow-500 hover:text-black transition-all inline-flex items-center"
+                            title="Edit Draft Data"
+                          >
+                            <Edit2 size={10} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                     
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} text-white/60`}>{getWW(row.created_at)}</td>
@@ -244,11 +246,32 @@ export default function HomePage({ auth, triggerRefresh }) {
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-emerald-400 font-medium`}>{row.checked_by || row.accepted_by || '-'}</td>
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-xs'} text-white/50 max-w-[200px] truncate`} title={row.remark}>{row.remark}</td>
 
-                    {auth.role === 'admin' && (
-                      <td className="py-1 px-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => row.queueType === 'IQC Check' ? handleDeleteMainIqc(row.id) : handleDeletePinRequest(row.id)} className="text-white/30 hover:text-rose-500 p-1 rounded hover:bg-rose-500/10"><Trash2 size={14}/></button>
-                      </td>
-                    )}
+                    {/* 🌟 บล็อกคอลัมน์ขวาสุด เพิ่มปุ่มทอง Edit ตัวใหญ่ และปุ่มลบถังขยะ ให้แสดงผลนิ่งเสถียรและเรียกฟังก์ชันแก้ไขเซฟทับได้สมบูรณ์ครับ */}
+                    <td className="py-1 px-3 text-right">
+                      <div className="flex justify-end items-center gap-2 opacity-20 group-hover:opacity-100 transition-opacity">
+                        
+                        {row.queueType === 'IQC Check' && (
+                          <button 
+                            onClick={() => window.location.href = `/?edit=${row.id}`} 
+                            className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black p-1.5 px-2 rounded-lg transition-all"
+                            title="Edit Data"
+                          >
+                            <Edit2 size={12} /> <span className="text-[9px] font-bold uppercase tracking-wider">Edit</span>
+                          </button>
+                        )}
+
+                        {auth.role === 'admin' && (
+                          <button 
+                            onClick={() => row.queueType === 'IQC Check' ? handleDeleteMainIqc(row.id) : handleDeletePinRequest(row.id)} 
+                            className="text-white/30 hover:text-rose-500 p-1.5 rounded hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-all"
+                            title="Delete Record"
+                          >
+                            <Trash2 size={14}/>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+
                   </tr>
                 ))
               )}
