@@ -135,37 +135,46 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   if (isLoadingDraft) return <div className="text-white text-center py-20 font-black tracking-widest uppercase animate-pulse">Loading Draft Record...</div>;
 
   return (
-    <div className="space-y-6 print:block fade-in">
+    <div className="space-y-6 print:block fade-in relative print:pt-4">
       
+      {/* 🌟 แสดงเฉพาะตอน Print - มุมขวาบน */}
+      <div className="hidden print:flex flex-col items-end absolute top-0 right-0 z-50">
+        <div className="border border-black px-2 py-0.5 mb-1">
+          <span className="text-[10px] font-bold text-black uppercase">Verified By : DCC</span>
+        </div>
+        <div className="text-[10px] font-bold text-black uppercase">
+          Refer : TS-H/W-002
+        </div>
+        <div className="text-[10px] font-bold text-black uppercase">
+          Serial : 03
+        </div>
+      </div>
+
       {/* ========================================== */}
-      {/* SECTION 1: RECEIVING PROFILE              */}
+      {/* SECTION 1: RECEIVING PROFILE (ฟอร์มดั้งเดิม) */}
       {/* ========================================== */}
       <GlassCard className="z-[50]">
-        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-1 print:pb-0">
+        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2 print:pb-0">
           <FileText className="text-white no-print" />
           <h2 className="text-sm font-black uppercase tracking-widest text-white print:text-black">
             Section 1: Receiving Profile <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 1: รับฮาร์ดแวร์)</span>
           </h2>
         </div>
         
-        {/* 🌟 ปรับโครงสร้างเพิ่ม Refer, Verified และให้จัดเป็น 4 คอลัมน์ตอน Print */}
-        <div className="grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-5 print:gap-x-3 print:gap-y-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 print:gap-x-4 print:gap-y-2">
           <GlassInput name="hwName" label="Hardware Name" thLabel="(ชื่อฮาร์ดแวร์)" value={formData.hwName || ''} onChange={handleChange} />
           <GlassInput name="supplier" label="Supplier" thLabel="(ผู้ผลิต)" value={formData.supplier || ''} onChange={handleChange} />
           <GlassInput name="dateRecv" label="Date Received" thLabel="(วันที่รับ)" type="date" value={formData.dateRecv || ''} onChange={handleChange} />
           <GlassInput name="invoiceNo" label="Invoice No" thLabel="(หมายเลขอินวอยซ์)" value={formData.invoiceNo || ''} onChange={handleChange} />
-          
-          <GlassInput name="hwDesc" label="Hardware Description" thLabel="(รายละเอียด)" value={formData.hwDesc || ''} onChange={handleChange} gridClass="col-span-2" />
+          <GlassInput name="hwDesc" label="Hardware Description" thLabel="(รายละเอียดในอินวอยซ์)" value={formData.hwDesc || ''} onChange={handleChange} gridClass="col-span-2" />
           <GlassInput name="poNo" label="PO No#" thLabel="(หมายเลข PO#)" value={formData.poNo || ''} onChange={handleChange} />
-          <GlassInput name="serialNo" label="Serial No" thLabel="(ซีเรียลนัมเบอร์)" value={formData.serialNo || ''} onChange={handleChange} />
-          
-          <GlassInput name="referTo" label="Refer to" thLabel="(อ้างอิง)" value={formData.referTo || ''} onChange={handleChange} />
-          <GlassInput name="verifiedBy" label="Verified by" thLabel="(ตรวจสอบโดย)" value={formData.verifiedBy || ''} onChange={handleChange} />
+          <GlassInput name="serialNo" label="S/N" thLabel="(ซีเรียลนัมเบอร์)" value={formData.serialNo || ''} onChange={handleChange} />
           <GlassInput name="customer" label="Customer" thLabel="(ลูกค้า)" value={formData.customer || ''} onChange={handleChange} />
           <GlassInput name="owner" label="Owner" thLabel="(เจ้าของฮาร์ดแวร์)" value={formData.owner || ''} onChange={handleChange} />
-          
           <GlassInput name="sendBy" label="Send by" thLabel="(ส่งมาโดย)" value={formData.sendBy || ''} onChange={handleChange} />
-          <CustomSelect name="peName" value={formData.peName || ''} onChange={handleChange} label="Engineer Name" thLabel="(ชื่อวิศวกร)" options={peList} />
+          <div className="hidden md:block print:hidden"></div>
+          
+          <CustomSelect name="peName" value={formData.peName || ''} onChange={handleChange} label="Engineer Name" thLabel="(ชื่อเอ็นจิเนียร์)" options={peList} gridClass="col-span-2" />
           <GlassInput name="location" label="HW Location" thLabel="(โลเคชั่น)" value={formData.location || ''} onChange={handleChange} gridClass="col-span-2" />
         </div>
       </GlassCard>
@@ -202,7 +211,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                       <td className="pl-4 py-2 leading-tight">{d.n} {d.req && <span className="text-rose-500">*</span>}<span className="print-hide-th text-[9px] text-white/40 block">{d.th}</span></td>
                       <GlassRadio name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} />
-                      <td className="pl-4 pr-6 align-bottom pb-3 print:pb-1">
+                      <td className="pl-4 pr-6 align-bottom pb-3 print:pb-0">
                          <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-0.5 text-white/80" placeholder="Remarks..." />
                       </td>
                       <td className="no-print pr-4 py-2 h-14 relative">
