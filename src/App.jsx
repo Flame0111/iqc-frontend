@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ArrowRight, ShieldAlert, Sparkles } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
 import HomePage from './pages/HomePage.jsx';
 import FormPage from './pages/FormPage.jsx';
@@ -62,7 +62,7 @@ export default function App() {
         setAuth(data);
         localStorage.setItem('iqc_auth', JSON.stringify(data)); 
       } else {
-        setLoginError("Invalid credentials. Please verify and try again.");
+        setLoginError("Access denied. Please check your ID and Password.");
       }
     } catch (err) { setLoginError("System offline. Unable to connect to server."); }
   };
@@ -104,104 +104,111 @@ export default function App() {
   };
 
   // ==========================================
-  // 🌟 ENTERPRISE LEVEL LOGIN UI (Clean Logo Design)
+  // 🌟 DIMENSIONAL & DEEP 3D UI LOGIN (Super Senior Level)
   // ==========================================
   if (!auth) {
     return (
-      <div className="min-h-screen bg-[#050608] flex items-center justify-center font-sans relative overflow-hidden">
+      <div className="min-h-screen bg-[#030406] flex items-center justify-center font-sans relative overflow-hidden">
         
-        {/* Subtle Enterprise Background Accents */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-[#050608] to-[#050608] pointer-events-none"></div>
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"></div>
-        
-        {/* Soft Center Glow */}
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          transition={{ duration: 1.5 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none"
-        />
+        {/* Animated Background Orbs for Deep Lighting */}
+        <motion.div animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, -30, 0] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[20%] left-[20%] w-[500px] h-[500px] bg-[#4f46e5] rounded-full blur-[150px] opacity-20 pointer-events-none" />
+        <motion.div animate={{ scale: [1, 1.3, 1], x: [0, -40, 0], y: [0, 40, 0] }} transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute bottom-[20%] right-[20%] w-[400px] h-[400px] bg-[#a855f7] rounded-full blur-[150px] opacity-20 pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 mix-blend-screen pointer-events-none"></div>
 
         <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} 
-          className="z-10 w-full max-w-[420px] p-6"
+          initial={{ opacity: 0, y: 30, scale: 0.95 }} 
+          animate={{ opacity: 1, y: 0, scale: 1 }} 
+          transition={{ duration: 0.8, ease: "easeOut" }} 
+          className="z-10 w-full max-w-[440px] p-6 relative"
         >
-          <div className="bg-[#0b0c10]/80 backdrop-blur-2xl border border-white/5 rounded-3xl p-8 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] relative overflow-hidden">
+          {/* Glass Card Container with Deep Shadows and Glossy Borders */}
+          <div className="backdrop-blur-3xl backdrop-saturate-[1.2] bg-[#0a0c13]/70 border-t border-l border-white/10 border-r border-b border-black/80 rounded-[2rem] p-8 sm:p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.9),_inset_0_1px_1px_rgba(255,255,255,0.15)] relative overflow-hidden">
             
-            {/* Inner Top Highlight */}
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+            {/* Top Glossy Reflection */}
+            <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-50"></div>
+            <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none"></div>
 
-            {/* Header Section (Clean Logo without border) */}
+            {/* Header Section */}
             <div className="flex flex-col items-center mb-10 relative z-10">
-              <img 
-                src={logoUtac} 
-                alt="UTAC" 
-                className="h-14 object-contain drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] mb-6 opacity-95" 
-              />
-              <h2 className="text-2xl font-black text-white tracking-tight mb-1.5">CONTACTOR PORTAL</h2>
-              <div className="flex items-center gap-1.5 opacity-40">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-white">Authorized Access</p>
+              <div className="relative mb-6 group">
+                 {/* Floating Puck Effect behind Logo */}
+                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+                 <div className="w-20 h-20 bg-[#0f111a] border-t border-white/10 border-b border-black/50 shadow-[0_15px_25px_-5px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.05)] rounded-[1.5rem] flex items-center justify-center relative z-10">
+                   <img src={logoUtac} alt="UTAC" className="h-9 object-contain drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)] opacity-95" />
+                 </div>
+              </div>
+              <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-white/60 tracking-tight mb-2">IQC PORTAL</h2>
+              <div className="flex items-center gap-2 bg-black/40 border border-white/5 rounded-full px-4 py-1.5 shadow-inner">
+                <Sparkles size={12} className="text-[#a855f7]" />
+                <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/70">Centralized Auth</p>
               </div>
             </div>
 
-            {/* Login Form */}
-            <form onSubmit={handleLogin} className="w-full space-y-5 relative z-10">
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Employee ID</label>
+            {/* Dimensional Form */}
+            <form onSubmit={handleLogin} className="w-full space-y-6 relative z-10">
+              
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-white/50 uppercase tracking-[0.2em] ml-2">Employee ID</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                     <User className="w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
+                     <User className="w-5 h-5 text-white/30 group-focus-within:text-indigo-400 transition-all duration-300" />
                   </div>
+                  {/* Deep Inset Shadow Input */}
                   <input 
                     name="username"
                     type="text" 
                     value={loginForm.username}
                     onChange={(e)=>setLoginForm({...loginForm, username: e.target.value})}
-                    className="w-full bg-[#050608]/50 border border-white/5 text-white rounded-xl pl-11 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500/40 focus:bg-[#050608]/80 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-white/10"
+                    className="w-full bg-[#050608]/90 border border-white/[0.03] text-white rounded-2xl pl-12 pr-4 py-4 text-sm font-medium shadow-[inset_0_2px_6px_rgba(0,0,0,0.8)] focus:outline-none focus:border-indigo-500/40 focus:bg-[#08090f] focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 placeholder:text-white/20"
                     placeholder="Enter your ID"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Password</label>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-white/50 uppercase tracking-[0.2em] ml-2">Password</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                     <KeyRound className="w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
+                     <KeyRound className="w-5 h-5 text-white/30 group-focus-within:text-indigo-400 transition-all duration-300" />
                   </div>
                   <input 
                     name="password"
                     type="password" 
                     value={loginForm.password}
                     onChange={(e)=>setLoginForm({...loginForm, password: e.target.value})}
-                    className="w-full bg-[#050608]/50 border border-white/5 text-white rounded-xl pl-11 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500/40 focus:bg-[#050608]/80 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-white/10"
+                    className="w-full bg-[#050608]/90 border border-white/[0.03] text-white rounded-2xl pl-12 pr-4 py-4 text-sm font-medium shadow-[inset_0_2px_6px_rgba(0,0,0,0.8)] focus:outline-none focus:border-indigo-500/40 focus:bg-[#08090f] focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 placeholder:text-white/20"
                     placeholder="••••••••"
                   />
                 </div>
               </div>
 
-              {loginError && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
-                  <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] font-bold py-3 px-4 rounded-xl flex items-center gap-2 mt-2">
-                    <ShieldAlert size={14} className="shrink-0"/> {loginError}
-                  </div>
-                </motion.div>
-              )}
+              <AnimatePresence>
+                {loginError && (
+                  <motion.div initial={{ opacity: 0, height: 0, y: -10 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                    <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] font-bold py-3 px-4 rounded-xl flex items-center gap-2 mt-2 shadow-inner">
+                      <ShieldAlert size={14} className="shrink-0"/> {loginError}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
+              {/* 3D Gradient Button */}
               <button 
                 type="submit" 
-                className="w-full mt-8 bg-white hover:bg-gray-100 text-black text-xs font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
+                className="w-full relative mt-8 overflow-hidden group bg-gradient-to-br from-[#4f46e5] to-[#7c3aed] text-white text-xs font-black tracking-[0.2em] uppercase py-4.5 rounded-2xl transition-all duration-300 shadow-[0_10px_30px_-10px_rgba(124,58,237,0.7),_inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_15px_40px_-10px_rgba(124,58,237,0.9),_inset_0_1px_1px_rgba(255,255,255,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                Sign In <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {/* Button Glossy Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative z-10 flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                  Sign In <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
               </button>
             </form>
           </div>
           
-          <div className="mt-8 text-center opacity-30">
-            <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-white">Contact: Rangsimont Jitrayont,Flame </p>
+          <div className="mt-8 text-center opacity-30 flex flex-col items-center gap-2">
+            <div className="w-10 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+            <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-white drop-shadow-md">UTAC Quality Control © 2026</p>
           </div>
         </motion.div>
       </div>
