@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Printer, Lock, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList } from 'lucide-react';
+import { Printer, Lock, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
 import HomePage from './pages/HomePage.jsx';
 import FormPage from './pages/FormPage.jsx';
@@ -18,7 +18,7 @@ export default function App() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
-  // 🌟 แก้ไข: ให้เช็ค URL ตอนโหลดเว็บ ถ้ามี ?edit= ให้เปิดหน้า iqc เลย
+  // เช็ค URL ตอนโหลดเว็บ ถ้ามี ?edit= ให้เปิดหน้า iqc เลย
   const [page, setPage] = useState(() => {
     const searchParams = new URLSearchParams(window.location.search);
     return searchParams.has('edit') ? 'iqc' : 'home';
@@ -64,9 +64,9 @@ export default function App() {
         setAuth(data);
         localStorage.setItem('iqc_auth', JSON.stringify(data)); 
       } else {
-        setLoginError("Invalid credentials.");
+        setLoginError("Invalid credentials. Please try again.");
       }
-    } catch (err) { setLoginError("Server offline."); }
+    } catch (err) { setLoginError("Server offline or unreachable."); }
   };
 
   const handleLogout = () => {
@@ -94,7 +94,6 @@ export default function App() {
   };
 
   const resetFormAndGoHome = () => {
-    window.history.pushState({}, '', '/'); // ล้าง URL ด้วย
     setFormData({
       hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
       chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
@@ -106,40 +105,102 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 🌟 ฟังก์ชันเปิดหน้าฟอร์มใหม่เอี่ยม (เคลียร์ URL ไม่ให้จำของเก่า)
-  const handleOpenNewForm = () => {
-    window.history.pushState({}, '', '/');
-    setFormData({
-      hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
-      chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
-    });
-    setUploadedDocs({ pkg: [], sck: [], pin: [], mnt: [] });
-    setUploadedImages({});
-    setStep(1);
-    setPage('iqc');
-  };
-
+  // ==========================================
+  // 🌟 NEW LOGIN UI DESIGN
+  // ==========================================
   if (!auth) {
     return (
-      <div className="min-h-screen bg-[#0b0c10] flex items-center justify-center font-sans">
-        <motion.div animate={{ scale: [1, 1.05, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 8, repeat: Infinity }} className="absolute w-[80vw] h-[80vw] bg-gradient-to-tr from-[#3b82f6] to-[#a855f7] rounded-full blur-[120px] opacity-40 z-0" />
-        <div className="z-10 w-full max-w-md p-4">
-          <GlassCard className="!p-10 flex flex-col items-center">
-            <img src={logoUtac} alt="UTAC" className="h-14 mb-8" />
-            <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2"><Lock size={20}/> SECURE LOGIN</h2>
-            <p className="text-white/40 text-xs mb-8">Centralized Factory Portal</p>
-            <form onSubmit={handleLogin} className="w-full space-y-4">
-              <GlassInput name="username" label="Username" value={loginForm.username} onChange={(e)=>setLoginForm({...loginForm, username: e.target.value})} placeholder="Username" />
-              <GlassInput name="password" type="password" label="Password" value={loginForm.password} onChange={(e)=>setLoginForm({...loginForm, password: e.target.value})} placeholder="Password" />
-              {loginError && <p className="text-rose-500 text-xs text-center font-bold">{loginError}</p>}
-              <button type="submit" className="w-full mt-4 bg-[#6f7bf7] hover:bg-[#5b66e0] text-white text-sm font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(111,123,247,0.3)]">SIGN IN</button>
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center font-sans relative overflow-hidden">
+        
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
+        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-[#6f7bf7] rounded-full blur-[150px] opacity-20 pointer-events-none" />
+        <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.05, 0.15, 0.05] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-fuchsia-600 rounded-full blur-[150px] opacity-20 pointer-events-none" />
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="z-10 w-full max-w-[420px] p-6"
+        >
+          <div className="backdrop-blur-2xl bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+            
+            {/* Glossy highlight line */}
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none"></div>
+
+            <div className="flex flex-col items-center mb-8 relative z-10">
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-6 shadow-lg shadow-black/50">
+                <img src={logoUtac} alt="UTAC" className="h-10 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+              </div>
+              <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-[#6f7bf7] tracking-tight mb-1">IQC HUB PORTAL</h2>
+              <p className="text-[#6f7bf7] text-[10px] font-bold tracking-[0.3em] uppercase flex items-center gap-1.5 opacity-80">
+                <ShieldCheck size={14}/> Secure Access
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="w-full space-y-5 relative z-10">
+              <div>
+                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1.5 ml-1">Username</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                     <User className="text-white/30 group-focus-within:text-[#6f7bf7] transition-colors h-5 w-5" />
+                  </div>
+                  <input 
+                    name="username"
+                    type="text" 
+                    value={loginForm.username}
+                    onChange={(e)=>setLoginForm({...loginForm, username: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 text-white rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:border-[#6f7bf7] focus:ring-1 focus:ring-[#6f7bf7] transition-all placeholder:text-white/20 text-sm font-medium"
+                    placeholder="Enter your username"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1.5 ml-1">Password</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                     <KeyRound className="text-white/30 group-focus-within:text-[#6f7bf7] transition-colors h-5 w-5" />
+                  </div>
+                  <input 
+                    name="password"
+                    type="password" 
+                    value={loginForm.password}
+                    onChange={(e)=>setLoginForm({...loginForm, password: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 text-white rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:border-[#6f7bf7] focus:ring-1 focus:ring-[#6f7bf7] transition-all placeholder:text-white/20 text-sm font-medium"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              {loginError && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs text-center font-bold py-2.5 rounded-lg flex items-center justify-center gap-2">
+                  <AlertCircle size={14}/> {loginError}
+                </motion.div>
+              )}
+
+              <button 
+                type="submit" 
+                className="w-full mt-6 relative group overflow-hidden bg-gradient-to-r from-[#5b66e0] to-[#7f8af7] text-white text-sm font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(111,123,247,0.4)] hover:shadow-[0_0_30px_rgba(111,123,247,0.6)] hover:-translate-y-0.5"
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                <span className="relative z-10 flex items-center justify-center gap-2">Sign In <ArrowRight size={16}/></span>
+              </button>
             </form>
-          </GlassCard>
-        </div>
+          </div>
+          
+          <div className="mt-8 text-center">
+            <p className="text-white/20 text-[9px] font-bold tracking-widest uppercase">UTAC Manufacturing System © 2026</p>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
+  // ==========================================
+  // MAIN APP ROUTING (เมื่อ Login ผ่านแล้ว)
+  // ==========================================
   const pageVariants = {
     initial: (direction) => ({ opacity: 0, x: direction > 0 ? 30 : -30 }),
     animate: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 200, damping: 20 } },
@@ -154,30 +215,23 @@ export default function App() {
 
       <header className="fixed top-0 inset-x-0 z-[999] bg-black/40 backdrop-blur-3xl border-b border-white/5 no-print shadow-sm">
         <div className="max-w-[1500px] mx-auto px-6 py-4 flex justify-between items-center">
-          
           <div className="flex items-center gap-4 w-[20%]">
             <img src={logoUtac} alt="UTAC" className="h-10 w-auto object-contain" />
             <h1 className="text-xl font-black text-white uppercase tracking-tighter hidden lg:block">IQC Hub</h1>
           </div>
-          
           <div className="flex justify-center items-center gap-3 w-[60%]">
-            {/* 🌟 เพิ่มการเคลียร์ URL เวลาสลับกลับมาหน้าแรก */}
-            <button onClick={() => { window.history.pushState({}, '', '/'); setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+            <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <LayoutDashboard size={14} /> Status Query
             </button>
-
             <button onClick={() => setIsPinModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all bg-fuchsia-600/80 hover:bg-fuchsia-600 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)]">
               <Cpu size={14} /> Request Pin Changing
             </button>
-            
-            {/* 🌟 เปลี่ยนมาเรียกฟังก์ชัน handleOpenNewForm เพื่อป้องกันบั๊กเซฟทับ */}
             {auth.role !== 'viewer' && (
-              <button onClick={handleOpenNewForm} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+              <button onClick={() => { setPage('iqc'); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
                 <ClipboardList size={14} /> + IQC Form
               </button>
             )}
           </div>
-
           <div className="flex justify-end items-center gap-3 w-[20%]">
              <div className="hidden xl:flex flex-col text-right justify-center pr-3 border-r border-white/10">
                <span className="text-xs font-bold text-white leading-tight">{auth.name}</span>
@@ -203,20 +257,7 @@ export default function App() {
           )}
           {page === 'iqc' && step === 2 && (
             <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <PhotoPage 
-                auth={auth} 
-                formData={formData} 
-                setFormData={setFormData} 
-                uploadedDocs={uploadedDocs} 
-                uploadedImages={uploadedImages} 
-                handleImageChange={handleImageChange} 
-                removeImage={removeImage} 
-                handleMultiImageChange={handleMultiImageChange} 
-                removeMultiImage={removeMultiImage} 
-                onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
-                isDocComplete={isDocComplete} 
-                onSuccess={resetFormAndGoHome} 
-              />
+              <PhotoPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -233,16 +274,13 @@ export default function App() {
                 </div>
                 <form onSubmit={handlePinRequestSubmit} className="space-y-4">
                   <GlassInput name="location" label="Machine Name *" value={pinRequestForm.location} onChange={(e)=>setPinRequestForm({...pinRequestForm, location: e.target.value})} placeholder="e.g. EXCEED-03" />
-                  
                   <div className="grid grid-cols-2 gap-4">
                     <GlassInput name="customer_name" label="Customer Name" value={pinRequestForm.customer_name} onChange={(e)=>setPinRequestForm({...pinRequestForm, customer_name: e.target.value})} placeholder="e.g. SONY" />
                     <GlassInput name="req_name" label="Requester Name *" value={pinRequestForm.req_name} onChange={(e)=>setPinRequestForm({...pinRequestForm, req_name: e.target.value})} placeholder="e.g. Somchai" />
                   </div>
-
                   <GlassInput name="pin_no" label="Pin No. *" value={pinRequestForm.pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, pin_no: e.target.value})} placeholder="e.g. PIN NUMBER" />
                   <GlassInput name="stock_pin_no" label="Stock Pin No." value={pinRequestForm.stock_pin_no} onChange={(e)=>setPinRequestForm({...pinRequestForm, stock_pin_no: e.target.value})} placeholder="SOCKET NUMBER" />
                   <GlassInput name="name_socket" label="Name Socket" value={pinRequestForm.name_socket} onChange={(e)=>setPinRequestForm({...pinRequestForm, name_socket: e.target.value})} placeholder="SOCKET NAME" />
-                  
                   <div className="flex gap-3 pt-4">
                     <button type="button" onClick={() => setIsPinModalOpen(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-3.5 rounded-xl transition-all">CANCEL</button>
                     <button type="submit" className="flex-1 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:brightness-110 text-white text-xs font-black tracking-widest uppercase py-3.5 rounded-xl transition-all flex items-center justify-center gap-1"><Plus size={14}/> SUBMIT REQ</button>
