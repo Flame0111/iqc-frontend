@@ -37,7 +37,7 @@
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
   /* ======================================================= */
-  /* 🖨️ PRINT MEDIA STYLES (บังคับกระดาษ A4 ขาวล้วน ไม่มีกรอบใดๆ) */
+  /* 🖨️ PRINT MEDIA STYLES (บังคับกระดาษ A4 ขาวล้วน) */
   /* ======================================================= */
   @media print {
     @page {
@@ -45,7 +45,14 @@
       margin: 8mm; 
     }
 
-    /* 🌟 บังคับกระดาษสีขาวล้วน ตัวอักษรสีดำทั้งหมด */
+    /* 🌟 กฎเหล็ก: บังคับเบราว์เซอร์ให้ปริ้นท์สีพื้นหลัง ห้ามลบทิ้งเด็ดขาด! */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      box-shadow: none !important; 
+      backdrop-filter: none !important; 
+    }
+
     html, body, #root {
       background: #ffffff !important;
       background-color: #ffffff !important;
@@ -55,12 +62,6 @@
 
     .no-print, .print-hide-th { display: none !important; }
 
-    /* 🌟 ล้างเงา ล้างกรอบ ล้างสีพื้นหลังของกล่องทุกชนิดทิ้ง 100% */
-    * { 
-      box-shadow: none !important; 
-      backdrop-filter: none !important; 
-    }
-    
     .glass-card, 
     div[class*="bg-black"], 
     div[class*="bg-[#000000]"],
@@ -77,18 +78,15 @@
       margin-bottom: 4px !important;
     }
 
-    /* บังคับตัวหนังสือทุกตัวเป็นสีดำ */
     h1, h2, h3, p, span, label, div {
       color: #000000 !important;
     }
 
-    /* ลดระยะห่างทั้งเว็บตอนสั่ง Print */
     .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
     .gap-6, .gap-5, .gap-8 { gap: 4px !important; }
     .mb-6 { margin-bottom: 4px !important; }
     h2 { margin-bottom: 4px !important; padding-bottom: 0 !important; font-size: 11px !important; }
     
-    /* บังคับตารางให้เป็นเส้นขอบดำ 1 เส้นจบ */
     table { border-collapse: collapse !important; width: 100% !important; margin-bottom: 4px !important; }
     .glass-table th, .glass-table td, th, td {
       padding: 2px 4px !important;
@@ -99,7 +97,6 @@
       background: transparent !important;
     }
 
-    /* จัดการช่องกรอก (Input) ให้เป็นแค่เส้นประบางๆ */
     input[type="text"], input[type="date"], select, .glass-input {
       background: transparent !important;
       border: none !important;
@@ -126,23 +123,25 @@
       color: #000000 !important;
     }
 
-    /* Radio Button สีดำ */
+    /* 🌟 วิธีวาด Radio Button แบบใหม่ให้ปริ้นท์ติดจุดดำแน่นอน 100% */
     input[type="radio"] {
-      -webkit-appearance: none;
-      appearance: none;
+      -webkit-appearance: none !important;
+      appearance: none !important;
       border: 1px solid #000000 !important;
-      width: 8px !important;
-      height: 8px !important;
+      width: 9px !important;
+      height: 9px !important;
       border-radius: 50% !important;
-      margin-right: 2px;
-      position: relative;
+      margin-right: 3px !important;
+      display: inline-block !important;
+      position: relative !important;
+      background-color: transparent !important;
+      vertical-align: middle !important;
     }
-    input[type="radio"]:checked::after {
-      content: '';
-      position: absolute;
-      top: 1.5px; left: 1.5px; width: 3px; height: 3px;
-      background: #000000 !important;
-      border-radius: 50%;
+
+    /* เมื่อโดนติ๊ก จะเปลี่ยนพื้นหลังเป็นสีดำ และเว้นขอบขาวไว้ 1.5px ให้เหมือนเป้ายิงปืน */
+    input[type="radio"]:checked {
+      background-color: #000000 !important;
+      box-shadow: inset 0 0 0 1.5px #ffffff !important; 
     }
 
     .print-reset, table, tr {
