@@ -37,70 +37,80 @@
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
   /* ======================================================= */
-  /* 🖨️ PRINT MEDIA STYLES (บังคับให้อยู่ใน 1 หน้ากระดาษ A4) */
+  /* 🖨️ PRINT MEDIA STYLES (บังคับกระดาษ A4 ขาวล้วน ไม่มีกรอบใดๆ) */
   /* ======================================================= */
   @media print {
     @page {
       size: A4 portrait;
-      margin: 3mm; 
+      margin: 8mm; 
     }
 
-    body {
-      background: white !important;
-      color: black !important;
+    /* 🌟 บังคับกระดาษสีขาวล้วน ตัวอักษรสีดำทั้งหมด */
+    html, body, #root {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #000000 !important;
       font-size: 8px !important; 
     }
 
-    .print-hide-th {
-      display: none !important;
+    .no-print, .print-hide-th { display: none !important; }
+
+    /* 🌟 ล้างเงา ล้างกรอบ ล้างสีพื้นหลังของกล่องทุกชนิดทิ้ง 100% */
+    * { 
+      box-shadow: none !important; 
+      backdrop-filter: none !important; 
     }
-
-    .no-print { display: none !important; }
-
-    /* ลดระยะห่างทั้งเว็บตอนสั่ง Print */
-    .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 2px !important; }
-    .gap-6, .gap-5, .gap-8 { gap: 2px !important; }
-    .mb-6 { margin-bottom: 2px !important; }
-    .pb-4 { padding-bottom: 0px !important; }
-    h2 { margin-bottom: 2px !important; padding-bottom: 0 !important; border: none !important; font-size: 10px !important; }
     
-    /* 🌟 ล้างเงาและกรอบขอบโค้งออกให้หมด 100% ไม่ให้รบกวนหน้ากระดาษ */
-    .glass-card, div[class*="bg-black/"], .bg-\[\#000000\]\/40 {
+    .glass-card, 
+    div[class*="bg-black"], 
+    div[class*="bg-[#000000]"],
+    div[class*="bg-white/"],
+    div[class*="border-white"],
+    div[class*="border-rose"],
+    div[class*="border-fuchsia"],
+    div[class*="border-cyan"] {
       background: transparent !important;
+      background-color: transparent !important;
       border: none !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
       border-radius: 0 !important;
       padding: 0 !important;
-      margin-bottom: 2px !important;
+      margin-bottom: 4px !important;
     }
 
+    /* บังคับตัวหนังสือทุกตัวเป็นสีดำ */
+    h1, h2, h3, p, span, label, div {
+      color: #000000 !important;
+    }
+
+    /* ลดระยะห่างทั้งเว็บตอนสั่ง Print */
+    .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
+    .gap-6, .gap-5, .gap-8 { gap: 4px !important; }
+    .mb-6 { margin-bottom: 4px !important; }
+    h2 { margin-bottom: 4px !important; padding-bottom: 0 !important; font-size: 11px !important; }
+    
+    /* บังคับตารางให้เป็นเส้นขอบดำ 1 เส้นจบ */
+    table { border-collapse: collapse !important; width: 100% !important; margin-bottom: 4px !important; }
     .glass-table th, .glass-table td, th, td {
-      padding: 1px 3px !important;
+      padding: 2px 4px !important;
       font-size: 8px !important;
-      border: 1px solid #000 !important;
+      border: 1px solid #000000 !important;
+      color: #000000 !important;
       line-height: 1.1 !important;
+      background: transparent !important;
     }
 
-    .glass-table th { 
-      background-color: #f8f9fa !important; 
-      color: #000000 !important; 
-      font-weight: bold !important;
-    }
-
+    /* จัดการช่องกรอก (Input) ให้เป็นแค่เส้นประบางๆ */
     input[type="text"], input[type="date"], select, .glass-input {
       background: transparent !important;
       border: none !important;
-      border-bottom: 1px dashed #000 !important; 
+      border-bottom: 1px dashed #000000 !important; 
       border-radius: 0 !important;
-      color: #000 !important;
+      color: #000000 !important;
       padding: 0 0 1px 0 !important;
       margin: 0 !important;
-      height: 12px !important; 
-      line-height: 12px !important;
+      height: 14px !important; 
+      line-height: 14px !important;
       font-size: 8px !important;
-      box-shadow: none !important;
-      outline: none !important;
       -webkit-appearance: none !important;
     }
 
@@ -113,16 +123,17 @@
     label {
       font-size: 7px !important;
       margin-bottom: 0px !important;
-      color: #000 !important;
+      color: #000000 !important;
     }
 
+    /* Radio Button สีดำ */
     input[type="radio"] {
       -webkit-appearance: none;
       appearance: none;
-      border: 1px solid #000;
+      border: 1px solid #000000 !important;
       width: 8px !important;
       height: 8px !important;
-      border-radius: 50%;
+      border-radius: 50% !important;
       margin-right: 2px;
       position: relative;
     }
@@ -130,7 +141,7 @@
       content: '';
       position: absolute;
       top: 1.5px; left: 1.5px; width: 3px; height: 3px;
-      background: #000;
+      background: #000000 !important;
       border-radius: 50%;
     }
 
