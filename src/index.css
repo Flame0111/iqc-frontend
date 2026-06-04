@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Sarabun:wght@400;500;600;700&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   body {
@@ -22,75 +24,92 @@
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
   /* ======================================================= */
-  /* โหมดปริ้นท์ (PDF) - บังคับ Layout ให้เหมือนฟอร์ม Excel ต้นฉบับ */
+  /* 🖨️ PRINT MEDIA STYLES (บังคับให้อยู่ใน 1 หน้ากระดาษ A4) */
   /* ======================================================= */
   @media print {
-    * { 
-      -webkit-print-color-adjust: exact !important; 
-      print-color-adjust: exact !important; 
-      color: #000 !important; /* บังคับตัวอักษรสีดำทั้งหมด */
-      text-shadow: none !important; 
+    @page {
+      size: A4 portrait;
+      margin: 5mm; /* 🌟 ลดขอบกระดาษให้เหลือน้อยที่สุด (5 มิลลิเมตร) */
+    }
+
+    body {
+      background: white !important;
+      color: black !important;
+      font-size: 9px !important; /* ลดฟอนต์พื้นฐาน */
+    }
+
+    .no-print { display: none !important; }
+
+    /* 🌟 ลดระยะห่าง (Gap, Margin, Padding) ทั้งเว็บตอนสั่ง Print */
+    .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
+    .gap-6, .gap-5, .gap-8 { gap: 4px !important; }
+    .mb-6 { margin-bottom: 4px !important; }
+    .pb-4 { padding-bottom: 2px !important; }
+    
+    /* ล้างดีไซน์ GlassCard ให้เป็นเนื้อเดียวกับกระดาษ */
+    .print\:bg-transparent, .glass-card, div[class*="bg-black/"] {
+      background: transparent !important;
+      border: none !important;
       box-shadow: none !important;
+      padding: 0 !important;
+      margin-bottom: 4px !important;
     }
-    
-    @page { 
-      size: A4 portrait; 
-      margin: 10mm; /* ขอบกระดาษ A4 เพื่อไม่ให้เนื้อหาชิดขอบเกินไป */
+
+    /* 🌟 บีบตารางให้เล็กลงที่สุด */
+    .glass-table th, .glass-table td, th, td {
+      padding: 2px 4px !important;
+      font-size: 9px !important;
+      border: 1px solid #000 !important;
+      line-height: 1.2 !important;
     }
-    
-    body { 
-      background-color: #ffffff !important; 
-      background-image: none !important; 
-      zoom: 0.65; /* 💡 ปรับสเกลตรงนี้ได้ (0.6 - 0.7) เพื่อให้เนื้อหาฟิตพอดี 1-2 แผ่น */
-    }
-    
-    /* ซ่อนปุ่ม ลูกเล่น และภาษาไทยที่ไม่ต้องการแสดงใน PDF */
-    .no-print, .print-hide-th { 
-      display: none !important; 
-    }
-    
-    /* ป้องกันการ์ด (Section) โดนตัดครึ่งหน้ากระดาษ */
-    .print-reset { 
-      background: transparent !important; 
-      border: none !important; 
-      padding: 0 !important; 
-      margin: 0 0 15px 0 !important; 
-      backdrop-filter: none !important; 
-      page-break-inside: avoid !important; /* สำคัญมาก: ห้ามหั่นครึ่ง Section กลางกระดาษ */
-    }
-    
-    /* บังคับตารางให้มีเส้นขอบสีดำชัดเจน เหมือนทำใน Excel */
-    table { 
-      border-collapse: collapse !important; 
-      width: 100% !important; 
-      margin-bottom: 8px !important;
-      page-break-inside: avoid !important; /* ป้องกันตารางขาดครึ่ง */
-    }
-    .glass-table th, .glass-table td, th, td { 
-      border: 1px solid #000000 !important; /* เส้นขอบตารางสีดำ */
-      padding: 4px 6px !important; 
-      font-size: 11px !important; 
-      background-color: transparent !important; 
-      vertical-align: middle !important;
-    }
+
     .glass-table th { 
       background-color: #f8f9fa !important; /* พื้นหลังหัวตารางสีเทาอ่อนแบบฟอร์มเอกสาร */
       color: #000000 !important; 
       font-weight: bold !important;
     }
 
-    /* จัดระเบียบช่องกรอก Input */
-    input[type="text"], input[type="date"], select, textarea { 
-      border: none !important; 
-      background: transparent !important; 
-      padding: 0 !important; 
-      height: auto !important; 
-      font-size: 11px !important; 
+    /* 🌟 จัดการ Input Field ให้เป็นเส้นขีดประ หรือขีดเส้นใต้ แทนกล่องใหญ่ๆ */
+    input[type="text"], input[type="date"], select, .glass-input {
+      background: transparent !important;
+      border: none !important;
+      border-bottom: 1px dotted #000 !important; /* เปลี่ยนเป็นขีดเส้นใต้ */
+      border-radius: 0 !important;
+      color: #000 !important;
+      padding: 0 0 2px 0 !important;
+      min-height: 14px !important;
+      height: auto !important;
+      font-size: 9px !important;
+    }
+
+    /* ปรับ Label เหนือช่องกรอกให้เล็กลง */
+    label {
+      font-size: 8px !important;
+      margin-bottom: 0px !important;
       color: #000 !important;
     }
 
-    /* รูปภาพหลักฐาน ป้องกันไม่ให้ข้ามหน้าแบบเละเทะ */
-    img {
+    /* บังคับ Radio Button ให้แสดงผลได้ตอน Print */
+    input[type="radio"] {
+      -webkit-appearance: none;
+      appearance: none;
+      border: 1px solid #000;
+      width: 10px !important;
+      height: 10px !important;
+      border-radius: 50%;
+      margin-right: 4px;
+      position: relative;
+    }
+    input[type="radio"]:checked::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px; width: 4px; height: 4px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    /* ห้ามตัด Section กลางกระดาษ */
+    .print-reset, .glass-card, table, tr {
       page-break-inside: avoid !important;
     }
   }
