@@ -135,11 +135,11 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   if (isLoadingDraft) return <div className="text-white text-center py-20 font-black tracking-widest uppercase animate-pulse">Loading Draft Record...</div>;
 
   return (
-    <div className="space-y-6 print:block fade-in relative print:pt-4">
+    <div className="space-y-6 print:block fade-in relative print:pt-6">
       
-      {/* 🌟 แสดงเฉพาะตอน Print - มุมขวาบน */}
+      {/* 🌟 แสดงเฉพาะตอน Print - มุมขวาบน (ไม่มีกรอบสี่เหลี่ยมรอบนอก) */}
       <div className="hidden print:flex flex-col items-end absolute top-0 right-0 z-50">
-        <div className="border border-black px-2 py-0.5 mb-1">
+        <div className="mb-1">
           <span className="text-[10px] font-bold text-black uppercase">Verified By : DCC</span>
         </div>
         <div className="text-[10px] font-bold text-black uppercase">
@@ -153,7 +153,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
       {/* ========================================== */}
       {/* SECTION 1: RECEIVING PROFILE (ฟอร์มดั้งเดิม) */}
       {/* ========================================== */}
-      <GlassCard className="z-[50]">
+      <GlassCard className="z-[50] print:border-none">
         <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2 print:pb-0">
           <FileText className="text-white no-print" />
           <h2 className="text-sm font-black uppercase tracking-widest text-white print:text-black">
@@ -184,13 +184,13 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         {/* ========================================== */}
         {/* SECTION 2: CHECKLIST                       */}
         {/* ========================================== */}
-        <GlassCard className="h-full">
-          <h2 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0">
+        <GlassCard className="h-full print:border-none">
+          <h2 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0 print:border-none">
             <CheckCircle2 className="w-5 h-5 no-print inline-block mr-2 text-fuchsia-400" /> Section 2: Checklist <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 2: รายการตรวจสอบ)</span>
           </h2>
           <div className="space-y-6 print:space-y-2">
             
-            <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02]">
+            <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
               <table className="w-full text-sm glass-table print:text-[9px]">
                 <thead>
                   <tr>
@@ -207,7 +207,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     { k: 'pin', n: 'Contact pin Drawing', th: '(ภาพวาดพินคอนแทค)', req: true, btnLabel: 'Attach' },
                     { k: 'mnt', n: 'Maintenance guide line', th: '(คู่มือการบำรุงรักษา)', req: false, btnLabel: 'Optional' }
                   ].map((d) => (
-                    <tr key={d.k} className="hover:bg-white/5">
+                    <tr key={d.k} className="hover:bg-white/5 print:hover:bg-transparent">
                       <td className="pl-4 py-2 leading-tight">{d.n} {d.req && <span className="text-rose-500">*</span>}<span className="print-hide-th text-[9px] text-white/40 block">{d.th}</span></td>
                       <GlassRadio name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} />
@@ -223,7 +223,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               </table>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02]">
+            <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
               <table className="w-full text-sm glass-table print:text-[9px]">
                 <thead>
                   <tr>
@@ -232,39 +232,39 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">1.Contact pin</td></tr>
+                  <tr className="bg-white/5 print:bg-transparent"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">1.Contact pin</td></tr>
                   {contactPinItems.map(i => (
-                    <tr key={i.id} className="hover:bg-white/5">
+                    <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
-                      <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="-" /></td>
-                      <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none" placeholder="Stk-" /></td>
-                      <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="0" /></td>
+                      <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="-" /></td>
+                      <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none print:bg-transparent print:text-black" placeholder="Stk-" /></td>
+                      <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
                     </tr>
                   ))}
 
-                  <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">2.Socket /Housing</td></tr>
+                  <tr className="bg-white/5 print:bg-transparent"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">2.Socket /Housing</td></tr>
                   {socketItems.map(i => (
-                    <tr key={i.id} className="hover:bg-white/5">
+                    <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
-                      <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="-" /></td>
-                      <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none" placeholder="Stk-" /></td>
-                      <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="0" /></td>
+                      <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="-" /></td>
+                      <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none print:bg-transparent print:text-black" placeholder="Stk-" /></td>
+                      <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
                     </tr>
                   ))}
 
-                  <tr className="bg-white/5 print-bg-white"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">3.Alignment plate</td></tr>
+                  <tr className="bg-white/5 print:bg-transparent"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">3.Alignment plate</td></tr>
                   {alignmentItems.map(i => (
-                    <tr key={i.id} className="hover:bg-white/5">
+                    <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
                       <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
                       <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
-                      <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="-" /></td>
-                      <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none" placeholder="Stk-" /></td>
-                      <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white" placeholder="0" /></td>
+                      <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="-" /></td>
+                      <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none print:bg-transparent print:text-black" placeholder="Stk-" /></td>
+                      <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -276,12 +276,12 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         {/* ========================================== */}
         {/* SECTION 3: VISUAL AUDIT                    */}
         {/* ========================================== */}
-        <GlassCard className="h-full">
-          <h2 className="text-sm font-black text-cyan-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0">
+        <GlassCard className="h-full print:border-none">
+          <h2 className="text-sm font-black text-cyan-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0 print:border-none">
             <Activity className="w-5 h-5 no-print inline-block mr-2 text-cyan-400" /> Section 3: Visual Inspection
           </h2>
           <div className="space-y-6 print:space-y-2">
-             <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02]">
+             <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
                 <table className="w-full text-sm glass-table print:text-[9px]">
                   <thead>
                     <tr>
@@ -291,64 +291,64 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-white/5 print-bg-white"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">1.Contact pin</td></tr>
+                    <tr className="bg-white/5 print:bg-transparent"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">1.Contact pin</td></tr>
                     {contactPinItems.map(i => (
-                      <tr key={`vis_${i.id}`} className="hover:bg-white/5">
+                      <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en}</td>
                         <GlassRadio name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} />
                         <GlassRadio name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} />
                         <GlassRadio name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} />
-                        <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white text-[10px] pb-0.5" placeholder="Remarks..." /></td>
+                        <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
                     
-                    <tr className="bg-white/5 print-bg-white"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">2.Socket /Housing</td></tr>
+                    <tr className="bg-white/5 print:bg-transparent"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">2.Socket /Housing</td></tr>
                     {socketItems.map(i => (
-                      <tr key={`vis_${i.id}`} className="hover:bg-white/5">
+                      <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en}</td>
                         <GlassRadio name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} />
                         <GlassRadio name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} />
                         <GlassRadio name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} />
-                        <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white text-[10px] pb-0.5" placeholder="Remarks..." /></td>
+                        <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
 
-                    <tr className="bg-white/5 print-bg-white"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">3.Alignment plate</td></tr>
+                    <tr className="bg-white/5 print:bg-transparent"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">3.Alignment plate</td></tr>
                     {alignmentItems.map(i => (
-                      <tr key={`vis_${i.id}`} className="hover:bg-white/5">
+                      <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en}</td>
                         <GlassRadio name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} />
                         <GlassRadio name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} />
                         <GlassRadio name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} />
-                        <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white text-[10px] pb-0.5" placeholder="Remarks..." /></td>
+                        <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
              </div>
 
-             <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02]">
+             <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
                 <table className="w-full text-sm glass-table print:text-[9px]">
                   <thead>
                     <tr><th className="text-left pl-4 w-[45%]">B. Specific</th><th>Pass</th><th>Fail</th><th className="text-left pl-4">Remarks</th></tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-white/5 print-bg-white"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">1.Map test socket</td></tr>
+                    <tr className="bg-white/5 print:bg-transparent"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">1.Map test socket</td></tr>
                     {specificMapItems.map(item => (
-                      <tr key={item.id} className="hover:bg-white/5">
+                      <tr key={item.id} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2 print:py-1 print:text-[9px]">{item.label} <br/><span className="print-hide-th text-[8px] text-white/30">{item.th}</span></td>
                         <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
                         <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
-                        <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white" placeholder="Remarks..." /></td>
+                        <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white print:text-black" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
-                    <tr className="bg-white/5 print-bg-white"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">2.PnP / Turret test socket</td></tr>
+                    <tr className="bg-white/5 print:bg-transparent"><td colSpan="4" className="pl-4 py-1.5 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">2.PnP / Turret test socket</td></tr>
                     {specificPnpItems.map(item => (
-                      <tr key={item.id} className="hover:bg-white/5">
+                      <tr key={item.id} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2 print:py-1 print:text-[9px]">{item.label} <br/><span className="print-hide-th text-[8px] text-white/30">{item.th}</span></td>
                         <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
                         <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
-                        <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white" placeholder="Remarks..." /></td>
+                        <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white print:text-black" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -361,7 +361,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
       {/* ========================================== */}
       {/* SECTION 4: NON-CONFORMANCE & APPROVAL      */}
       {/* ========================================== */}
-      <GlassCard className="border-t-[3px] border-rose-500/50 print:border-t-2 print:border-black mt-6 z-[30] print:mt-1 print:pt-1 print:pb-0 print:mb-0">
+      <GlassCard className="border-t-[3px] border-rose-500/50 print:border-none mt-6 z-[30] print:mt-1 print:pt-1 print:pb-0 print:mb-0">
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 print:mb-1 print:flex-row">
           <h2 className="text-sm font-black text-rose-500 uppercase tracking-widest flex items-center gap-2 print:text-black print:text-[10px]">
@@ -386,7 +386,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                  <label className="text-[10px] font-bold text-rose-300 uppercase tracking-widest block print:text-black print:text-[8px] min-w-[60px]">Action Taken :</label>
                  <div className="flex flex-wrap gap-3 print:gap-1">
                     {[{ en: 'Internal Rework', th: 'internal' }, { en: 'External Rework', th: 'external' }, { en: 'Return Vendor', th: 'vendor' }, { en: 'Return Customer', th: 'customer' }].map(a => (
-                      <label key={a.en} className="flex items-center gap-2 bg-[#000000]/50 border border-white/10 px-3 py-2 rounded-xl cursor-pointer hover:bg-white/10 no-print print:px-0 print:py-0 print:border-none print:flex print:items-center">
+                      <label key={a.en} className="flex items-center gap-2 bg-[#000000]/50 border border-white/10 px-3 py-2 rounded-xl cursor-pointer hover:bg-white/10 no-print print:px-0 print:py-0 print:border-none print:flex print:items-center print:bg-transparent">
                         <input type="radio" name="nc_action" value={a.th} checked={formData.nc_action === a.th} onChange={handleChange} className="w-4 h-4 accent-rose-500 print:w-2 print:h-2" />
                         <span className="text-[11px] text-white/90 font-medium whitespace-nowrap print:text-black print:text-[8px]">{a.en}</span>
                       </label>
@@ -403,11 +403,11 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               </div>
            </div>
            
-           <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 items-end print:bg-transparent print:p-2 print:border print:border-black print:rounded-none print:gap-x-2 print:gap-y-2 print:items-end">
+           <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 items-end print:bg-transparent print:p-0 print:border-none print:rounded-none print:gap-x-2 print:gap-y-2 print:items-end">
               <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
               <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
               
-              <div className="col-span-2 print:border-t print:border-black print:pt-1">
+              <div className="col-span-2 print:border-none print:pt-1">
                 <CustomSelect name="approvalPE" value={formData.approvalPE || ''} onChange={handleChange} label="Approval (PE)" options={peList} />
               </div>
               
