@@ -355,41 +355,54 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </GlassCard>
       </div>
 
-      {/* SECTION 4 */}
-      <GlassCard className="border-t-[3px] border-rose-500/50 print:border-t-2 print:border-black mt-6 z-[30]">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6 print:mb-2">
-          <h2 className="text-sm font-black text-rose-500 uppercase tracking-widest flex items-center gap-2 print:text-black print:text-[11px]"><AlertCircle className="w-5 h-5 no-print text-rose-500" /> Non-Conformance Action</h2>
+      {/* ========================================== */}
+      {/* SECTION 4: NON-CONFORMANCE & APPROVAL      */}
+      {/* ========================================== */}
+      <GlassCard className="border-t-[3px] border-rose-500/50 print:border-t-2 print:border-black mt-6 z-[30] print:mt-2 print:pt-2 print:pb-0 print:mb-0">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4 print:mb-1">
+          <h2 className="text-sm font-black text-rose-500 uppercase tracking-widest flex items-center gap-2 print:text-black print:text-[11px]">
+            <AlertCircle className="w-5 h-5 no-print text-rose-500" /> Section 4: Non-Conformance Action
+          </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:gap-4 items-start">
-           <div className="space-y-5">
-              <div>
-                 <label className="text-[10px] font-bold text-rose-300 uppercase tracking-widest mb-3 block">Action Taken (การดำเนินการ) :</label>
-                 <div className="flex flex-wrap gap-3">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:gap-2 items-start">
+           
+           {/* ฝั่งซ้าย: รายละเอียดปัญหา */}
+           <div className="lg:col-span-7 space-y-4 print:space-y-1">
+              <div className="print:flex print:items-center print:gap-2">
+                 <label className="text-[10px] font-bold text-rose-300 uppercase tracking-widest mb-2 block print:text-black print:mb-0 print:text-[9px]">Action Taken :</label>
+                 <div className="flex flex-wrap gap-3 print:gap-2">
                     {[{ en: 'Internal Rework', th: 'internal' }, { en: 'External Rework', th: 'external' }, { en: 'Return Vendor', th: 'vendor' }, { en: 'Return Customer', th: 'customer' }].map(a => (
-                      <label key={a.en} className="flex items-center gap-2 bg-[#000000]/50 border border-white/10 px-3 py-2 rounded-xl cursor-pointer hover:bg-white/10 no-print">
-                        <input type="radio" name="nc_action" value={a.th} checked={formData.nc_action === a.th} onChange={handleChange} className="w-4 h-4 accent-rose-500" />
-                        <span className="text-[11px] text-white/90 font-medium">{a.en}</span>
+                      <label key={a.en} className="flex items-center gap-2 bg-[#000000]/50 border border-white/10 px-3 py-2 rounded-xl cursor-pointer hover:bg-white/10 no-print print:px-0 print:py-0 print:border-none print:flex print:items-center">
+                        <input type="radio" name="nc_action" value={a.th} checked={formData.nc_action === a.th} onChange={handleChange} className="w-4 h-4 accent-rose-500 print:w-3 print:h-3" />
+                        <span className="text-[11px] text-white/90 font-medium print:text-black print:text-[9px]">{a.en}</span>
                       </label>
                     ))}
                  </div>
               </div>
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-2 gap-4 print:gap-2">
                 <GlassInput name="vendorInfo" label="Vendor Info" value={formData.vendorInfo || ''} onChange={handleChange} />
                 <GlassInput name="customerInfo" label="Customer Info" value={formData.customerInfo || ''} onChange={handleChange} />
               </div>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 print:gap-1">
                  <GlassInput name="probDesc" label="Problem Description" value={formData.probDesc || ''} onChange={handleChange} />
                  <GlassInput name="preventAction" label="Action Taken/Prevention" value={formData.preventAction || ''} onChange={handleChange} />
               </div>
            </div>
            
-           <div className="grid grid-cols-2 gap-5 p-6 rounded-3xl bg-[#000000]/40 border border-white/5 print:bg-transparent print:p-0 print:border-none">
+           {/* ฝั่งขวา: กรอบลายเซ็น (ปรับให้เหมือนฟอร์มเอกสาร) */}
+           <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 print:bg-transparent print:p-2 print:border print:border-black print:rounded-none print:gap-x-4 print:gap-y-1">
               <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
               <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
-              <CustomSelect name="approvalPE" value={formData.approvalPE || ''} onChange={handleChange} label="Approval (PE)" options={peList} gridClass="col-span-2" />
+              
+              <div className="col-span-2 print:border-t print:border-black print:pt-1">
+                <CustomSelect name="approvalPE" value={formData.approvalPE || ''} onChange={handleChange} label="Approval (PE)" options={peList} />
+              </div>
+              
               <CustomSelect name="ackManager" value={formData.ackManager || ''} onChange={handleChange} label="Acknowledge (Manager)" options={managerList} />
               <GlassInput name="empNo" label="Sign / Emp No." value={formData.empNo || ''} onChange={handleChange} />
            </div>
+           
         </div>
       </GlassCard>
 
