@@ -29,18 +29,18 @@
   @media print {
     @page {
       size: A4 portrait;
-      margin: 5mm; /* 🌟 ลดขอบกระดาษให้เหลือน้อยที่สุด (5 มิลลิเมตร) */
+      margin: 5mm; 
     }
 
     body {
       background: white !important;
       color: black !important;
-      font-size: 9px !important; /* ลดฟอนต์พื้นฐาน */
+      font-size: 9px !important; 
     }
 
     .no-print { display: none !important; }
 
-    /* 🌟 ลดระยะห่าง (Gap, Margin, Padding) ทั้งเว็บตอนสั่ง Print */
+    /* ลดระยะห่างทั้งเว็บตอนสั่ง Print */
     .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
     .gap-6, .gap-5, .gap-8 { gap: 4px !important; }
     .mb-6 { margin-bottom: 4px !important; }
@@ -55,7 +55,7 @@
       margin-bottom: 4px !important;
     }
 
-    /* 🌟 บีบตารางให้เล็กลงที่สุด */
+    /* บีบตารางให้เล็กลงที่สุด */
     .glass-table th, .glass-table td, th, td {
       padding: 2px 4px !important;
       font-size: 9px !important;
@@ -64,22 +64,33 @@
     }
 
     .glass-table th { 
-      background-color: #f8f9fa !important; /* พื้นหลังหัวตารางสีเทาอ่อนแบบฟอร์มเอกสาร */
+      background-color: #f8f9fa !important; 
       color: #000000 !important; 
       font-weight: bold !important;
     }
 
-    /* 🌟 จัดการ Input Field ให้เป็นเส้นขีดประ หรือขีดเส้นใต้ แทนกล่องใหญ่ๆ */
+    /* 🌟 จัดการ Input Field ให้เป็นเส้นประที่ตรงกันเป๊ะ */
     input[type="text"], input[type="date"], select, .glass-input {
       background: transparent !important;
       border: none !important;
-      border-bottom: 1px dotted #000 !important; /* เปลี่ยนเป็นขีดเส้นใต้ */
+      border-bottom: 1px dashed #000 !important; /* เส้นประ */
       border-radius: 0 !important;
       color: #000 !important;
-      padding: 0 0 2px 0 !important;
-      min-height: 14px !important;
-      height: auto !important;
+      padding: 0 0 1px 0 !important;
+      margin: 0 !important;
+      height: 16px !important;       /* ล็อกความสูง */
+      line-height: 16px !important;
       font-size: 9px !important;
+      box-shadow: none !important;
+      outline: none !important;
+      -webkit-appearance: none !important;
+    }
+
+    /* 🌟 ทำให้ตัวอักษรใน Input ชิดขอบล่างติดเส้นพอดี */
+    .glass-input, .custom-select-wrapper {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: flex-end !important;
     }
 
     /* ปรับ Label เหนือช่องกรอกให้เล็กลง */
