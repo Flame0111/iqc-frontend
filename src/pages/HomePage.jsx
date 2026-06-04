@@ -69,27 +69,18 @@ export default function HomePage({ auth, triggerRefresh }) {
     } catch(err) { console.error(err); }
   };
 
-  // 🌟 ฟังก์ชันคำนวณ WW แบบ Auto อิงตาม US Work Week (สัปดาห์เริ่มวันอาทิตย์)
   const getWW = (dateString) => {
     if(!dateString) return "-";
     const d = new Date(dateString);
-    
-    // 1. หาวันที่ 1 มกราคมของปีนั้น
     const startOfYear = new Date(d.getFullYear(), 0, 1);
-    
-    // 2. หาวันอาทิตย์แรกของสัปดาห์ที่มีวันที่ 1 มกราคม (จุดเริ่มต้นของ WW1)
     const startOfWW1 = new Date(startOfYear);
     startOfWW1.setDate(startOfYear.getDate() - startOfYear.getDay());
     
-    // 3. ปรับเวลาให้เป็น 00:00:00 ตรงกัน เพื่อหาจำนวนวันอย่างแม่นยำ
     const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const base = new Date(startOfWW1.getFullYear(), startOfWW1.getMonth(), startOfWW1.getDate());
     
-    // 4. คำนวณความต่างเป็นจำนวนวัน แล้วหาร 7 หาเลขสัปดาห์ (ปัดเศษลง + 1)
     const diffDays = Math.round((target - base) / (1000 * 60 * 60 * 24));
     const ww = Math.floor(diffDays / 7) + 1;
-    
-    // เติมเลข 0 ด้านหน้าถ้าเลขตัวเดียวให้สวยงาม (เช่น WW01, WW09, WW23)
     return "WW" + ww.toString().padStart(2, '0');
   };
 
@@ -211,7 +202,8 @@ export default function HomePage({ auth, triggerRefresh }) {
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} font-bold text-white/40`}>
                       <div className="flex items-center gap-2">
                         #{row.displayId}
-                        {row.queueType === 'IQC Check' && row.currentStatus === 'Draft' && (
+                        {/* 🌟 ซ่อนปุ่ม Edit สำหรับ Role: viewer */}
+                        {row.queueType === 'IQC Check' && row.currentStatus === 'Draft' && auth.role !== 'viewer' && (
                           <button 
                             onClick={() => window.location.href = `/?edit=${row.id}`}
                             className="p-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 rounded hover:bg-yellow-500 hover:text-black transition-all inline-flex items-center"
@@ -223,9 +215,7 @@ export default function HomePage({ auth, triggerRefresh }) {
                       </div>
                     </td>
                     
-                    {/* 🌟 คอลัมน์นี้จะแสดงผลเป็น WW ตามสูตรใหม่ที่เราตั้งไว้ */}
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} text-[#6f7bf7] font-black`}>{getWW(row.created_at)}</td>
-                    
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80 whitespace-nowrap`}>{new Date(row.created_at).toLocaleString('en-GB')}</td>
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80`}>{row.operator}</td>
                     <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white font-bold`}>{row.details}</td>
@@ -266,7 +256,8 @@ export default function HomePage({ auth, triggerRefresh }) {
 
                     <td className="py-1 px-3 text-right">
                       <div className="flex justify-end items-center gap-2 opacity-20 group-hover:opacity-100 transition-opacity">
-                        {row.queueType === 'IQC Check' && (
+                        {/* 🌟 ซ่อนปุ่ม Edit หลัก สำหรับ Role: viewer */}
+                        {row.queueType === 'IQC Check' && auth.role !== 'viewer' && (
                           <button 
                             onClick={() => window.location.href = `/?edit=${row.id}`} 
                             className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black p-1.5 px-2 rounded-lg transition-all"
