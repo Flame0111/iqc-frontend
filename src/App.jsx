@@ -104,7 +104,7 @@ export default function App() {
   };
 
   // ==========================================
-  // 🌟 ENTERPRISE LEVEL LOGIN UI (Senior Dev Edition)
+  // 🌟 ENTERPRISE LEVEL LOGIN UI (Clean Logo Design)
   // ==========================================
   if (!auth) {
     return (
@@ -133,12 +133,13 @@ export default function App() {
             {/* Inner Top Highlight */}
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-            {/* Header Section */}
+            {/* Header Section (Clean Logo without border) */}
             <div className="flex flex-col items-center mb-10 relative z-10">
-              <div className="h-16 w-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-6 shadow-inner relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent"></div>
-                <img src={logoUtac} alt="UTAC" className="h-7 object-contain opacity-90 relative z-10" />
-              </div>
+              <img 
+                src={logoUtac} 
+                alt="UTAC" 
+                className="h-14 object-contain drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] mb-6 opacity-95" 
+              />
               <h2 className="text-2xl font-black text-white tracking-tight mb-1.5">IQC PORTAL</h2>
               <div className="flex items-center gap-1.5 opacity-40">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -208,7 +209,7 @@ export default function App() {
   }
 
   // ==========================================
-  // MAIN APP ROUTING (เมื่อ Login ผ่านแล้ว)
+  // MAIN APP ROUTING
   // ==========================================
   const pageVariants = {
     initial: (direction) => ({ opacity: 0, x: direction > 0 ? 30 : -30 }),
