@@ -392,8 +392,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               </div>
            </div>
            
-           {/* ฝั่งขวา: กรอบลายเซ็น (เพิ่ม print:items-end เพื่อบังคับให้เส้นบรรทัดตรงกันเสมอ) */}
-           <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 print:bg-transparent print:p-3 print:border print:border-black print:rounded-none print:gap-x-4 print:gap-y-3 print:items-end">
+           {/* 🌟 2. ฝั่งขวา: กรอบลายเซ็น (เพิ่ม items-end ให้ทั้งคู่ในเว็บและหน้าปริ้น) */}
+           <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 items-end print:bg-transparent print:p-3 print:border print:border-black print:rounded-none print:gap-x-4 print:gap-y-3 print:items-end">
               <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
               <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
               
