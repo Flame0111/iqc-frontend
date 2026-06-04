@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Sarabun:wght@400;500;600;700&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer base {
   body {
@@ -14,9 +12,25 @@
 }
 
 @layer utilities {
-  .glass-table th { @apply bg-white/5 text-white/80 font-bold border-b border-white/10 py-3 uppercase tracking-widest text-[10px]; }
-  .glass-table td { @apply border-b border-white/5 py-3; }
-  .glass-table tr:hover td { @apply bg-white/[0.03] transition-colors duration-300; }
+  /* 🌟 แปลง @apply เป็น CSS ปกติเพื่อแก้ปัญหา Build พังบน Netlify */
+  .glass-table th { 
+    background-color: rgba(255, 255, 255, 0.05); 
+    color: rgba(255, 255, 255, 0.8); 
+    font-weight: bold; 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+    padding-top: 0.75rem; padding-bottom: 0.75rem; 
+    text-transform: uppercase; 
+    letter-spacing: 0.1em; 
+    font-size: 10px; 
+  }
+  .glass-table td { 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+    padding-top: 0.75rem; padding-bottom: 0.75rem; 
+  }
+  .glass-table tr:hover td { 
+    background-color: rgba(255, 255, 255, 0.03); 
+    transition: background-color 300ms; 
+  }
 
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
