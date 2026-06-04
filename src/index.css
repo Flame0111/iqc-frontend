@@ -12,7 +12,6 @@
 }
 
 @layer utilities {
-  /* 🌟 แปลง @apply เป็น CSS ปกติเพื่อแก้ปัญหา Build พังบน Netlify */
   .glass-table th { 
     background-color: rgba(255, 255, 255, 0.05); 
     color: rgba(255, 255, 255, 0.8); 
@@ -43,38 +42,43 @@
   @media print {
     @page {
       size: A4 portrait;
-      margin: 5mm; 
+      margin: 3mm; /* บีบขอบกระดาษให้เหลือน้อยที่สุด (3 มิล) */
     }
 
     body {
       background: white !important;
       color: black !important;
-      font-size: 9px !important; 
+      font-size: 8px !important; /* หั่นไซส์ฟอนต์ลงอีก */
+    }
+
+    /* 🌟 ตัวการสำคัญ! บังคับซ่อนข้อความภาษาไทยตอนปริ้นท์ ช่วยประหยัดที่ได้เยอะมาก */
+    .print-hide-th {
+      display: none !important;
     }
 
     .no-print { display: none !important; }
 
-    /* ลดระยะห่างทั้งเว็บตอนสั่ง Print */
-    .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
-    .gap-6, .gap-5, .gap-8 { gap: 4px !important; }
-    .mb-6 { margin-bottom: 4px !important; }
-    .pb-4 { padding-bottom: 2px !important; }
+    /* ลดระยะห่างทั้งเว็บตอนสั่ง Print ขั้นสูงสุด */
+    .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 2px !important; }
+    .gap-6, .gap-5, .gap-8 { gap: 2px !important; }
+    .mb-6 { margin-bottom: 2px !important; }
+    .pb-4 { padding-bottom: 0px !important; }
+    h2 { margin-bottom: 2px !important; padding-bottom: 0 !important; border: none !important; font-size: 10px !important; }
     
-    /* ล้างดีไซน์ GlassCard ให้เป็นเนื้อเดียวกับกระดาษ */
     .print\:bg-transparent, .glass-card, div[class*="bg-black/"] {
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
-      padding: 0 !important;
-      margin-bottom: 4px !important;
+      padding: 2px 0 !important;
+      margin-bottom: 2px !important;
     }
 
-    /* บีบตารางให้เล็กลงที่สุด */
+    /* บีบตารางให้แน่นปึ้ก */
     .glass-table th, .glass-table td, th, td {
-      padding: 2px 4px !important;
-      font-size: 9px !important;
+      padding: 1px 3px !important;
+      font-size: 8px !important;
       border: 1px solid #000 !important;
-      line-height: 1.2 !important;
+      line-height: 1.1 !important;
     }
 
     .glass-table th { 
@@ -83,57 +87,53 @@
       font-weight: bold !important;
     }
 
-    /* 🌟 จัดการ Input Field ให้เป็นเส้นประที่ตรงกันเป๊ะ */
+    /* จัดการ Input Field */
     input[type="text"], input[type="date"], select, .glass-input {
       background: transparent !important;
       border: none !important;
-      border-bottom: 1px dashed #000 !important; /* เส้นประ */
+      border-bottom: 1px dashed #000 !important; 
       border-radius: 0 !important;
       color: #000 !important;
       padding: 0 0 1px 0 !important;
       margin: 0 !important;
-      height: 16px !important;       /* ล็อกความสูง */
-      line-height: 16px !important;
-      font-size: 9px !important;
+      height: 12px !important; /* ลดความสูงลงอีก */
+      line-height: 12px !important;
+      font-size: 8px !important;
       box-shadow: none !important;
       outline: none !important;
       -webkit-appearance: none !important;
     }
 
-    /* 🌟 ทำให้ตัวอักษรใน Input ชิดขอบล่างติดเส้นพอดี */
     .glass-input, .custom-select-wrapper {
       display: flex !important;
       flex-direction: column !important;
       justify-content: flex-end !important;
     }
 
-    /* ปรับ Label เหนือช่องกรอกให้เล็กลง */
     label {
-      font-size: 8px !important;
+      font-size: 7px !important;
       margin-bottom: 0px !important;
       color: #000 !important;
     }
 
-    /* บังคับ Radio Button ให้แสดงผลได้ตอน Print */
     input[type="radio"] {
       -webkit-appearance: none;
       appearance: none;
       border: 1px solid #000;
-      width: 10px !important;
-      height: 10px !important;
+      width: 8px !important;
+      height: 8px !important;
       border-radius: 50%;
-      margin-right: 4px;
+      margin-right: 2px;
       position: relative;
     }
     input[type="radio"]:checked::after {
       content: '';
       position: absolute;
-      top: 2px; left: 2px; width: 4px; height: 4px;
+      top: 1.5px; left: 1.5px; width: 3px; height: 3px;
       background: #000;
       border-radius: 50%;
     }
 
-    /* ห้ามตัด Section กลางกระดาษ */
     .print-reset, .glass-card, table, tr {
       page-break-inside: avoid !important;
     }
