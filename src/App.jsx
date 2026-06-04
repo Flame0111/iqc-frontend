@@ -121,15 +121,15 @@ export default function App() {
               alt="UTAC" 
               className="h-12 object-contain mb-6 opacity-90" 
             />
-            <h2 className="text-2xl font-bold text-white tracking-tight">Welcome back</h2>
-            <p className="text-zinc-500 text-sm mt-2">Sign in to your IQC Portal account</p>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Contactor Portal</h2>
+            <p className="text-zinc-500 text-sm mt-2">Please Sign in</p>
           </div>
 
           <div className="bg-[#18181b] border border-white/5 rounded-2xl p-8 shadow-2xl relative">
             <form onSubmit={handleLogin} className="w-full space-y-5">
               
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-zinc-400 ml-1">Employee ID</label>
+                <label className="block text-xs font-semibold text-zinc-400 ml-1">Username</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                      <User className="w-4 h-4 text-zinc-500" />
