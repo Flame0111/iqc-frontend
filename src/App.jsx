@@ -104,28 +104,54 @@ export default function App() {
   };
 
   // ==========================================
-  // 🌟 CLEAN & MINIMALIST LOGIN UI (No weird frames, no excessive animations)
+  // 🌟 CLEAN & MINIMALIST LOGIN UI WITH SENIOR-LEVEL ANIMATIONS
   // ==========================================
   if (!auth) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center font-sans relative">
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center font-sans relative overflow-hidden">
         
-        {/* Subtle Static Background Glow (No animation) */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none"></div>
+        {/* Subtle Ambient Glow (Senior level animation: slow, unnoticeable but adds depth) */}
+        <motion.div 
+          animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.05, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none"
+        />
 
         <div className="z-10 w-full max-w-[400px] p-6">
           <div className="flex flex-col items-center mb-8">
-            {/* Naked Logo - No Frames, No Borders */}
-            <img 
+            {/* Staggered entrance for header elements */}
+            <motion.img 
+              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              animate={{ opacity: 0.9, scale: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               src={logoUtac} 
               alt="UTAC" 
-              className="h-12 object-contain mb-6 opacity-90" 
+              className="h-12 object-contain mb-6" 
             />
-            <h2 className="text-2xl font-bold text-white tracking-tight">Contactor Portal</h2>
-            <p className="text-zinc-500 text-sm mt-2">Please Sign in</p>
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="text-2xl font-bold text-white tracking-tight"
+            >
+              Contactor Portal
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="text-zinc-500 text-sm mt-2"
+            >
+              Please Sign in
+            </motion.p>
           </div>
 
-          <div className="bg-[#18181b] border border-white/5 rounded-2xl p-8 shadow-2xl relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-[#18181b] border border-white/5 rounded-2xl p-8 shadow-2xl relative"
+          >
             <form onSubmit={handleLogin} className="w-full space-y-5">
               
               <div className="space-y-2">
@@ -162,24 +188,40 @@ export default function App() {
                 </div>
               </div>
 
-              {loginError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium py-3 px-4 rounded-xl flex items-center gap-2 mt-2">
-                  <ShieldAlert size={14} className="shrink-0"/> {loginError}
-                </div>
-              )}
+              <AnimatePresence>
+                {loginError && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium py-3 px-4 rounded-xl flex items-center gap-2">
+                      <ShieldAlert size={14} className="shrink-0"/> {loginError}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
                 type="submit" 
                 className="w-full mt-6 bg-white hover:bg-zinc-200 text-black text-sm font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 Sign In
-              </button>
+              </motion.button>
             </form>
-          </div>
+          </motion.div>
           
-          <div className="mt-8 text-center">
-            <p className="text-xs text-zinc-600">If you have any issues, please contact Rangsimont Jitrayont, Flame.</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-8 text-center"
+          >
+            <p className="text-xs text-zinc-600">If you have any issues, please contact Rangsimont Jitrayont, Fame.</p>
+          </motion.div>
         </div>
       </div>
     );
