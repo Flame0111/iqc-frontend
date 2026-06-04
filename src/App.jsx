@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ArrowRight, ShieldAlert } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
-import HomePage from './pages/HomePage.jsx';
-import FormPage from './pages/FormPage.jsx';
-import PhotoPage from './pages/PhotoPage.jsx';
-import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
 export const API_URL = "https://iqc-api-server.onrender.com";
 
@@ -140,7 +136,7 @@ export default function App() {
                 alt="UTAC" 
                 className="h-14 object-contain drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] mb-6 opacity-95" 
               />
-              <h2 className="text-2xl font-black text-white tracking-tight mb-1.5">IQC PORTAL</h2>
+              <h2 className="text-2xl font-black text-white tracking-tight mb-1.5">CONTACTOR PORTAL</h2>
               <div className="flex items-center gap-1.5 opacity-40">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-white">Authorized Access</p>
@@ -201,7 +197,7 @@ export default function App() {
           </div>
           
           <div className="mt-8 text-center opacity-30">
-            <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-white">UTAC Quality Control © 2026</p>
+            <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-white">Contact: Rangsimont Jitrayont,Flame </p>
           </div>
         </motion.div>
       </div>
