@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Printer, Lock, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList } from 'lucide-react';
+import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ArrowRight, ShieldAlert } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
 import HomePage from './pages/HomePage.jsx';
 import FormPage from './pages/FormPage.jsx';
@@ -18,7 +18,6 @@ export default function App() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
-  // เช็ค URL ตอนโหลดเว็บ ถ้ามี ?edit= ให้เปิดหน้า iqc เลย
   const [page, setPage] = useState(() => {
     const searchParams = new URLSearchParams(window.location.search);
     return searchParams.has('edit') ? 'iqc' : 'home';
@@ -29,7 +28,6 @@ export default function App() {
   const [uploadedImages, setUploadedImages] = useState({});
   
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  
   const [pinRequestForm, setPinRequestForm] = useState({ 
     location: '', pin_no: '', stock_pin_no: '', name_socket: '', customer_name: '', req_name: '' 
   });
@@ -64,9 +62,9 @@ export default function App() {
         setAuth(data);
         localStorage.setItem('iqc_auth', JSON.stringify(data)); 
       } else {
-        setLoginError("Invalid credentials. Please try again.");
+        setLoginError("Invalid credentials. Please verify and try again.");
       }
-    } catch (err) { setLoginError("Server offline or unreachable."); }
+    } catch (err) { setLoginError("System offline. Unable to connect to server."); }
   };
 
   const handleLogout = () => {
@@ -106,25 +104,105 @@ export default function App() {
   };
 
   // ==========================================
-  // 🌟 ORIGINAL LOGIN UI DESIGN (Rollback)
+  // 🌟 ENTERPRISE LEVEL LOGIN UI (Senior Dev Edition)
   // ==========================================
   if (!auth) {
     return (
-      <div className="min-h-screen bg-[#0b0c10] flex items-center justify-center font-sans">
-        <motion.div animate={{ scale: [1, 1.05, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 8, repeat: Infinity }} className="absolute w-[80vw] h-[80vw] bg-gradient-to-tr from-[#3b82f6] to-[#a855f7] rounded-full blur-[120px] opacity-40 z-0" />
-        <div className="z-10 w-full max-w-md p-4">
-          <GlassCard className="!p-10 flex flex-col items-center">
-            <img src={logoUtac} alt="UTAC" className="h-14 mb-8" />
-            <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2"><Lock size={20}/> SECURE LOGIN</h2>
-            <p className="text-white/40 text-xs mb-8">Centralized Factory Portal</p>
-            <form onSubmit={handleLogin} className="w-full space-y-4">
-              <GlassInput name="username" label="USERNAME" value={loginForm.username} onChange={(e)=>setLoginForm({...loginForm, username: e.target.value})} placeholder="Username" />
-              <GlassInput name="password" type="password" label="PASSWORD" value={loginForm.password} onChange={(e)=>setLoginForm({...loginForm, password: e.target.value})} placeholder="Password" />
-              {loginError && <p className="text-rose-500 text-xs text-center font-bold">{loginError}</p>}
-              <button type="submit" className="w-full mt-4 bg-[#6f7bf7] hover:bg-[#5b66e0] text-white text-sm font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(111,123,247,0.3)]">SIGN IN</button>
+      <div className="min-h-screen bg-[#050608] flex items-center justify-center font-sans relative overflow-hidden">
+        
+        {/* Subtle Enterprise Background Accents */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-[#050608] to-[#050608] pointer-events-none"></div>
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"></div>
+        
+        {/* Soft Center Glow */}
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 1.5 }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none"
+        />
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} 
+          className="z-10 w-full max-w-[420px] p-6"
+        >
+          <div className="bg-[#0b0c10]/80 backdrop-blur-2xl border border-white/5 rounded-3xl p-8 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] relative overflow-hidden">
+            
+            {/* Inner Top Highlight */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+            {/* Header Section */}
+            <div className="flex flex-col items-center mb-10 relative z-10">
+              <div className="h-16 w-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-6 shadow-inner relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent"></div>
+                <img src={logoUtac} alt="UTAC" className="h-7 object-contain opacity-90 relative z-10" />
+              </div>
+              <h2 className="text-2xl font-black text-white tracking-tight mb-1.5">IQC PORTAL</h2>
+              <div className="flex items-center gap-1.5 opacity-40">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-white">Authorized Access</p>
+              </div>
+            </div>
+
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="w-full space-y-5 relative z-10">
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Employee ID</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                     <User className="w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
+                  </div>
+                  <input 
+                    name="username"
+                    type="text" 
+                    value={loginForm.username}
+                    onChange={(e)=>setLoginForm({...loginForm, username: e.target.value})}
+                    className="w-full bg-[#050608]/50 border border-white/5 text-white rounded-xl pl-11 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500/40 focus:bg-[#050608]/80 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-white/10"
+                    placeholder="Enter your ID"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Password</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                     <KeyRound className="w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
+                  </div>
+                  <input 
+                    name="password"
+                    type="password" 
+                    value={loginForm.password}
+                    onChange={(e)=>setLoginForm({...loginForm, password: e.target.value})}
+                    className="w-full bg-[#050608]/50 border border-white/5 text-white rounded-xl pl-11 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500/40 focus:bg-[#050608]/80 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-white/10"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              {loginError && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
+                  <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] font-bold py-3 px-4 rounded-xl flex items-center gap-2 mt-2">
+                    <ShieldAlert size={14} className="shrink-0"/> {loginError}
+                  </div>
+                </motion.div>
+              )}
+
+              <button 
+                type="submit" 
+                className="w-full mt-8 bg-white hover:bg-gray-100 text-black text-xs font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
+              >
+                Sign In <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
             </form>
-          </GlassCard>
-        </div>
+          </div>
+          
+          <div className="mt-8 text-center opacity-30">
+            <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-white">UTAC Quality Control © 2026</p>
+          </div>
+        </motion.div>
       </div>
     );
   }
