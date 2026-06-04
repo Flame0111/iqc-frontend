@@ -6,18 +6,13 @@ import { API_URL } from '../App.jsx';
 
 export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
   
-  // ใช้ JavaScript พื้นฐานดึงค่าจาก URL ป้องกัน React จอขาว
   const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
 
-  // 🌟 ระบบทะลวงหา Token ขั้นเด็ดขาด (ไม่ต้องง้อไฟล์ตัวแม่)
   const getActiveToken = () => {
-    // 1. ถ้าไฟล์แม่ใจดีส่งมาให้ ก็ใช้ได้เลย
     if (auth?.token) return auth.token;
-    
-    // 2. ถ้าไฟล์แม่ไม่ส่งมา ให้มุดไปหาใน Storage ของเบราว์เซอร์
     try {
       const localAuth = localStorage.getItem('auth');
       if (localAuth) {
@@ -26,16 +21,14 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
       }
     } catch(e) { console.error("Parse auth error", e); }
     
-    // 3. เผื่อคุณเฟมเซฟชื่อตัวแปรแปลกๆ ไว้
     const justToken = localStorage.getItem('token');
     if (justToken) return justToken;
     
-    return null; // ถ้าหาไม่เจอจริงๆ
+    return null; 
   };
 
   const activeToken = getActiveToken();
 
-  // 🌟 ดึงข้อมูล Draft จาก Database มาใส่ในฟอร์ม
   useEffect(() => {
     if (editId && activeToken) {
       setIsLoadingDraft(true);
@@ -46,7 +39,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             const r = data.data;
             const checklist = r.checklist_data || {};
             
-            // อัปเดตข้อมูลกลับไปยังไฟล์ตัวแม่
             setFormData(prev => ({
               ...prev,
               hwName: r.hw_name || '',
@@ -72,10 +64,9 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // 🌟 ฟังก์ชันเซฟ Draft ทันทีจากหน้านี้
   const handleSaveDraft = async (e) => {
     e.preventDefault();
-    const currentToken = getActiveToken(); // ดึง Token สดๆ ก่อนกดเซฟ
+    const currentToken = getActiveToken(); 
 
     if (!currentToken) {
       return alert("Session expired! ระบบหาบัตรผ่านไม่เจอ รบกวนกลับไปล็อกอินใหม่อีกครั้งครับ");
@@ -359,18 +350,29 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
       {/* SECTION 4: NON-CONFORMANCE & APPROVAL      */}
       {/* ========================================== */}
       <GlassCard className="border-t-[3px] border-rose-500/50 print:border-t-2 print:border-black mt-6 z-[30] print:mt-2 print:pt-2 print:pb-0 print:mb-0">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4 print:mb-1">
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 print:mb-2 print:flex-row">
           <h2 className="text-sm font-black text-rose-500 uppercase tracking-widest flex items-center gap-2 print:text-black print:text-[11px]">
             <AlertCircle className="w-5 h-5 no-print text-rose-500" /> Section 4: Non-Conformance Action
           </h2>
+          <div className="flex items-center gap-5 print:gap-3">
+             <label className="flex items-center gap-1.5 cursor-pointer">
+               <input type="radio" name="ncType" value="ncr" checked={formData.ncType === 'ncr'} onChange={handleChange} className="w-4 h-4 accent-rose-500 print:w-3 print:h-3" />
+               <span className="text-xs font-bold text-rose-200 print:text-black print:text-[9px]">Non-conformance request</span>
+             </label>
+             <label className="flex items-center gap-1.5 cursor-pointer">
+               <input type="radio" name="ncType" value="claim" checked={formData.ncType === 'claim'} onChange={handleChange} className="w-4 h-4 accent-rose-500 print:w-3 print:h-3" />
+               <span className="text-xs font-bold text-rose-200 print:text-black print:text-[9px]">Customer claim / Complaint / Feedback</span>
+             </label>
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:gap-2 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:gap-4 items-start">
            
            {/* ฝั่งซ้าย: รายละเอียดปัญหา */}
-           <div className="lg:col-span-7 space-y-4 print:space-y-1">
+           <div className="lg:col-span-7 space-y-4 print:space-y-2">
               <div className="print:flex print:items-center print:gap-2">
-                 <label className="text-[10px] font-bold text-rose-300 uppercase tracking-widest mb-2 block print:text-black print:mb-0 print:text-[9px]">Action Taken :</label>
+                 <label className="text-[10px] font-bold text-rose-300 uppercase tracking-widest mb-2 block print:text-black print:mb-0 print:text-[9px] min-w-[70px]">Action Taken :</label>
                  <div className="flex flex-wrap gap-3 print:gap-2">
                     {[{ en: 'Internal Rework', th: 'internal' }, { en: 'External Rework', th: 'external' }, { en: 'Return Vendor', th: 'vendor' }, { en: 'Return Customer', th: 'customer' }].map(a => (
                       <label key={a.en} className="flex items-center gap-2 bg-[#000000]/50 border border-white/10 px-3 py-2 rounded-xl cursor-pointer hover:bg-white/10 no-print print:px-0 print:py-0 print:border-none print:flex print:items-center">
@@ -380,22 +382,22 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     ))}
                  </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 print:gap-2">
+              <div className="grid grid-cols-2 gap-4 print:gap-4 print:items-end">
                 <GlassInput name="vendorInfo" label="Vendor Info" value={formData.vendorInfo || ''} onChange={handleChange} />
                 <GlassInput name="customerInfo" label="Customer Info" value={formData.customerInfo || ''} onChange={handleChange} />
               </div>
-              <div className="grid grid-cols-1 gap-4 print:gap-1">
+              <div className="grid grid-cols-1 gap-4 print:gap-2">
                  <GlassInput name="probDesc" label="Problem Description" value={formData.probDesc || ''} onChange={handleChange} />
                  <GlassInput name="preventAction" label="Action Taken/Prevention" value={formData.preventAction || ''} onChange={handleChange} />
               </div>
            </div>
            
-           {/* ฝั่งขวา: กรอบลายเซ็น (ปรับให้เหมือนฟอร์มเอกสาร) */}
-           <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 print:bg-transparent print:p-2 print:border print:border-black print:rounded-none print:gap-x-4 print:gap-y-1">
+           {/* ฝั่งขวา: กรอบลายเซ็น (เพิ่ม print:items-end เพื่อบังคับให้เส้นบรรทัดตรงกันเสมอ) */}
+           <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 print:bg-transparent print:p-3 print:border print:border-black print:rounded-none print:gap-x-4 print:gap-y-3 print:items-end">
               <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
               <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
               
-              <div className="col-span-2 print:border-t print:border-black print:pt-1">
+              <div className="col-span-2 print:border-t print:border-black print:pt-2">
                 <CustomSelect name="approvalPE" value={formData.approvalPE || ''} onChange={handleChange} label="Approval (PE)" options={peList} />
               </div>
               
