@@ -178,7 +178,7 @@ export default function App() {
           </div>
           
           <div className="mt-8 text-center">
-            <p className="text-xs text-zinc-600">UTAC Quality Control © 2026</p>
+            <p className="text-xs text-zinc-600">If you have any issues, please contact Rangsimont Jitrayont, Flame.</p>
           </div>
         </div>
       </div>
