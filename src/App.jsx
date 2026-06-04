@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ArrowRight, ShieldAlert } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
+import HomePage from './pages/HomePage.jsx';
+import FormPage from './pages/FormPage.jsx';
+import PhotoPage from './pages/PhotoPage.jsx';
+import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
 export const API_URL = "https://iqc-api-server.onrender.com";
 
