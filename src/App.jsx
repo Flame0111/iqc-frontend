@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Printer, Lock, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
+import { Printer, Lock, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
 import HomePage from './pages/HomePage.jsx';
 import FormPage from './pages/FormPage.jsx';
@@ -106,94 +106,25 @@ export default function App() {
   };
 
   // ==========================================
-  // 🌟 NEW LOGIN UI DESIGN
+  // 🌟 ORIGINAL LOGIN UI DESIGN (Rollback)
   // ==========================================
   if (!auth) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center font-sans relative overflow-hidden">
-        
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
-        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-[#6f7bf7] rounded-full blur-[150px] opacity-20 pointer-events-none" />
-        <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.05, 0.15, 0.05] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-fuchsia-600 rounded-full blur-[150px] opacity-20 pointer-events-none" />
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="z-10 w-full max-w-[420px] p-6"
-        >
-          <div className="backdrop-blur-2xl bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-            
-            {/* Glossy highlight line */}
-            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none"></div>
-
-            <div className="flex flex-col items-center mb-8 relative z-10">
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-6 shadow-lg shadow-black/50">
-                <img src={logoUtac} alt="UTAC" className="h-10 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
-              </div>
-              <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-[#6f7bf7] tracking-tight mb-1">IQC HUB PORTAL</h2>
-              <p className="text-[#6f7bf7] text-[10px] font-bold tracking-[0.3em] uppercase flex items-center gap-1.5 opacity-80">
-                <ShieldCheck size={14}/> Secure Access
-              </p>
-            </div>
-
-            <form onSubmit={handleLogin} className="w-full space-y-5 relative z-10">
-              <div>
-                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1.5 ml-1">Username</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                     <User className="text-white/30 group-focus-within:text-[#6f7bf7] transition-colors h-5 w-5" />
-                  </div>
-                  <input 
-                    name="username"
-                    type="text" 
-                    value={loginForm.username}
-                    onChange={(e)=>setLoginForm({...loginForm, username: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 text-white rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:border-[#6f7bf7] focus:ring-1 focus:ring-[#6f7bf7] transition-all placeholder:text-white/20 text-sm font-medium"
-                    placeholder="Enter your username"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1.5 ml-1">Password</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                     <KeyRound className="text-white/30 group-focus-within:text-[#6f7bf7] transition-colors h-5 w-5" />
-                  </div>
-                  <input 
-                    name="password"
-                    type="password" 
-                    value={loginForm.password}
-                    onChange={(e)=>setLoginForm({...loginForm, password: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 text-white rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:border-[#6f7bf7] focus:ring-1 focus:ring-[#6f7bf7] transition-all placeholder:text-white/20 text-sm font-medium"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-
-              {loginError && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs text-center font-bold py-2.5 rounded-lg flex items-center justify-center gap-2">
-                  <AlertCircle size={14}/> {loginError}
-                </motion.div>
-              )}
-
-              <button 
-                type="submit" 
-                className="w-full mt-6 relative group overflow-hidden bg-gradient-to-r from-[#5b66e0] to-[#7f8af7] text-white text-sm font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(111,123,247,0.4)] hover:shadow-[0_0_30px_rgba(111,123,247,0.6)] hover:-translate-y-0.5"
-              >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-                <span className="relative z-10 flex items-center justify-center gap-2">Sign In <ArrowRight size={16}/></span>
-              </button>
+      <div className="min-h-screen bg-[#0b0c10] flex items-center justify-center font-sans">
+        <motion.div animate={{ scale: [1, 1.05, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 8, repeat: Infinity }} className="absolute w-[80vw] h-[80vw] bg-gradient-to-tr from-[#3b82f6] to-[#a855f7] rounded-full blur-[120px] opacity-40 z-0" />
+        <div className="z-10 w-full max-w-md p-4">
+          <GlassCard className="!p-10 flex flex-col items-center">
+            <img src={logoUtac} alt="UTAC" className="h-14 mb-8" />
+            <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2"><Lock size={20}/> SECURE LOGIN</h2>
+            <p className="text-white/40 text-xs mb-8">Centralized Factory Portal</p>
+            <form onSubmit={handleLogin} className="w-full space-y-4">
+              <GlassInput name="username" label="USERNAME" value={loginForm.username} onChange={(e)=>setLoginForm({...loginForm, username: e.target.value})} placeholder="Username" />
+              <GlassInput name="password" type="password" label="PASSWORD" value={loginForm.password} onChange={(e)=>setLoginForm({...loginForm, password: e.target.value})} placeholder="Password" />
+              {loginError && <p className="text-rose-500 text-xs text-center font-bold">{loginError}</p>}
+              <button type="submit" className="w-full mt-4 bg-[#6f7bf7] hover:bg-[#5b66e0] text-white text-sm font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(111,123,247,0.3)]">SIGN IN</button>
             </form>
-          </div>
-          
-          <div className="mt-8 text-center">
-            <p className="text-white/20 text-[9px] font-bold tracking-widest uppercase">UTAC Manufacturing System © 2026</p>
-          </div>
-        </motion.div>
+          </GlassCard>
+        </div>
       </div>
     );
   }
