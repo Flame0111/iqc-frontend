@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity, Sparkles } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -99,7 +99,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   };
 
   // ==========================================
-  // 🌟 AI Extraction (ทำงานอัตโนมัติเมื่อแนบไฟล์ + ดัก Error ให้อ่านง่าย)
+  // 🌟 AI Extraction (แก้ไขตัวกรองขยะข้อความให้แข็งแกร่งที่สุด)
   // ==========================================
   const triggerAIExtraction = async (file) => {
     if (!file) return;
@@ -109,7 +109,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     aiFormData.append('file', file);
 
     try {
-      // ⚠️ เปลี่ยน URL ตรงนี้เป็น Webhook ของ n8n
+      // ลิงก์ยิงเข้า Localhost ที่จิมมี่ตั้งค่าไว้สปีดเร็วแรงที่สุด
       const N8N_WEBHOOK_URL = "http://127.0.0.1:5678/webhook/ai-drawing-reader";
       
       const res = await fetch(N8N_WEBHOOK_URL, {
@@ -117,35 +117,33 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         body: aiFormData
       });
       
-      // อ่าน Text ดิบๆ ก่อนเพื่อป้องกัน JSON Error
       const rawText = await res.text();
       console.log("📥 Raw response from n8n:", rawText); 
 
+      // ดักจับกรณีที่ n8n พ่นสเตตัสพังกลางทาง (เช่น 500)
       if (!res.ok) {
-        throw new Error(`n8n HTTP Error ${res.status}: ${rawText}`);
+        throw new Error(`n8n Backend พังกลางทาง (HTTP ${res.status}). กรุณาเปิดหน้าดีบั๊กใน n8n เพื่อตรวจสอบการตั้งค่า AI Agent และการเชื่อมต่อ Memory`);
       }
 
       if (!rawText || rawText.trim() === "") {
-        throw new Error("n8n returned an empty response. Please check Webhook 'Respond' settings in n8n.");
+        throw new Error("n8n ทำงานผ่านแต่คายค่าว่างกลับมา ตรวจสอบโครงสร้างกล่อง Respond ย้ายสายให้ถูกตำแหน่ง");
       }
 
-      // ดักกรองเผื่อ n8n แอบพ่น Markdown กลับมา
       let aiData;
       try {
-        const cleanText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+        // ใช้ Regex กวาดล้างแท็กครอบบล็อกข้อความแปลกปลอมออกให้สิ้นซาก
+        const cleanText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
         aiData = JSON.parse(cleanText);
       } catch (parseError) {
-        throw new Error("n8n did not return a valid JSON. Check AI Prompt to format output strictly as JSON.");
+        throw new Error("ระบบล้มเหลวในการแกะข้อมูล JSON โครงสร้าง Prompt ใน AI Agent อาจจะเบี่ยงเบนจากข้อตกลง");
       }
       
       setFormData(prev => ({ ...prev, ...aiData }));
-      
-      // แจ้งเตือนเล็กน้อยเมื่อดึงข้อมูลสำเร็จ
-      alert("✨ AI อ่านข้อมูลจากไฟล์และเติมลงฟอร์มให้เรียบร้อยแล้ว!");
+      alert("✨ AI อ่านข้อมูลจากไฟล์ PDF และเติมลงฟอร์มให้เรียบร้อยแล้ว!");
       
     } catch (error) {
       console.error("🚨 AI Extraction Failed:", error);
-      alert(`AI อ่านไฟล์ไม่สำเร็จ: ${error.message}\n\n(เช็ค Log ใน Console เพิ่มเติม)`);
+      alert(`AI อ่านไฟล์ไม่สำเร็จ: ${error.message}`);
     } finally {
       setIsAILoading(false);
     }
@@ -197,9 +195,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         <div className="text-[10px] font-bold text-black uppercase">Serial : 03</div>
       </div>
 
-      {/* ========================================== */}
-      {/* SECTION 1: RECEIVING PROFILE              */}
-      {/* ========================================== */}
+      {/* SECTION 1: RECEIVING PROFILE */}
       <GlassCard className="z-[50] print:border-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2 print:pb-0">
           <div className="flex items-center gap-3">
@@ -209,7 +205,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             </h2>
           </div>
           
-          {/* สถานะ AI ทำงาน (แสดงเฉพาะตอนรอโหลด) */}
           <AnimatePresence>
             {isAILoading && (
               <motion.div 
@@ -244,9 +239,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 print:grid-cols-2 relative z-[40]">
         
-        {/* ========================================== */}
-        {/* SECTION 2: CHECKLIST                       */}
-        {/* ========================================== */}
+        {/* SECTION 2: CHECKLIST */}
         <GlassCard className="h-full print:border-none">
           <h2 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0 print:border-none">
             <CheckCircle2 className="w-5 h-5 no-print inline-block mr-2 text-fuchsia-400" /> Section 2: Checklist <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 2: รายการตรวจสอบ)</span>
@@ -278,7 +271,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                          <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-0.5 text-white/80" placeholder="Remarks..." />
                       </td>
                       <td className="no-print pr-4 py-2 h-14 relative">
-                        {/* 🌟 เมื่อมีการอัปโหลดไฟล์ มันจะยิงเข้าฟังก์ชัน AI ทันที */}
                         <FileUploadField 
                           docId={d.k} 
                           label={d.btnLabel} 
@@ -352,9 +344,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           </div>
         </GlassCard>
 
-        {/* ========================================== */}
-        {/* SECTION 3: VISUAL AUDIT                    */}
-        {/* ========================================== */}
+        {/* SECTION 3: VISUAL AUDIT */}
         <GlassCard className="h-full print:border-none">
           <h2 className="text-sm font-black text-cyan-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0 print:border-none">
             <Activity className="w-5 h-5 no-print inline-block mr-2 text-cyan-400" /> Section 3: Visual Inspection
@@ -437,9 +427,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </GlassCard>
       </div>
 
-      {/* ========================================== */}
-      {/* SECTION 4: NON-CONFORMANCE & APPROVAL      */}
-      {/* ========================================== */}
+      {/* SECTION 4: NON-CONFORMANCE & APPROVAL */}
       <GlassCard className="border-t-[3px] border-rose-500/50 print:border-none mt-6 z-[30] print:mt-1 print:pt-1 print:pb-0 print:mb-0">
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 print:mb-1 print:flex-row">
