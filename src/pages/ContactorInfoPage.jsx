@@ -167,7 +167,7 @@ export default function ContactorInfoPage() {
                 <tr>
                   <th className="px-6 py-4 w-[7.5%]">Part Name</th>
                   <th className="px-4 py-4 w-[5%] text-center">Item No.</th>
-                  <th className="px-4 py-4 w-[10%]">P/N</th>
+                  <th className="px-4 py-4 w-[8.5%]">P/N</th>
                   <th className="px-4 py-4 w-[31%]">Description</th>
                   <th className="px-4 py-4 w-[7%] text-center">Q'ty</th>
                   <th className="px-4 py-4 w-[5%] text-center">Stock</th>
