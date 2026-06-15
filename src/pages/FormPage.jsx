@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity, Sparkles } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -10,6 +10,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   const editId = searchParams.get('edit');
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const [isAILoading, setIsAILoading] = useState(false);
 
   const getActiveToken = () => {
     if (auth?.token) return auth.token;
@@ -97,6 +98,45 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     }
   };
 
+  // ==========================================
+  // 🌟 ฟังก์ชันเรียก AI จาก n8n Webhook
+  // ==========================================
+  const handleAIAutoFill = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsAILoading(true);
+    
+    const aiFormData = new FormData();
+    aiFormData.append('file', file); // หรือ 'data' ขึ้นอยู่กับการตั้งค่าใน n8n
+
+    try {
+      // ⚠️ เปลี่ยน URL ตรงนี้เป็น Webhook URL ของ n8n
+      const N8N_WEBHOOK_URL = "http://localhost:5678/webhook/ai-drawing-reader";
+      
+      const res = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        body: aiFormData
+      });
+      
+      const aiData = await res.json();
+      
+      // อัปเดตข้อมูลที่ AI อ่านได้ลงใน Form
+      setFormData(prev => ({
+        ...prev,
+        ...aiData 
+      }));
+      
+      alert("✨ AI แยกข้อมูลจาก Drawing สำเร็จแล้ว!");
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert("AI อ่านไฟล์ไม่สำเร็จ กรุณาตรวจสอบ n8n Webhook หรือรูปแบบไฟล์");
+    } finally {
+      setIsAILoading(false);
+      e.target.value = null; 
+    }
+  };
+
   const contactPinItems = [
     {id: 'pin1', en: '1.1 Signal pin#1', th: '(พินสัญญาณ#1)'},
     {id: 'pin2', en: '1.2 Signal pin#2', th: '(พินสัญญาณ#2)'}, 
@@ -137,7 +177,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   return (
     <div className="space-y-6 print:block fade-in relative print:pt-6">
       
-      {/* 🌟 แสดงเฉพาะตอน Print - มุมขวาบน (ไม่มีกรอบสี่เหลี่ยมรอบนอก) */}
+      {/* แสดงเฉพาะตอน Print - มุมขวาบน */}
       <div className="hidden print:flex flex-col items-end absolute top-0 right-0 z-50">
         <div className="mb-1">
           <span className="text-[10px] font-bold text-black uppercase">Verified By : DCC</span>
@@ -151,14 +191,42 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
       </div>
 
       {/* ========================================== */}
-      {/* SECTION 1: RECEIVING PROFILE (ฟอร์มดั้งเดิม) */}
+      {/* SECTION 1: RECEIVING PROFILE              */}
       {/* ========================================== */}
       <GlassCard className="z-[50] print:border-none">
-        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2 print:pb-0">
-          <FileText className="text-white no-print" />
-          <h2 className="text-sm font-black uppercase tracking-widest text-white print:text-black">
-            Section 1: Receiving Profile <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 1: รับฮาร์ดแวร์)</span>
-          </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2 print:pb-0">
+          <div className="flex items-center gap-3">
+            <FileText className="text-white no-print" />
+            <h2 className="text-sm font-black uppercase tracking-widest text-white print:text-black">
+              Section 1: Receiving Profile <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 1: รับฮาร์ดแวร์)</span>
+            </h2>
+          </div>
+          
+          {/* 🌟 ปุ่ม AI Auto-Fill (ซ่อนตอนปริ้นท์) */}
+          <div className="relative group no-print">
+            <input 
+              type="file" 
+              accept=".pdf,image/*"
+              onChange={handleAIAutoFill}
+              disabled={isAILoading}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+              title="Upload Drawing to Auto-Fill"
+            />
+            <button 
+              disabled={isAILoading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-lg
+                ${isAILoading 
+                  ? 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-wait' 
+                  : 'bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-400 hover:to-fuchsia-400 text-white border border-fuchsia-400/30 shadow-[0_0_15px_rgba(217,70,239,0.4)]'
+                }`}
+            >
+              {isAILoading ? (
+                <><span className="animate-spin text-fuchsia-400">⏳</span> Processing...</>
+              ) : (
+                <><Sparkles size={14} /> AI Auto-Fill</>
+              )}
+            </button>
+          </div>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 print:gap-x-4 print:gap-y-2">
