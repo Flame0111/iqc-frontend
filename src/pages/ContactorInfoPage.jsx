@@ -141,9 +141,11 @@ export default function ContactorInfoPage() {
       </motion.div>
 
       <motion.div variants={itemVariants} className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        <div className="xl:col-span-4 bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col">
+        
+        {/* 🌟 1. ป้องกันกล่องยืดด้วย self-start และ Fix ความสูงรูปวาด */}
+        <div className="xl:col-span-4 bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl self-start">
            <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Technical Drawing</h3>
-           <div className="flex-1 rounded-xl bg-white flex items-center justify-center p-4 min-h-[300px]">
+           <div className="w-full h-[280px] rounded-xl bg-white flex items-center justify-center p-4">
              <div className="text-zinc-300 text-center">
                <ImageIcon size={48} className="mx-auto mb-2 opacity-50" />
                <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Section A-A View</p>
@@ -156,17 +158,17 @@ export default function ContactorInfoPage() {
             <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Bill of Materials (BOM)</h3>
           </div>
           <div className="overflow-x-auto">
-            {/* 🌟 ล็อกสัดส่วนตารางใหม่ (Width %) และลด Padding (py-3, px-4) ให้กระชับขึ้น */}
+            {/* 🌟 2. บีบ Spacing ตารางใหม่ให้พอดีเป๊ะ */}
             <table className="w-full text-sm text-left table-fixed min-w-[800px]">
               <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
                 <tr>
-                  <th className="px-4 py-3 w-[22%]">Part Name</th>
-                  <th className="px-4 py-3 w-[10%] text-center whitespace-nowrap">Item No.</th>
-                  <th className="px-4 py-3 w-[15%]">P/N</th>
-                  <th className="px-4 py-3 w-[28%]">Description</th>
+                  <th className="px-4 py-3 w-[18%]">Part Name</th>
+                  <th className="px-4 py-3 w-[8%] text-center">Item No.</th>
+                  <th className="px-4 py-3 w-[16%]">P/N</th>
+                  <th className="px-4 py-3 w-[34%]">Description</th>
                   <th className="px-3 py-3 w-[8%] text-center">Q'ty</th>
-                  <th className="px-3 py-3 w-[7%] text-center">Stock</th>
-                  <th className="px-3 py-3 w-[10%] text-center">EOH</th>
+                  <th className="px-3 py-3 w-[8%] text-center">Stock</th>
+                  <th className="px-3 py-3 w-[8%] text-center">EOH</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
