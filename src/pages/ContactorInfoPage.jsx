@@ -7,7 +7,7 @@ import {
 
 export default function ContactorInfoPage() {
   
-  // 📌 MOCK DATA (สามารถเปลี่ยนไปดึงจาก API ภายหลังได้)
+  // 📌 MOCK DATA
   const contactorData = {
     no: "CT-EPSN0141",
     name: "CONTACTOR-39-QFN-5.0X6.0-VAR-ROL200",
@@ -55,13 +55,11 @@ export default function ContactorInfoPage() {
       animate="show" 
       className="w-full max-w-7xl mx-auto space-y-6 pb-20"
     >
-      {/* 1. PAGE TITLE */}
       <motion.div variants={itemVariants} className="mb-2">
         <h1 className="text-2xl font-bold text-white tracking-tight">Contactor Information Database</h1>
         <p className="text-zinc-500 text-xs mt-1">Specifications & Live Inventory Status</p>
       </motion.div>
 
-      {/* 2. MAIN SPECIFICATION CARD */}
       <motion.div variants={itemVariants} className="bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="space-y-1">
@@ -100,7 +98,6 @@ export default function ContactorInfoPage() {
         </div>
       </motion.div>
 
-      {/* 3. STATUS METRICS */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statusCards.map((status, idx) => (
           <button 
@@ -121,7 +118,6 @@ export default function ContactorInfoPage() {
         ))}
       </motion.div>
 
-      {/* 4. PHOTO GALLERY */}
       <motion.div variants={itemVariants} className="bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl">
         <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Visual References</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -144,7 +140,6 @@ export default function ContactorInfoPage() {
         </div>
       </motion.div>
 
-      {/* 5. DRAWING & BOM */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-4 bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col">
            <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Technical Drawing</h3>
@@ -157,34 +152,35 @@ export default function ContactorInfoPage() {
         </div>
 
         <div className="xl:col-span-8 bg-[#18181b] border border-white/5 rounded-2xl p-0 shadow-xl overflow-hidden">
-          <div className="p-6 border-b border-white/5">
+          <div className="p-5 border-b border-white/5">
             <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Bill of Materials (BOM)</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-white/[0.02] border-b border-white/5 text-xs text-zinc-500 uppercase tracking-wider font-semibold">
+            {/* 🌟 ล็อกสัดส่วนตารางใหม่ (Width %) และลด Padding (py-3, px-4) ให้กระชับขึ้น */}
+            <table className="w-full text-sm text-left table-fixed min-w-[800px]">
+              <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
                 <tr>
-                  <th className="px-6 py-4">Part Name</th>
-                  <th className="px-4 py-4 text-center">Item No.</th>
-                  <th className="px-4 py-4">P/N</th>
-                  <th className="px-4 py-4">Description</th>
-                  <th className="px-4 py-4 text-center">Q'ty</th>
-                  <th className="px-4 py-4 text-center">Stock</th>
-                  <th className="px-4 py-4 text-center">EOH</th>
+                  <th className="px-4 py-3 w-[22%]">Part Name</th>
+                  <th className="px-4 py-3 w-[10%] text-center whitespace-nowrap">Item No.</th>
+                  <th className="px-4 py-3 w-[15%]">P/N</th>
+                  <th className="px-4 py-3 w-[28%]">Description</th>
+                  <th className="px-3 py-3 w-[8%] text-center">Q'ty</th>
+                  <th className="px-3 py-3 w-[7%] text-center">Stock</th>
+                  <th className="px-3 py-3 w-[10%] text-center">EOH</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {bomData.map((row, idx) => (
                   <tr key={idx} className="hover:bg-white/[0.02] transition-colors text-zinc-300">
-                    <td className={`px-6 py-3 whitespace-nowrap ${row.itemNo === '-' ? 'text-zinc-500' : 'font-medium text-white'}`}>
+                    <td className={`px-4 py-2.5 whitespace-nowrap ${row.itemNo === '-' ? 'text-zinc-500' : 'font-semibold text-white'}`}>
                       {row.name}
                     </td>
-                    <td className="px-4 py-3 text-center text-zinc-500">{row.itemNo}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{row.pn}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-400 max-w-[200px] truncate" title={row.desc}>{row.desc}</td>
-                    <td className="px-4 py-3 text-center font-medium">{row.qty}</td>
-                    <td className="px-4 py-3 text-center">{row.stock}</td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-2.5 text-center text-zinc-500 text-xs">{row.itemNo}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{row.pn}</td>
+                    <td className="px-4 py-2.5 text-xs text-zinc-400 truncate" title={row.desc}>{row.desc}</td>
+                    <td className="px-3 py-2.5 text-center font-medium text-xs">{row.qty}</td>
+                    <td className="px-3 py-2.5 text-center text-xs">{row.stock}</td>
+                    <td className="px-3 py-2.5 text-center">
                       {row.showAdd ? (
                         <button className="flex items-center justify-center gap-1 mx-auto bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-500/20 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all">
                           <Plus size={12} /> Add
