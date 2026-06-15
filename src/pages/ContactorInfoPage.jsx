@@ -142,33 +142,33 @@ export default function ContactorInfoPage() {
 
       <motion.div variants={itemVariants} className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
-        {/* 🌟 1. ป้องกันกล่องยืดด้วย self-start และ Fix ความสูงรูปวาด */}
-        <div className="xl:col-span-4 bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl self-start">
+        {/* 🌟 1. ขยาย Technical Drawing เป็น 5 คอลัมน์ และเพิ่มความสูง (h-[350px]) */}
+        <div className="xl:col-span-5 bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl self-start">
            <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Technical Drawing</h3>
-           <div className="w-full h-[280px] rounded-xl bg-white flex items-center justify-center p-4">
+           <div className="w-full h-[350px] rounded-xl bg-white flex items-center justify-center p-4">
              <div className="text-zinc-300 text-center">
-               <ImageIcon size={48} className="mx-auto mb-2 opacity-50" />
+               <ImageIcon size={64} className="mx-auto mb-3 opacity-50" />
                <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Section A-A View</p>
              </div>
            </div>
         </div>
 
-        <div className="xl:col-span-8 bg-[#18181b] border border-white/5 rounded-2xl p-0 shadow-xl overflow-hidden">
+        {/* 🌟 2. ลด BOM Table เหลือ 7 คอลัมน์ */}
+        <div className="xl:col-span-7 bg-[#18181b] border border-white/5 rounded-2xl p-0 shadow-xl overflow-hidden self-start">
           <div className="p-5 border-b border-white/5">
             <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Bill of Materials (BOM)</h3>
           </div>
           <div className="overflow-x-auto">
-            {/* 🌟 2. บีบ Spacing ตารางใหม่ให้พอดีเป๊ะ */}
-            <table className="w-full text-sm text-left table-fixed min-w-[800px]">
+            <table className="w-full text-sm text-left table-fixed min-w-[700px]">
               <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
                 <tr>
                   <th className="px-4 py-3 w-[10%]">Part Name</th>
-                  <th className="px-4 py-3 w-[5%] text-center">Item No.</th>
-                  <th className="px-4 py-3 w-[12%]">P/N</th>
-                  <th className="px-4 py-3 w-[34%]">Description</th>
-                  <th className="px-3 py-3 w-[8%] text-center">Q'ty</th>
-                  <th className="px-3 py-3 w-[8%] text-center">Stock</th>
-                  <th className="px-3 py-3 w-[8%] text-center">EOH</th>
+                  <th className="px-3 py-3 w-[5%] text-center">Item No.</th>
+                  <th className="px-3 py-3 w-[15%]">P/N</th>
+                  <th className="px-3 py-3 w-[30%]">Description</th>
+                  <th className="px-2 py-3 w-[8%] text-center">Q'ty</th>
+                  <th className="px-2 py-3 w-[8%] text-center">Stock</th>
+                  <th className="px-2 py-3 w-[10%] text-center">EOH</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -177,12 +177,12 @@ export default function ContactorInfoPage() {
                     <td className={`px-4 py-2.5 whitespace-nowrap ${row.itemNo === '-' ? 'text-zinc-500' : 'font-semibold text-white'}`}>
                       {row.name}
                     </td>
-                    <td className="px-4 py-2.5 text-center text-zinc-500 text-xs">{row.itemNo}</td>
-                    <td className="px-4 py-2.5 font-mono text-xs">{row.pn}</td>
-                    <td className="px-4 py-2.5 text-xs text-zinc-400 truncate" title={row.desc}>{row.desc}</td>
-                    <td className="px-3 py-2.5 text-center font-medium text-xs">{row.qty}</td>
-                    <td className="px-3 py-2.5 text-center text-xs">{row.stock}</td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td className="px-3 py-2.5 text-center text-zinc-500 text-xs">{row.itemNo}</td>
+                    <td className="px-3 py-2.5 font-mono text-xs">{row.pn}</td>
+                    <td className="px-3 py-2.5 text-xs text-zinc-400 truncate" title={row.desc}>{row.desc}</td>
+                    <td className="px-2 py-2.5 text-center font-medium text-xs">{row.qty}</td>
+                    <td className="px-2 py-2.5 text-center text-xs">{row.stock}</td>
+                    <td className="px-2 py-2.5 text-center">
                       {row.showAdd ? (
                         <button className="flex items-center justify-center gap-1 mx-auto bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-500/20 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all">
                           <Plus size={12} /> Add
