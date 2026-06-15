@@ -110,7 +110,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
 
     try {
       // ลิงก์ยิงเข้า Localhost ที่จิมมี่ตั้งค่าไว้สปีดเร็วแรงที่สุด
-      const N8N_WEBHOOK_URL = "http://localhost:5678/webhook/ai-drawing-reader";
+      const N8N_WEBHOOK_URL = "http://127.0.0.1:5678/webhook/ai-drawing-reader";
       
       const res = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
