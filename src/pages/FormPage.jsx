@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity, Sparkles } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
@@ -99,20 +99,18 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   };
 
   // ==========================================
-  // 🌟 ฟังก์ชันเรียก AI จาก n8n Webhook
+  // 🌟 AI Extraction ท่อตรงจากระบบอัปโหลดไฟล์
   // ==========================================
-  const handleAIAutoFill = async (e) => {
-    const file = e.target.files[0];
+  const triggerAIExtraction = async (file) => {
     if (!file) return;
-
     setIsAILoading(true);
     
     const aiFormData = new FormData();
-    aiFormData.append('file', file); // หรือ 'data' ขึ้นอยู่กับการตั้งค่าใน n8n
+    aiFormData.append('file', file);
 
     try {
-      // ⚠️ เปลี่ยน URL ตรงนี้เป็น Webhook URL ของ n8n
-      const N8N_WEBHOOK_URL = "http://localhost:5678/webhook/ai-drawing-reader";
+      // ⚠️ ลิงก์ตรงเข้า Webhook ของ n8n
+      const N8N_WEBHOOK_URL = "https://your-n8n-instance.com/webhook/ai-drawing-reader";
       
       const res = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
@@ -121,19 +119,13 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
       
       const aiData = await res.json();
       
-      // อัปเดตข้อมูลที่ AI อ่านได้ลงใน Form
-      setFormData(prev => ({
-        ...prev,
-        ...aiData 
-      }));
+      setFormData(prev => ({ ...prev, ...aiData }));
       
-      alert("✨ AI แยกข้อมูลจาก Drawing สำเร็จแล้ว!");
     } catch (error) {
       console.error("AI Error:", error);
-      alert("AI อ่านไฟล์ไม่สำเร็จ กรุณาตรวจสอบ n8n Webhook หรือรูปแบบไฟล์");
+      alert("AI อ่านไฟล์ไม่สำเร็จ กรุณาตรวจสอบ n8n Webhook");
     } finally {
       setIsAILoading(false);
-      e.target.value = null; 
     }
   };
 
@@ -177,17 +169,10 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   return (
     <div className="space-y-6 print:block fade-in relative print:pt-6">
       
-      {/* แสดงเฉพาะตอน Print - มุมขวาบน */}
       <div className="hidden print:flex flex-col items-end absolute top-0 right-0 z-50">
-        <div className="mb-1">
-          <span className="text-[10px] font-bold text-black uppercase">Verified By : DCC</span>
-        </div>
-        <div className="text-[10px] font-bold text-black uppercase">
-          Refer : TS-H/W-002
-        </div>
-        <div className="text-[10px] font-bold text-black uppercase">
-          Serial : 03
-        </div>
+        <div className="mb-1"><span className="text-[10px] font-bold text-black uppercase">Verified By : DCC</span></div>
+        <div className="text-[10px] font-bold text-black uppercase">Refer : TS-H/W-002</div>
+        <div className="text-[10px] font-bold text-black uppercase">Serial : 03</div>
       </div>
 
       {/* ========================================== */}
@@ -202,31 +187,19 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             </h2>
           </div>
           
-          {/* 🌟 ปุ่ม AI Auto-Fill (ซ่อนตอนปริ้นท์) */}
-          <div className="relative group no-print">
-            <input 
-              type="file" 
-              accept=".pdf,image/*"
-              onChange={handleAIAutoFill}
-              disabled={isAILoading}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-              title="Upload Drawing to Auto-Fill"
-            />
-            <button 
-              disabled={isAILoading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-lg
-                ${isAILoading 
-                  ? 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-wait' 
-                  : 'bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-400 hover:to-fuchsia-400 text-white border border-fuchsia-400/30 shadow-[0_0_15px_rgba(217,70,239,0.4)]'
-                }`}
-            >
-              {isAILoading ? (
-                <><span className="animate-spin text-fuchsia-400">⏳</span> Processing...</>
-              ) : (
-                <><Sparkles size={14} /> AI Auto-Fill</>
-              )}
-            </button>
-          </div>
+          {/* 🌟 ตัวบอกสถานะการทำงานของ AI แบบนุ่มนวล (แสดงเฉพาะตอนส่งเข้า n8n) */}
+          <AnimatePresence>
+            {isAILoading && (
+              <motion.div 
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                className="text-xs font-bold text-fuchsia-400 bg-fuchsia-500/10 border border-fuchsia-500/20 px-3 py-1.5 rounded-xl flex items-center gap-2 no-print"
+              >
+                <span className="inline-block animate-spin">⏳</span> AI is reading drawing file...
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 print:gap-x-4 print:gap-y-2">
@@ -283,7 +256,24 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                          <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-0.5 text-white/80" placeholder="Remarks..." />
                       </td>
                       <td className="no-print pr-4 py-2 h-14 relative">
-                        <FileUploadField docId={d.k} label={d.btnLabel} onFileChange={(docId, files) => { if(files.length === 0) removeFile(docId); else handleFileChange(docId, files); }} currentFiles={uploadedDocs[d.k]} />
+                        {/* 🌟 เมื่อแนบไฟล์ PDF ปุ๊บ ท่อส่งจะยิงหา AI ใน n8n ทันทีโดยไม่ต้องมีปุ่มเพิ่ม */}
+                        <FileUploadField 
+                          docId={d.k} 
+                          label={d.btnLabel} 
+                          onFileChange={(docId, files) => { 
+                            if(files.length === 0) {
+                              removeFile(docId); 
+                            } else {
+                              handleFileChange(docId, files); 
+                              
+                              // ส่งไปให้ AI ตรวจสอบอัตโนมัติเฉพาะไฟล์เอกสารหลัก
+                              if (docId === 'pkg' || docId === 'sck' || docId === 'pin') {
+                                triggerAIExtraction(files[0]);
+                              }
+                            }
+                          }} 
+                          currentFiles={uploadedDocs[d.k]} 
+                        />
                       </td>
                     </tr>
                   ))}
