@@ -25,18 +25,19 @@ export default function ContactorInfoPage() {
     { title: "Under repair", count: 100, color: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/20", icon: <Wrench size={18} /> },
   ];
 
+  // 🌟 เพิ่มฟิลด์ EOH แยกลงไปในข้อมูล เพื่อไม่ให้ปนกับปุ่ม Add
   const bomData = [
-    { name: "Frame", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", showAdd: false },
-    { name: "Socket body", itemNo: "2", pn: "180156-0001", desc: "HSG-39-QFN-5.0X6.0-VAR-ROL200", qty: "1", stock: "-", showAdd: false },
-    { name: "Cover", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", showAdd: false },
-    { name: "Signal pin#1", itemNo: "3", pn: "138337-0002", desc: "CONTACT-PROL200-0.168THK-GP-FINE-TIP", qty: "39", stock: "-", showAdd: true },
-    { name: "Signal pin#2", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", showAdd: false },
-    { name: "Signal pin#3", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", showAdd: false },
-    { name: "GND pin", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", showAdd: false },
-    { name: "Alignment plate", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", showAdd: false },
-    { name: "Other", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", showAdd: true },
-    { name: "ELASTOMER", itemNo: "4", pn: "115832-0039", desc: "ELASTOMER-0.032inDIA-50D-GRAY", qty: "1", stock: "-", showAdd: false },
-    { name: "ELASTOMER", itemNo: "5", pn: "115832-0052", desc: "ELASTOMER-0.030inDIA-40D-YELLOW", qty: "1", stock: "-", showAdd: false },
+    { name: "Frame", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", eoh: "-", showAdd: false },
+    { name: "Socket body", itemNo: "2", pn: "180156-0001", desc: "HSG-39-QFN-5.0X6.0-VAR-ROL200", qty: "1", stock: "-", eoh: "-", showAdd: false },
+    { name: "Cover", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", eoh: "-", showAdd: false },
+    { name: "Signal pin#1", itemNo: "3", pn: "138337-0002", desc: "CONTACT-PROL200-0.168THK-GP-FINE-TIP", qty: "39", stock: "-", eoh: "-", showAdd: true },
+    { name: "Signal pin#2", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", eoh: "-", showAdd: false },
+    { name: "Signal pin#3", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", eoh: "-", showAdd: false },
+    { name: "GND pin", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", eoh: "-", showAdd: false },
+    { name: "Alignment plate", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", eoh: "-", showAdd: false },
+    { name: "Other", itemNo: "-", pn: "-", desc: "-", qty: "-", stock: "-", eoh: "-", showAdd: true },
+    { name: "ELASTOMER", itemNo: "4", pn: "115832-0039", desc: "ELASTOMER-0.032inDIA-50D-GRAY", qty: "1", stock: "-", eoh: "-", showAdd: false },
+    { name: "ELASTOMER", itemNo: "5", pn: "115832-0052", desc: "ELASTOMER-0.030inDIA-40D-YELLOW", qty: "1", stock: "-", eoh: "-", showAdd: false },
   ];
 
   const containerVariants = {
@@ -140,10 +141,10 @@ export default function ContactorInfoPage() {
         </div>
       </motion.div>
 
-      {/* 🌟 ปรับเปลี่ยนจาก 2 คอลัมน์ซ้ายขวา เป็นกางเต็มจอ (1 คอลัมน์ บน-ล่าง) */}
+      {/* 🌟 1 คอลัมน์ บน-ล่าง เต็มจอ */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 gap-6">
         
-        {/* 🌟 1. Technical Drawing กางเต็มจอ ใหญ่สะใจ */}
+        {/* Technical Drawing */}
         <div className="bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-xl">
            <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Technical Drawing</h3>
            <div className="w-full h-[500px] rounded-xl bg-white flex items-center justify-center p-4">
@@ -154,22 +155,24 @@ export default function ContactorInfoPage() {
            </div>
         </div>
 
-        {/* 🌟 2. BOM Table เต็มจอ โชว์ตารางแบบกว้างๆ ไม่อึดอัด */}
+        {/* BOM Table */}
         <div className="bg-[#18181b] border border-white/5 rounded-2xl p-0 shadow-xl overflow-hidden">
           <div className="p-5 border-b border-white/5">
             <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Bill of Materials (BOM)</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left table-fixed min-w-[900px]">
+            {/* 🌟 เพิ่มคอลัมน์สำหรับปุ่ม Add ท้ายสุด (แยกจาก EOH) */}
+            <table className="w-full text-sm text-left table-fixed min-w-[1000px]">
               <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
                 <tr>
-                  <th className="px-6 py-4 w-[8%]">Part Name</th>
-                  <th className="px-4 py-4 w-[5%] text-center">Item No.</th>
-                  <th className="px-4 py-4 w-[5%]">P/N</th>
-                  <th className="px-4 py-4 w-[33%]">Description</th>
-                  <th className="px-4 py-4 w-[5%] text-center">Q'ty</th>
-                  <th className="px-4 py-4 w-[5%] text-center">Stock</th>
-                  <th className="px-4 py-4 w-[5%] text-center">EOH</th>
+                  <th className="px-6 py-4 w-[18%]">Part Name</th>
+                  <th className="px-4 py-4 w-[8%] text-center">Item No.</th>
+                  <th className="px-4 py-4 w-[15%]">P/N</th>
+                  <th className="px-4 py-4 w-[31%]">Description</th>
+                  <th className="px-4 py-4 w-[7%] text-center">Q'ty</th>
+                  <th className="px-4 py-4 w-[7%] text-center">Stock</th>
+                  <th className="px-4 py-4 w-[7%] text-center">EOH</th>
+                  <th className="px-4 py-4 w-[7%] text-center">Action</th> {/* <-- คอลัมน์ใหม่สำหรับปุ่ม Add */}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -183,6 +186,9 @@ export default function ContactorInfoPage() {
                     <td className="px-4 py-3.5 text-xs text-zinc-400 truncate" title={row.desc}>{row.desc}</td>
                     <td className="px-4 py-3.5 text-center font-medium text-xs">{row.qty}</td>
                     <td className="px-4 py-3.5 text-center text-xs">{row.stock}</td>
+                    <td className="px-4 py-3.5 text-center text-xs text-emerald-400">{row.eoh}</td>
+                    
+                    {/* 🌟 แสดงปุ่ม Add ในคอลัมน์ใหม่เท่านั้น */}
                     <td className="px-4 py-3.5 text-center">
                       {row.showAdd ? (
                         <button className="flex items-center justify-center gap-1 mx-auto bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-500/20 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all">
