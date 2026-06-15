@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity, Sparkles } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -99,7 +99,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   };
 
   // ==========================================
-  // 🌟 AI Extraction ท่อตรงจากระบบอัปโหลดไฟล์
+  // 🌟 AI Extraction (ทำงานอัตโนมัติเมื่อแนบไฟล์ + ดัก Error ให้อ่านง่าย)
   // ==========================================
   const triggerAIExtraction = async (file) => {
     if (!file) return;
@@ -109,21 +109,43 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     aiFormData.append('file', file);
 
     try {
-      // ⚠️ ลิงก์ตรงเข้า Webhook ของ n8n
-      const N8N_WEBHOOK_URL = "http://localhost:5678/webhook/ai-drawing-reader";
+      // ⚠️ เปลี่ยน URL ตรงนี้เป็น Webhook ของ n8n
+      const N8N_WEBHOOK_URL = "hhttp://localhost:5678/webhook/ai-drawing-reader";
       
       const res = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
         body: aiFormData
       });
       
-      const aiData = await res.json();
+      // อ่าน Text ดิบๆ ก่อนเพื่อป้องกัน JSON Error
+      const rawText = await res.text();
+      console.log("📥 Raw response from n8n:", rawText); 
+
+      if (!res.ok) {
+        throw new Error(`n8n HTTP Error ${res.status}: ${rawText}`);
+      }
+
+      if (!rawText || rawText.trim() === "") {
+        throw new Error("n8n returned an empty response. Please check Webhook 'Respond' settings in n8n.");
+      }
+
+      // ดักกรองเผื่อ n8n แอบพ่น Markdown กลับมา
+      let aiData;
+      try {
+        const cleanText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+        aiData = JSON.parse(cleanText);
+      } catch (parseError) {
+        throw new Error("n8n did not return a valid JSON. Check AI Prompt to format output strictly as JSON.");
+      }
       
       setFormData(prev => ({ ...prev, ...aiData }));
       
+      // แจ้งเตือนเล็กน้อยเมื่อดึงข้อมูลสำเร็จ
+      alert("✨ AI อ่านข้อมูลจากไฟล์และเติมลงฟอร์มให้เรียบร้อยแล้ว!");
+      
     } catch (error) {
-      console.error("AI Error:", error);
-      alert("AI อ่านไฟล์ไม่สำเร็จ กรุณาตรวจสอบ n8n Webhook");
+      console.error("🚨 AI Extraction Failed:", error);
+      alert(`AI อ่านไฟล์ไม่สำเร็จ: ${error.message}\n\n(เช็ค Log ใน Console เพิ่มเติม)`);
     } finally {
       setIsAILoading(false);
     }
@@ -187,7 +209,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             </h2>
           </div>
           
-          {/* 🌟 ตัวบอกสถานะการทำงานของ AI แบบนุ่มนวล (แสดงเฉพาะตอนส่งเข้า n8n) */}
+          {/* สถานะ AI ทำงาน (แสดงเฉพาะตอนรอโหลด) */}
           <AnimatePresence>
             {isAILoading && (
               <motion.div 
@@ -256,7 +278,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                          <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-0.5 text-white/80" placeholder="Remarks..." />
                       </td>
                       <td className="no-print pr-4 py-2 h-14 relative">
-                        {/* 🌟 เมื่อแนบไฟล์ PDF ปุ๊บ ท่อส่งจะยิงหา AI ใน n8n ทันทีโดยไม่ต้องมีปุ่มเพิ่ม */}
+                        {/* 🌟 เมื่อมีการอัปโหลดไฟล์ มันจะยิงเข้าฟังก์ชัน AI ทันที */}
                         <FileUploadField 
                           docId={d.k} 
                           label={d.btnLabel} 
@@ -266,7 +288,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                             } else {
                               handleFileChange(docId, files); 
                               
-                              // ส่งไปให้ AI ตรวจสอบอัตโนมัติเฉพาะไฟล์เอกสารหลัก
                               if (docId === 'pkg' || docId === 'sck' || docId === 'pin') {
                                 triggerAIExtraction(files[0]);
                               }
