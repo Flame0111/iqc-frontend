@@ -110,7 +110,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
 
     try {
       // ⚠️ เปลี่ยน URL ตรงนี้เป็น Webhook ของ n8n
-      const N8N_WEBHOOK_URL = "hhttp://localhost:5678/webhook/ai-drawing-reader";
+      const N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/ai-drawing-reader";
       
       const res = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
