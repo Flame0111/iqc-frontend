@@ -167,9 +167,9 @@ export default function ContactorInfoPage() {
                   <th className="px-4 py-4 w-[5%] text-center">Item No.</th>
                   <th className="px-4 py-4 w-[5%]">P/N</th>
                   <th className="px-4 py-4 w-[33%]">Description</th>
-                  <th className="px-4 py-4 w-[8%] text-center">Q'ty</th>
-                  <th className="px-4 py-4 w-[8%] text-center">Stock</th>
-                  <th className="px-4 py-4 w-[10%] text-center">EOH</th>
+                  <th className="px-4 py-4 w-[5%] text-center">Q'ty</th>
+                  <th className="px-4 py-4 w-[5%] text-center">Stock</th>
+                  <th className="px-4 py-4 w-[5%] text-center">EOH</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
