@@ -163,8 +163,8 @@ export default function ContactorInfoPage() {
               <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
                 <tr>
                   <th className="px-4 py-3 w-[15%]">Part Name</th>
-                  <th className="px-4 py-3 w-[8%] text-center">Item No.</th>
-                  <th className="px-4 py-3 w-[16%]">P/N</th>
+                  <th className="px-4 py-3 w-[5%] text-center">Item No.</th>
+                  <th className="px-4 py-3 w-[12%]">P/N</th>
                   <th className="px-4 py-3 w-[34%]">Description</th>
                   <th className="px-3 py-3 w-[8%] text-center">Q'ty</th>
                   <th className="px-3 py-3 w-[8%] text-center">Stock</th>
