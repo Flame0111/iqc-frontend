@@ -165,14 +165,14 @@ export default function ContactorInfoPage() {
             <table className="w-full text-sm text-left table-fixed min-w-[1000px]">
               <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
                 <tr>
-                  <th className="px-6 py-4 w-[18%]">Part Name</th>
-                  <th className="px-4 py-4 w-[8%] text-center">Item No.</th>
+                  <th className="px-6 py-4 w-[7.5%]">Part Name</th>
+                  <th className="px-4 py-4 w-[5%] text-center">Item No.</th>
                   <th className="px-4 py-4 w-[15%]">P/N</th>
                   <th className="px-4 py-4 w-[31%]">Description</th>
                   <th className="px-4 py-4 w-[7%] text-center">Q'ty</th>
-                  <th className="px-4 py-4 w-[7%] text-center">Stock</th>
-                  <th className="px-4 py-4 w-[7%] text-center">EOH</th>
-                  <th className="px-4 py-4 w-[7%] text-center">Action</th> {/* <-- คอลัมน์ใหม่สำหรับปุ่ม Add */}
+                  <th className="px-4 py-4 w-[5%] text-center">Stock</th>
+                  <th className="px-4 py-4 w-[5%] text-center">EOH</th>
+                  <th className="px-4 py-4 w-[5%] text-center">Action</th> {/* <-- คอลัมน์ใหม่สำหรับปุ่ม Add */}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
