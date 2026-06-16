@@ -25,12 +25,12 @@ export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview
             <img
               src={typeof image === 'string' ? image : URL.createObjectURL(image)}
               alt={label}
-              // 🌟 ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่ (เรียก onPreview)
+              // ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่
               onClick={(e) => {
                 e.stopPropagation();
                 if (onPreview) onPreview(typeof image === 'string' ? image : URL.createObjectURL(image));
               }}
-              // 🌟 เปลี่ยนเมาส์เป็นแว่นขยาย
+              // เปลี่ยนเมาส์เป็นแว่นขยาย
               className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
             />
             {/* ปุ่มกากบาทลบรูป */}
@@ -82,7 +82,7 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
               <img
                 src={url}
                 alt={`${label} ${idx}`}
-                // 🌟 ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่
+                // ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onPreview) onPreview(url);
@@ -167,6 +167,68 @@ export const GlassInput = ({ label, thLabel, placeholder, type = "text", gridCla
         onChange={onChange}
         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder-white/20 focus:outline-none focus:border-[#6f7bf7]/50 focus:bg-[#6f7bf7]/10 transition-all print:border-b print:border-black print:bg-transparent print:rounded-none print:text-black print:px-0"
       />
+    </div>
+  );
+};
+
+// ---------------------------------------------
+// 6. GlassRadio Component (ปุ่มเลือกแบบวงกลม)
+// ---------------------------------------------
+export const GlassRadio = ({ label, name, options = [], value, onChange }) => {
+  return (
+    <div className="flex flex-col">
+      {label && <label className="text-[10px] font-bold text-white/50 mb-2 uppercase print:text-black">{label}</label>}
+      <div className="flex gap-6 h-[40px] items-center">
+        {options.map((opt, i) => (
+          <label key={i} className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="radio"
+              name={name}
+              value={opt.value || opt}
+              checked={value === (opt.value || opt)}
+              onChange={(e) => onChange(e.target.value)}
+              className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black"
+            />
+            <span className="text-sm font-bold text-white/70 group-hover:text-white transition-colors print:text-black">
+              {opt.label || opt}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------
+// 7. FileUploadField Component (กล่องอัปโหลดไฟล์แนบ)
+// ---------------------------------------------
+export const FileUploadField = ({ id, label, thLabel, onChange, accept, file }) => {
+  return (
+    <div className="flex flex-col w-full">
+      {(label || thLabel) && (
+        <label className="text-[10px] font-bold text-white/50 mb-2 uppercase flex items-center gap-1 print:text-black">
+          {label} {thLabel && <span className="text-[9px] text-white/30 font-normal print:text-black">{thLabel}</span>}
+        </label>
+      )}
+      <div className="relative w-full h-[48px] bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center hover:bg-white/10 hover:border-[#6f7bf7]/50 transition-all cursor-pointer print:border-black print:bg-transparent">
+        <input
+          type="file"
+          id={id}
+          onChange={onChange}
+          accept={accept}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+        />
+        <div className="flex items-center gap-2 text-sm font-bold text-white/50 print:text-black">
+          {file ? (
+            <span className="text-[#6f7bf7] print:text-black truncate max-w-[200px]">{file.name}</span>
+          ) : (
+            <>
+              <ImagePlus size={16} />
+              <span>Click to upload file</span>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
