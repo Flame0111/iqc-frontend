@@ -76,7 +76,15 @@ export default function PhotoPage({
                  <ImageUploadBox id="f5" label="Serial & Ref" image={uploadedImages.f5} onChange={handleImageChange} onRemove={removeImage} />
                  <ImageUploadBox id="f6" label="Text on socket" image={uploadedImages.f6} onChange={handleImageChange} onRemove={removeImage} />
                  <ImageUploadBox id="f7" label="Contactor pin" image={uploadedImages.f7} onChange={handleImageChange} onRemove={removeImage} />
-                 <div className="flex flex-col justify-end pb-1 border-l border-white/10 pl-3 print:border-black"><label className="text-[10px] font-bold text-white/50 text-center mb-2 uppercase print:text-black">Result</label><CustomSelect options={resultOptions} /></div>
+                 
+                 {/* 🌟 แก้ไข Layout ตรงนี้ (FRONT/TOP) */}
+                 <div className="flex flex-col justify-center h-full border-l border-white/10 pl-4 print:border-black">
+                   <label className="text-[10px] font-bold text-white/50 text-center mb-3 uppercase tracking-wider print:text-black w-full">Result</label>
+                   <div className="w-full">
+                      <CustomSelect options={resultOptions} />
+                   </div>
+                 </div>
+                 
               </div>
             </div>
 
@@ -90,7 +98,15 @@ export default function PhotoPage({
                  <ImageUploadBox id="b5" label="Serial & Ref" image={uploadedImages.b5} onChange={handleImageChange} onRemove={removeImage} />
                  <ImageUploadBox id="b6" label="Text on socket" image={uploadedImages.b6} onChange={handleImageChange} onRemove={removeImage} />
                  <ImageUploadBox id="b7" label="Contactor pin" image={uploadedImages.b7} onChange={handleImageChange} onRemove={removeImage} />
-                 <div className="flex flex-col justify-end pb-1 border-l border-white/10 pl-3 print:border-black"><label className="text-[10px] font-bold text-white/50 text-center mb-2 uppercase print:text-black">Result</label><CustomSelect options={resultOptions} /></div>
+                 
+                 {/* 🌟 แก้ไข Layout ตรงนี้ (BACK/BOTTOM) */}
+                 <div className="flex flex-col justify-center h-full border-l border-white/10 pl-4 print:border-black">
+                   <label className="text-[10px] font-bold text-white/50 text-center mb-3 uppercase tracking-wider print:text-black w-full">Result</label>
+                   <div className="w-full">
+                      <CustomSelect options={resultOptions} />
+                   </div>
+                 </div>
+
               </div>
             </div>
           </div>
