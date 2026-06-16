@@ -1,144 +1,172 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileCheck, X, ChevronDown, Check, ImagePlus } from 'lucide-react';
+import React from 'react';
+import { ImagePlus, X, ChevronDown } from 'lucide-react';
 
-const itemVar = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } } };
-
+// ---------------------------------------------
+// 1. GlassCard Component (กรอบใสๆ)
+// ---------------------------------------------
 export const GlassCard = ({ children, className = "" }) => (
-  <motion.div variants={itemVar} className={`relative bg-white/[0.03] backdrop-blur-[32px] border border-white/[0.08] rounded-[2.5rem] p-6 md:p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] print-reset hover:border-white/20 transition-all duration-500 ${className}`}>
-    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/10 to-fuchsia-500/0 opacity-0 hover:opacity-100 transition-opacity duration-700 rounded-[2.5rem] pointer-events-none no-print"></div>
-    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent no-print"></div>
-    <div className="relative z-10">{children}</div>
-  </motion.div>
-);
-
-export const GlassInput = ({ label, name, value, onChange, type = "text", gridClass = "", thLabel = "", placeholder = "" }) => (
-  <div className={`flex flex-col gap-1.5 ${gridClass} print:mb-1 group`}>
-    <label className="text-[10px] md:text-xs font-bold text-white/70 uppercase tracking-widest print:text-black group-focus-within:text-purple-400 transition-colors">
-      {label} <span className="text-[9px] text-white/40 print-hide-th ml-1 tracking-normal font-medium">{thLabel}</span>
-    </label>
-    <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder} className="no-print w-full bg-white/[0.06] border border-transparent hover:bg-white/[0.09] rounded-xl px-4 py-3 text-sm text-white focus:bg-white/[0.12] focus:border-purple-500/50 outline-none transition-all backdrop-blur-md" />
-    <div className="hidden print:block w-full border-b border-slate-400 text-[11px] font-medium pb-0.5 text-black min-h-[16px]">{value || " "}</div>
+  <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl ${className}`}>
+    {children}
   </div>
 );
 
-export const CustomSelect = ({ label, thLabel, options, gridClass="" }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState("");
-  const dropdownRef = useRef(null);
-  useEffect(() => {
-    const handleClickOutside = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false); };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+// ---------------------------------------------
+// 2. ImageUploadBox Component (กล่องอัปโหลดรูปเดี่ยว)
+// ---------------------------------------------
+export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview }) => {
   return (
-    <div className={`flex flex-col gap-1.5 relative ${gridClass} print:mb-1 ${isOpen ? 'z-[100]' : 'z-10'}`} ref={dropdownRef}>
-      {label && <label className="text-[10px] md:text-xs font-bold text-white/70 uppercase tracking-widest print:text-black">{label} <span className="text-[9px] text-white/20 print-hide-th ml-1 tracking-normal">{thLabel}</span></label>}
-      <div className="no-print relative">
-        <motion.div whileTap={{ scale: 0.98 }} onClick={() => setIsOpen(!isOpen)} className="bg-white/[0.06] hover:bg-white/[0.09] border border-white/10 rounded-xl px-4 py-3 text-sm text-white flex justify-between items-center cursor-pointer transition-all backdrop-blur-md shadow-inner">
-          <span className={selected ? "text-white" : "text-white/30"}>{selected || "-- Select --"}</span>
-          <motion.div animate={{ rotate: isOpen ? 180 : 0 }}><ChevronDown size={16} className="text-white/40" /></motion.div>
-        </motion.div>
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 5, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }} transition={{ type: "spring", bounce: 0.4, duration: 0.5 }} className="absolute z-[100] w-full bg-[#0b0c10]/95 border border-white/10 rounded-xl mt-1 shadow-2xl overflow-hidden backdrop-blur-3xl">
-              <div className="max-h-48 overflow-y-auto py-1">
-                {options.map((opt, i) => (
-                  <div key={i} onClick={() => { setSelected(opt); setIsOpen(false); }} className="px-4 py-3 text-sm text-white/80 hover:bg-white/5 cursor-pointer flex justify-between items-center border-b border-white/5 last:border-none">{opt} {selected === opt && <Check size={14} className="text-[#6f7bf7]" />}</div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="flex flex-col h-[150px] print:h-[120px]">
+      <label className="text-[10px] font-bold text-white/50 text-center mb-2 uppercase truncate print:text-black">
+        {label}
+      </label>
+      <div className="relative flex-1 rounded-2xl overflow-hidden border-2 border-dashed border-white/20 bg-black/20 hover:bg-white/5 hover:border-[#6f7bf7]/50 transition-all group flex items-center justify-center print:border-black print:bg-transparent">
+        {image ? (
+          <>
+            <img
+              src={typeof image === 'string' ? image : URL.createObjectURL(image)}
+              alt={label}
+              // 🌟 ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่ (เรียก onPreview)
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onPreview) onPreview(typeof image === 'string' ? image : URL.createObjectURL(image));
+              }}
+              // 🌟 เปลี่ยนเมาส์เป็นแว่นขยาย
+              className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
+            />
+            {/* ปุ่มกากบาทลบรูป */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onRemove(id); }}
+              className="absolute top-2 right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg no-print z-10"
+            >
+              <X size={14} />
+            </button>
+          </>
+        ) : (
+          <>
+            <input 
+              type="file" 
+              className="absolute inset-0 opacity-0 cursor-pointer z-10 no-print" 
+              onChange={(e) => onChange(id, e.target.files[0])} 
+              accept="image/*" 
+            />
+            <div className="flex flex-col items-center justify-center opacity-30 group-hover:opacity-100 group-hover:text-[#6f7bf7] transition-all print:opacity-100 print:text-black">
+              <ImagePlus size={24} className="mb-1" />
+              <span className="text-[9px] font-bold uppercase">Upload</span>
+            </div>
+          </>
+        )}
       </div>
-      <div className="hidden print:block border-b border-slate-400 text-xs font-bold pb-0.5">{selected || " "}</div>
     </div>
   );
 };
 
-export const GlassRadio = ({ name, value, checked, onChange }) => (
-  <td className="p-2 text-center print:p-0.5">
-    <div className="inline-flex items-center justify-center relative no-print">
-      <input type="radio" name={name} value={value} checked={checked} onChange={onChange} className="peer w-5 h-5 opacity-0 absolute cursor-pointer z-10" />
-      <div className="w-5 h-5 rounded-full border-2 border-white/20 peer-hover:border-white/40 peer-checked:border-[#6f7bf7] peer-checked:bg-[#6f7bf7]/20 transition-all flex items-center justify-center bg-white/5 backdrop-blur-sm">
-        <div className="w-2.5 h-2.5 rounded-full bg-[#6f7bf7] scale-0 peer-checked:scale-100 transition-transform duration-300 shadow-[0_0_10px_rgba(111,123,247,1)]"></div>
+// ---------------------------------------------
+// 3. MultiImageUploadBox Component (กล่องอัปโหลดหลายรูป)
+// ---------------------------------------------
+export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove, max = 4, onPreview }) => {
+  // ทำให้ชัวร์ว่าเป็น Array เสมอ
+  const currentImages = Array.isArray(images) ? images : (images ? [images] : []);
+
+  return (
+    <div className="flex flex-col h-[150px] print:h-[120px]">
+      <label className="text-[10px] font-bold text-[#4facfe] text-center mb-2 uppercase truncate print:text-black">
+        {label}
+      </label>
+      <div className="relative flex-1 rounded-2xl overflow-hidden border-2 border-dashed border-[#4facfe]/30 bg-[#4facfe]/5 hover:bg-[#4facfe]/10 transition-all p-1 flex flex-wrap gap-1 items-center justify-center print:border-black print:bg-transparent">
+        
+        {/* โชว์รูปที่อัปโหลดแล้ว */}
+        {currentImages.map((img, idx) => {
+          const url = typeof img === 'string' ? img : URL.createObjectURL(img);
+          return (
+            <div key={idx} className="relative w-[calc(50%-2px)] h-[calc(50%-2px)] rounded-lg overflow-hidden group">
+              <img
+                src={url}
+                alt={`${label} ${idx}`}
+                // 🌟 ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onPreview) onPreview(url);
+                }}
+                className="w-full h-full object-cover cursor-zoom-in hover:scale-110 transition-transform duration-300"
+              />
+              <button 
+                onClick={(e) => { e.stopPropagation(); onRemove(id, idx); }} 
+                className="absolute top-1 right-1 bg-rose-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 z-10 no-print"
+              >
+                <X size={10} />
+              </button>
+            </div>
+          );
+        })}
+
+        {/* ปุ่มอัปโหลดรูปเพิ่ม (ถ้ายังไม่ครบโควต้า) */}
+        {currentImages.length < max && (
+          <div className="relative w-full h-full flex flex-col items-center justify-center opacity-50 hover:opacity-100 cursor-pointer text-[#4facfe] transition-all print:text-black">
+            <input 
+              type="file" 
+              multiple 
+              className="absolute inset-0 opacity-0 cursor-pointer z-10 no-print" 
+              onChange={(e) => onChange(id, e.target.files)} 
+              accept="image/*" 
+            />
+            {currentImages.length === 0 ? (
+              <>
+                <ImagePlus size={24} className="mb-1" />
+                <span className="text-[9px] font-bold">MAX {max} FILES</span>
+              </>
+            ) : (
+              <span className="text-[20px] font-bold">+</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
-    <input type="radio" checked={checked} readOnly className="hidden print:inline-block w-3 h-3 accent-black" />
-  </td>
-);
+  );
+};
 
-export const FileUploadField = ({ docId, label, onFileChange, currentFiles }) => (
-  <div className="no-print h-10 flex items-center">
-    <AnimatePresence mode="wait">
-      {currentFiles?.length > 0 ? (
-        <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1.5 rounded-xl text-emerald-400 text-[10px] font-bold w-full">
-          <FileCheck size={14} /> <span className="truncate flex-1">Attached</span>
-          <button onClick={() => onFileChange(docId, [])} className="text-rose-400"><X size={12} /></button>
-        </motion.div>
-      ) : (
-        <label className="group flex items-center justify-center gap-2 w-full bg-white/5 hover:bg-white/10 border border-white/10 border-dashed rounded-xl py-2 cursor-pointer transition-colors">
-          <Upload size={14} className="text-white/40 group-hover:text-white" />
-          <span className="text-[10px] font-bold text-white/40 group-hover:text-white">{label}</span>
-          <input type="file" accept=".pdf,image/*" multiple className="hidden" onChange={(e) => onFileChange(docId, Array.from(e.target.files))} />
+// ---------------------------------------------
+// 4. CustomSelect Component (Dropdown)
+// ---------------------------------------------
+export const CustomSelect = ({ options = [], value, onChange, placeholder = "-- Select --" }) => {
+  return (
+    <div className="relative w-full h-[40px]">
+      <select
+        value={value || ""}
+        onChange={onChange}
+        className="w-full h-full appearance-none bg-white/5 border border-white/10 rounded-xl px-3 text-xs font-bold text-white focus:outline-none focus:border-[#6f7bf7] transition-colors cursor-pointer print:text-black print:border-black print:bg-transparent"
+      >
+        <option value="" disabled className="bg-[#1a1f35]">{placeholder}</option>
+        {options.map((opt, i) => (
+          <option key={i} value={opt} className="bg-[#1a1f35] text-white">
+            {opt}
+          </option>
+        ))}
+      </select>
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/50 print:hidden">
+        <ChevronDown size={14} />
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------
+// 5. GlassInput Component (ช่องกรอกข้อความ)
+// ---------------------------------------------
+export const GlassInput = ({ label, thLabel, placeholder, type = "text", gridClass = "", value, onChange }) => {
+  return (
+    <div className={`flex flex-col ${gridClass}`}>
+      {(label || thLabel) && (
+        <label className="text-[10px] font-bold text-white/50 mb-2 uppercase flex items-center gap-1 print:text-black">
+          {label} {thLabel && <span className="text-[9px] text-white/30 font-normal print:text-black">{thLabel}</span>}
         </label>
       )}
-    </AnimatePresence>
-  </div>
-);
-
-export const ImageUploadBox = ({ id, label, thLabel, image, onChange, onRemove }) => {
-  const imageUrl = image instanceof File ? URL.createObjectURL(image) : image;
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-[8px] md:text-[9px] font-bold text-white/70 uppercase tracking-tight text-center print:text-black flex flex-col justify-end h-10 leading-tight">
-        <span>{label}</span><span className="print-hide-th text-[7px] text-white/30 font-normal mt-0.5 tracking-normal">{thLabel}</span>
-      </label>
-      <div className="relative aspect-square w-full rounded-2xl border-2 border-dashed border-white/10 bg-white/5 hover:bg-white/10 transition-all flex items-center justify-center overflow-hidden print:border-solid print:border-black print:bg-transparent p-1">
-         {image ? (
-           <>
-             <img src={imageUrl} alt={label} className="w-full h-full object-cover rounded-xl print:rounded-none" />
-             <button onClick={(e)=>{e.preventDefault(); onRemove(id);}} className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-full text-white hover:bg-rose-500 no-print"><X size={12}/></button>
-           </>
-         ) : (
-           <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center text-white/20 hover:text-white/50 no-print">
-             <ImagePlus size={20} className="mb-1" /><span className="text-[7px] font-bold uppercase tracking-wider text-center">Upload</span>
-             <input type="file" accept="image/*" className="hidden" onChange={(e)=>onChange(e, id)} />
-           </label>
-         )}
-      </div>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder-white/20 focus:outline-none focus:border-[#6f7bf7]/50 focus:bg-[#6f7bf7]/10 transition-all print:border-b print:border-black print:bg-transparent print:rounded-none print:text-black print:px-0"
+      />
     </div>
   );
 };
-
-export const MultiImageUploadBox = ({ id, label, thLabel, images = [], onChange, onRemove, max = 4 }) => (
-  <div className="flex flex-col gap-2">
-    <label className="text-[8px] md:text-[9px] font-bold text-white/70 uppercase tracking-tight text-center print:text-black flex flex-col justify-end h-10 leading-tight">
-      <span className="text-blue-300 print:text-black">{label}</span><span className="print-hide-th text-[7px] text-white/30 font-normal mt-0.5 tracking-normal">{thLabel}</span>
-    </label>
-    <div className="relative aspect-square w-full rounded-2xl border-2 border-dashed border-white/10 bg-white/5 hover:bg-white/10 transition-all flex items-center justify-center overflow-hidden print:border-solid print:border-black print:bg-transparent p-1">
-       {images && images.length > 0 ? (
-         <div className={`w-full h-full grid gap-1 ${images.length > 1 || images.length < max ? 'grid-cols-2 grid-rows-2' : 'grid-cols-1 grid-rows-1'}`}>
-           {images.map((img, i) => {
-             const imgUrl = img instanceof File ? URL.createObjectURL(img) : img;
-             return (
-             <div key={i} className="relative w-full h-full">
-               <img src={imgUrl} alt={`${label} ${i+1}`} className="w-full h-full object-cover rounded-lg print:rounded-none" />
-               <button onClick={(e)=>{e.preventDefault(); onRemove(id, i);}} className="absolute top-1 right-1 bg-black/60 p-1 rounded-full text-white hover:bg-rose-500 no-print backdrop-blur-sm"><X size={10}/></button>
-             </div>
-           )})}
-           {images.length < max && (
-             <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center bg-white/5 hover:bg-white/20 rounded-lg no-print border border-dashed border-white/20 transition-all">
-               <ImagePlus size={14} className="text-white/30 mb-1" /><input type="file" accept="image/*" multiple className="hidden" onChange={(e)=>onChange(e, id, max)} />
-             </label>
-           )}
-         </div>
-       ) : (
-         <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center text-white/20 hover:text-white/50 no-print">
-           <ImagePlus size={20} className="mb-1" /><span className="text-[7px] font-bold uppercase tracking-wider text-center px-1">Max {max} Files</span>
-           <input type="file" accept="image/*" multiple className="hidden" onChange={(e)=>onChange(e, id, max)} />
-         </label>
-       )}
-    </div>
-  </div>
-);
