@@ -2,7 +2,7 @@ import React from 'react';
 import { ImagePlus, X, ChevronDown } from 'lucide-react';
 
 // ---------------------------------------------
-// 1. GlassCard Component (กรอบใสๆ)
+// 1. GlassCard Component
 // ---------------------------------------------
 export const GlassCard = ({ children, className = "" }) => (
   <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl ${className}`}>
@@ -11,7 +11,7 @@ export const GlassCard = ({ children, className = "" }) => (
 );
 
 // ---------------------------------------------
-// 2. ImageUploadBox Component (กล่องอัปโหลดรูปเดี่ยว)
+// 2. ImageUploadBox Component (แก้ onChange แล้ว ✅)
 // ---------------------------------------------
 export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview }) => {
   return (
@@ -25,15 +25,12 @@ export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview
             <img
               src={typeof image === 'string' ? image : URL.createObjectURL(image)}
               alt={label}
-              // ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่
               onClick={(e) => {
                 e.stopPropagation();
                 if (onPreview) onPreview(typeof image === 'string' ? image : URL.createObjectURL(image));
               }}
-              // เปลี่ยนเมาส์เป็นแว่นขยาย
               className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
             />
-            {/* ปุ่มกากบาทลบรูป */}
             <button
               onClick={(e) => { e.stopPropagation(); onRemove(id); }}
               className="absolute top-2 right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg no-print z-10"
@@ -43,10 +40,11 @@ export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview
           </>
         ) : (
           <>
+            {/* 🌟 แก้ตรงนี้: ส่งค่าเป็น (e, id) เพื่อให้ parent ดึง e.target.files ได้ */}
             <input 
               type="file" 
               className="absolute inset-0 opacity-0 cursor-pointer z-10 no-print" 
-              onChange={(e) => onChange(id, e.target.files[0])} 
+              onChange={(e) => onChange(e, id)} 
               accept="image/*" 
             />
             <div className="flex flex-col items-center justify-center opacity-30 group-hover:opacity-100 group-hover:text-[#6f7bf7] transition-all print:opacity-100 print:text-black">
@@ -61,10 +59,9 @@ export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview
 };
 
 // ---------------------------------------------
-// 3. MultiImageUploadBox Component (กล่องอัปโหลดหลายรูป)
+// 3. MultiImageUploadBox Component (แก้ onChange แล้ว ✅)
 // ---------------------------------------------
 export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove, max = 4, onPreview }) => {
-  // ทำให้ชัวร์ว่าเป็น Array เสมอ
   const currentImages = Array.isArray(images) ? images : (images ? [images] : []);
 
   return (
@@ -74,7 +71,6 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
       </label>
       <div className="relative flex-1 rounded-2xl overflow-hidden border-2 border-dashed border-[#4facfe]/30 bg-[#4facfe]/5 hover:bg-[#4facfe]/10 transition-all p-1 flex flex-wrap gap-1 items-center justify-center print:border-black print:bg-transparent">
         
-        {/* โชว์รูปที่อัปโหลดแล้ว */}
         {currentImages.map((img, idx) => {
           const url = typeof img === 'string' ? img : URL.createObjectURL(img);
           return (
@@ -82,7 +78,6 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
               <img
                 src={url}
                 alt={`${label} ${idx}`}
-                // ฟังก์ชันคลิกเพื่อเปิดรูปใหญ่
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onPreview) onPreview(url);
@@ -99,14 +94,14 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
           );
         })}
 
-        {/* ปุ่มอัปโหลดรูปเพิ่ม (ถ้ายังไม่ครบโควต้า) */}
         {currentImages.length < max && (
           <div className="relative w-full h-full flex flex-col items-center justify-center opacity-50 hover:opacity-100 cursor-pointer text-[#4facfe] transition-all print:text-black">
+            {/* 🌟 แก้ตรงนี้เช่นกัน: ส่งค่าเป็น (e, id) */}
             <input 
               type="file" 
               multiple 
               className="absolute inset-0 opacity-0 cursor-pointer z-10 no-print" 
-              onChange={(e) => onChange(id, e.target.files)} 
+              onChange={(e) => onChange(e, id)} 
               accept="image/*" 
             />
             {currentImages.length === 0 ? (
@@ -125,7 +120,7 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
 };
 
 // ---------------------------------------------
-// 4. CustomSelect Component (Dropdown)
+// 4. CustomSelect Component
 // ---------------------------------------------
 export const CustomSelect = ({ options = [], value, onChange, placeholder = "-- Select --" }) => {
   return (
@@ -150,7 +145,7 @@ export const CustomSelect = ({ options = [], value, onChange, placeholder = "-- 
 };
 
 // ---------------------------------------------
-// 5. GlassInput Component (ช่องกรอกข้อความ)
+// 5. GlassInput Component
 // ---------------------------------------------
 export const GlassInput = ({ label, thLabel, placeholder, type = "text", gridClass = "", value, onChange }) => {
   return (
@@ -172,7 +167,7 @@ export const GlassInput = ({ label, thLabel, placeholder, type = "text", gridCla
 };
 
 // ---------------------------------------------
-// 6. GlassRadio Component (ปุ่มเลือกแบบวงกลม)
+// 6. GlassRadio Component
 // ---------------------------------------------
 export const GlassRadio = ({ label, name, options = [], value, onChange }) => {
   return (
@@ -200,7 +195,7 @@ export const GlassRadio = ({ label, name, options = [], value, onChange }) => {
 };
 
 // ---------------------------------------------
-// 7. FileUploadField Component (กล่องอัปโหลดไฟล์แนบ)
+// 7. FileUploadField Component
 // ---------------------------------------------
 export const FileUploadField = ({ id, label, thLabel, onChange, accept, file }) => {
   return (
