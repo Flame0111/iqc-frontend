@@ -101,7 +101,7 @@ export default function PhotoPage({
       <GlassCard className={`print:border-t-2 print:border-black print:!bg-transparent print:rounded-none transition-all duration-1000 z-[20] ${isDocComplete ? '!bg-gradient-to-r from-[#170a30] to-[#05000a] border-fuchsia-500/40' : 'border-dashed border-white/20 opacity-90'}`}>
         <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
           <div className="flex gap-6 w-full md:w-2/3 items-end">
-            <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" value="Good Condition" gridClass="flex-1" />
+            <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" placeholder="Good Condition" gridClass="flex-1" />
             
             {/* 🌟 Custom Dropdown: สวยงาม คุม Style ได้ 100% และเซฟข้อมูลลง State ได้จริง */}
             <div className="relative flex flex-col w-48 z-[999] no-print">
