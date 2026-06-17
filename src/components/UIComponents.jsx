@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImagePlus, X, ChevronDown } from 'lucide-react';
+import { ImagePlus, X, ChevronDown, FileText } from 'lucide-react'; // 🌟 เพิ่ม FileText เข้ามาแล้ว
 
 // ---------------------------------------------
 // 1. GlassCard Component
@@ -193,7 +193,7 @@ export const GlassRadio = ({ label, name, options = [], value, onChange }) => {
 };
 
 // ---------------------------------------------
-// 7. FileUploadField Component (ปรับลบคำว่า ATTACH ออกให้แล้ว)
+// 7. FileUploadField Component (อัปเกรดเป็นปุ่ม Upload PDF แบบหล่อๆ)
 // ---------------------------------------------
 export const FileUploadField = ({ id, label, thLabel, onChange, accept, file }) => {
   return (
@@ -203,21 +203,25 @@ export const FileUploadField = ({ id, label, thLabel, onChange, accept, file }) 
           {label} {thLabel && <span className="text-[9px] text-white/30 font-normal print:text-black">{thLabel}</span>}
         </label>
       )}
-      <div className="relative w-full h-[48px] bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center hover:bg-white/10 hover:border-[#6f7bf7]/50 transition-all cursor-pointer print:border-black print:bg-transparent">
+      <div className="relative w-full h-[48px] bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center hover:bg-white/10 hover:border-rose-500/50 transition-all cursor-pointer print:border-black print:bg-transparent group">
         <input
           type="file"
           id={id}
           onChange={onChange}
-          accept={accept}
+          accept={accept || ".pdf"} // 🌟 บังคับรับเฉพาะ PDF เป็นค่าเริ่มต้น
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
-        <div className="flex items-center gap-2 text-sm font-bold text-white/50 print:text-black">
+        <div className="flex items-center gap-2 text-sm font-bold text-white/50 group-hover:text-rose-400 transition-colors print:text-black">
           {file ? (
-            <span className="text-[#6f7bf7] print:text-black truncate max-w-[200px]">{file.name}</span>
+            // 🌟 ถ้ามีไฟล์แล้ว โชว์ไอคอนเอกสาร + ชื่อไฟล์
+            <span className="text-rose-400 print:text-black truncate max-w-[150px] flex items-center gap-2">
+              <FileText size={16} className="min-w-[16px]" /> {file.name}
+            </span>
           ) : (
+            // 🌟 ถ้ายังไม่มีไฟล์ โชว์ไอคอนเอกสาร + คำว่า Upload PDF
             <>
-              <ImagePlus size={16} />
-              <span className="text-xs">Click to upload file</span>
+              <FileText size={16} />
+              <span className="text-xs tracking-wide">Upload PDF</span>
             </>
           )}
         </div>
