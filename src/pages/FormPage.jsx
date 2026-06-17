@@ -99,7 +99,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   };
 
   // ==========================================
-  // 🌟 AI Extraction (แก้ไขตัวกรองขยะข้อความให้แข็งแกร่งที่สุด)
+  // 🌟 AI Extraction
   // ==========================================
   const triggerAIExtraction = async (file) => {
     if (!file) return;
@@ -109,7 +109,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     aiFormData.append('file', file);
 
     try {
-      // ลิงก์ยิงเข้า Localhost ที่ตั้งค่าไว้
       const N8N_WEBHOOK_URL = "http://127.0.0.1:5678/webhook/ai-drawing-reader";
       
       const res = await fetch(N8N_WEBHOOK_URL, {
@@ -185,7 +184,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   if (isLoadingDraft) return <div className="text-white text-center py-20 font-black tracking-widest uppercase animate-pulse">Loading Draft Record...</div>;
 
   return (
-    <div className="space-y-6 print:block fade-in relative print:pt-6">
+    <div className="space-y-6 print:block fade-in relative print:pt-6 w-full max-w-7xl mx-auto">
       
       <div className="hidden print:flex flex-col items-end absolute top-0 right-0 z-50">
         <div className="mb-1"><span className="text-[10px] font-bold text-black uppercase">Verified By : DCC</span></div>
@@ -235,7 +234,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </div>
       </GlassCard>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 print:grid-cols-2 relative z-[40]">
+      {/* 🌟 จุดที่แก้ Layout: ให้ Section 2 กับ 3 เรียงต่อกันแนวตั้งและกางเต็ม 100% */}
+      <div className="flex flex-col gap-6 relative z-[40] print:block print:space-y-6">
         
         {/* SECTION 2: CHECKLIST */}
         <GlassCard className="h-full print:border-none">
@@ -244,7 +244,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           </h2>
           <div className="space-y-6 print:space-y-2">
             
-            {/* 🌟 ตารางที่ 1: DOCUMENTATION (แก้บั๊กโครงสร้าง td เรียบร้อยแล้ว) */}
             <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
               <table className="w-full text-sm glass-table print:text-[9px]">
                 <thead>
@@ -340,8 +339,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   {contactPinItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
-                      <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
-                      <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
+                      <td className="text-center"><input type="radio" name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                      <td className="text-center"><input type="radio" name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                       <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="-" /></td>
                       <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none print:bg-transparent print:text-black" placeholder="Stk-" /></td>
                       <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
@@ -352,8 +351,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   {socketItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
-                      <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
-                      <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
+                      <td className="text-center"><input type="radio" name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                      <td className="text-center"><input type="radio" name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                       <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="-" /></td>
                       <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none print:bg-transparent print:text-black" placeholder="Stk-" /></td>
                       <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
@@ -364,8 +363,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                   {alignmentItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
                       <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en} <span className="print-hide-th block text-[8px] text-white/30">{i.th}</span></td>
-                      <GlassRadio name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} />
-                      <GlassRadio name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} />
+                      <td className="text-center"><input type="radio" name={`chk_${i.id}`} value="yes" checked={formData[`chk_${i.id}`] === "yes"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                      <td className="text-center"><input type="radio" name={`chk_${i.id}`} value="no" checked={formData[`chk_${i.id}`] === "no"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                       <td><input name={`part_${i.id}`} value={formData[`part_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="-" /></td>
                       <td><input name={`stk_${i.id}`} value={formData[`stk_${i.id}`] || ""} onChange={handleChange} className="w-full bg-white/5 rounded text-center text-purple-300 text-[10px] py-1 outline-none print:bg-transparent print:text-black" placeholder="Stk-" /></td>
                       <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
@@ -397,9 +396,9 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     {contactPinItems.map(i => (
                       <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en}</td>
-                        <GlassRadio name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} />
-                        <GlassRadio name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} />
-                        <GlassRadio name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} />
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                         <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
@@ -408,9 +407,9 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     {socketItems.map(i => (
                       <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en}</td>
-                        <GlassRadio name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} />
-                        <GlassRadio name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} />
-                        <GlassRadio name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} />
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                         <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
@@ -419,9 +418,9 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     {alignmentItems.map(i => (
                       <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black py-1 leading-tight print:text-[9px]">{i.en}</td>
-                        <GlassRadio name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} />
-                        <GlassRadio name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} />
-                        <GlassRadio name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} />
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="new" checked={formData[`vis_status_${i.id}`] === "new"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="used" checked={formData[`vis_status_${i.id}`] === "used"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`vis_status_${i.id}`} value="dmg" checked={formData[`vis_status_${i.id}`] === "dmg"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                         <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
@@ -439,8 +438,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     {specificMapItems.map(item => (
                       <tr key={item.id} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2 print:py-1 print:text-[9px]">{item.label} <br/><span className="print-hide-th text-[8px] text-white/30">{item.th}</span></td>
-                        <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
-                        <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
+                        <td className="text-center"><input type="radio" name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                         <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white print:text-black" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
@@ -448,8 +447,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     {specificPnpItems.map(item => (
                       <tr key={item.id} className="hover:bg-white/5 print:hover:bg-transparent">
                         <td className="pl-6 text-[11px] text-white/60 print:text-black leading-tight py-2 print:py-1 print:text-[9px]">{item.label} <br/><span className="print-hide-th text-[8px] text-white/30">{item.th}</span></td>
-                        <GlassRadio name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} />
-                        <GlassRadio name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} />
+                        <td className="text-center"><input type="radio" name={`spec_${item.id}`} value="pass" checked={formData[`spec_${item.id}`] === "pass"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
+                        <td className="text-center"><input type="radio" name={`spec_${item.id}`} value="fail" checked={formData[`spec_${item.id}`] === "fail"} onChange={handleChange} className="w-4 h-4 accent-[#6f7bf7] cursor-pointer print:accent-black" /></td>
                         <td className="pl-4 pr-2"><input type="text" name={`spec_remark_${item.id}`} value={formData[`spec_remark_${item.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-[10px] pb-0.5 text-white print:text-black" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
