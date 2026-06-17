@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown } from 'lucide-react';
-import { GlassCard, ImageUploadBox, MultiImageUploadBox, CustomSelect, GlassInput } from '../components/UIComponents.jsx';
+import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown, X } from 'lucide-react'; // 🌟 นำเข้าไอคอน X สำหรับปุ่มปิด
+import { GlassCard, ImageUploadBox, MultiImageUploadBox, GlassInput } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
 export default function PhotoPage({ 
@@ -11,17 +11,17 @@ export default function PhotoPage({
 }) {
   const resultOptions = ["PASS", "FAIL"];
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // 🌟 State สำหรับเปิด/ปิด Dropdown แบบ Custom
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [openResultDropdown, setOpenResultDropdown] = useState(null); 
+
+  // 🌟 State สำหรับเก็บรูปภาพที่จะนำมาโชว์ใน Popup ใหญ่
+  const [previewImage, setPreviewImage] = useState(null);
 
   const submitToDatabase = async () => {
     if (!isDocComplete) return;
     setIsSubmitting(true);
-
     try {
       const payload = new FormData();
-      
       const textData = { 
         ...formData, 
         finalResult: formData.finalResult || "PASS", 
@@ -60,73 +60,146 @@ export default function PhotoPage({
   };
 
   return (
-    <div className="space-y-6 print:block">
+    <div className="space-y-6 print:block w-full max-w-7xl mx-auto" onClick={() => setOpenResultDropdown(null)}> 
       <GlassCard>
         <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4"><ImagePlus className="text-[#6f7bf7] no-print" /><h2 className="text-sm font-black uppercase text-[#6f7bf7] print:text-black">Section 5: Photographic Evidence</h2></div>
         
         <div className="overflow-x-auto pb-4">
           <div className="min-w-[1000px] flex flex-col gap-8 print:min-w-full">
+            
+            {/* ================= FRONT / TOP ================= */}
             <div className="flex bg-blue-900/10 border border-blue-500/20 rounded-3xl p-4 print:p-0 print:border-black print:bg-transparent">
               <div className="w-[45px] flex items-center justify-center border-r border-blue-500/20 pr-4 mr-4 print:border-black"><span className="-rotate-90 whitespace-nowrap font-black text-blue-400 text-xs print:text-black">FRONT / TOP</span></div>
               <div className="flex-1 grid grid-cols-8 gap-3">
-                 <ImageUploadBox id="f1" label="Before unpack" image={uploadedImages.f1} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="f2" label="After unpack" image={uploadedImages.f2} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="f3" label="FRONT / TOP" image={uploadedImages.f3} onChange={handleImageChange} onRemove={removeImage} />
-                 <MultiImageUploadBox id="f4" label="Out side" images={uploadedImages.f4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} />
-                 <ImageUploadBox id="f5" label="Serial & Ref" image={uploadedImages.f5} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="f6" label="Text on socket" image={uploadedImages.f6} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="f7" label="Contactor pin" image={uploadedImages.f7} onChange={handleImageChange} onRemove={removeImage} />
+                 {/* 🌟 ส่ง onPreview={setPreviewImage} เข้าไปให้ทุกกล่อง เพื่อรับคำสั่งคลิก */}
+                 <ImageUploadBox id="f1" label="Before unpack" image={uploadedImages.f1} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="f2" label="After unpack" image={uploadedImages.f2} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="f3" label="FRONT / TOP" image={uploadedImages.f3} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <MultiImageUploadBox id="f4" label="Out side" images={uploadedImages.f4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="f5" label="Serial & Ref" image={uploadedImages.f5} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="f6" label="Text on socket" image={uploadedImages.f6} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="f7" label="Contactor pin" image={uploadedImages.f7} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
                  
-                 {/* 🌟 แก้ไข Layout ตรงนี้ (FRONT/TOP) */}
-                 <div className="flex flex-col justify-center h-full border-l border-white/10 pl-4 print:border-black">
+                 <div className="flex flex-col justify-center h-[150px] border-l border-white/10 pl-4 print:border-black relative">
                    <label className="text-[10px] font-bold text-white/50 text-center mb-3 uppercase tracking-wider print:text-black w-full">Result</label>
-                   <div className="w-full">
-                      <CustomSelect options={resultOptions} />
+                   
+                   <div className="relative w-full z-[998]">
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); setOpenResultDropdown(openResultDropdown === 'front' ? null : 'front'); }}
+                        className="w-full bg-[#0f111a] border border-white/10 rounded-xl px-3 py-2 text-xs font-bold cursor-pointer flex justify-between items-center shadow-inner hover:border-[#6f7bf7]/50 transition-all"
+                      >
+                        <span className={formData.frontResult ? "text-white" : "text-white/40"}>
+                          {formData.frontResult || "-- Select --"}
+                        </span>
+                        <ChevronDown size={14} className={`text-white/40 transition-transform duration-300 ${openResultDropdown === 'front' ? 'rotate-180 text-[#6f7bf7]' : ''}`} />
+                      </div>
+
+                      <AnimatePresence>
+                        {openResultDropdown === 'front' && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -10 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0, y: -10 }} 
+                            transition={{ duration: 0.2 }}
+                            className="absolute top-full mt-2 w-full bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[999]"
+                          >
+                            {resultOptions.map((opt) => (
+                              <div 
+                                key={opt}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFormData({ ...formData, frontResult: opt });
+                                  setOpenResultDropdown(null);
+                                }}
+                                className={`px-3 py-2 text-xs font-bold cursor-pointer transition-colors ${formData.frontResult === opt ? 'bg-[#6f7bf7]/20 text-[#6f7bf7]' : 'text-white hover:bg-white/5'}`}
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                    </div>
+                   <div className="hidden print:block w-full border-b border-black text-center font-bold pb-1 text-sm">{formData.frontResult || "-"}</div>
                  </div>
-                 
               </div>
             </div>
 
+            {/* ================= BACK / BOTTOM ================= */}
             <div className="flex bg-amber-900/10 border border-amber-500/20 rounded-3xl p-4 print:p-0 print:border-black print:bg-transparent">
               <div className="w-[45px] flex items-center justify-center border-r border-amber-500/20 pr-4 mr-4 print:border-black"><span className="-rotate-90 whitespace-nowrap font-black text-amber-400 text-xs print:text-black">BACK / BOTTOM</span></div>
               <div className="flex-1 grid grid-cols-8 gap-3">
-                 <ImageUploadBox id="b1" label="Before unpack" image={uploadedImages.b1} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="b2" label="After unpack" image={uploadedImages.b2} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="b3" label="BACK / BOTTOM" image={uploadedImages.b3} onChange={handleImageChange} onRemove={removeImage} />
-                 <MultiImageUploadBox id="b4" label="Out side" images={uploadedImages.b4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} />
-                 <ImageUploadBox id="b5" label="Serial & Ref" image={uploadedImages.b5} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="b6" label="Text on socket" image={uploadedImages.b6} onChange={handleImageChange} onRemove={removeImage} />
-                 <ImageUploadBox id="b7" label="Contactor pin" image={uploadedImages.b7} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="b1" label="Before unpack" image={uploadedImages.b1} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="b2" label="After unpack" image={uploadedImages.b2} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="b3" label="BACK / BOTTOM" image={uploadedImages.b3} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <MultiImageUploadBox id="b4" label="Out side" images={uploadedImages.b4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="b5" label="Serial & Ref" image={uploadedImages.b5} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="b6" label="Text on socket" image={uploadedImages.b6} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="b7" label="Contactor pin" image={uploadedImages.b7} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
                  
-                 {/* 🌟 แก้ไข Layout ตรงนี้ (BACK/BOTTOM) */}
-                 <div className="flex flex-col justify-center h-full border-l border-white/10 pl-4 print:border-black">
+                 <div className="flex flex-col justify-center h-[150px] border-l border-white/10 pl-4 print:border-black relative">
                    <label className="text-[10px] font-bold text-white/50 text-center mb-3 uppercase tracking-wider print:text-black w-full">Result</label>
-                   <div className="w-full">
-                      <CustomSelect options={resultOptions} />
-                   </div>
-                 </div>
+                   
+                   <div className="relative w-full z-[997]">
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); setOpenResultDropdown(openResultDropdown === 'back' ? null : 'back'); }}
+                        className="w-full bg-[#0f111a] border border-white/10 rounded-xl px-3 py-2 text-xs font-bold cursor-pointer flex justify-between items-center shadow-inner hover:border-[#6f7bf7]/50 transition-all"
+                      >
+                        <span className={formData.backResult ? "text-white" : "text-white/40"}>
+                          {formData.backResult || "-- Select --"}
+                        </span>
+                        <ChevronDown size={14} className={`text-white/40 transition-transform duration-300 ${openResultDropdown === 'back' ? 'rotate-180 text-[#6f7bf7]' : ''}`} />
+                      </div>
 
+                      <AnimatePresence>
+                        {openResultDropdown === 'back' && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -10 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0, y: -10 }} 
+                            transition={{ duration: 0.2 }}
+                            className="absolute top-full mt-2 w-full bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[999]"
+                          >
+                            {resultOptions.map((opt) => (
+                              <div 
+                                key={opt}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFormData({ ...formData, backResult: opt });
+                                  setOpenResultDropdown(null);
+                                }}
+                                className={`px-3 py-2 text-xs font-bold cursor-pointer transition-colors ${formData.backResult === opt ? 'bg-[#6f7bf7]/20 text-[#6f7bf7]' : 'text-white hover:bg-white/5'}`}
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                   </div>
+                   <div className="hidden print:block w-full border-b border-black text-center font-bold pb-1 text-sm">{formData.backResult || "-"}</div>
+                 </div>
               </div>
             </div>
+
           </div>
         </div>
-        <div className="mt-8 border-t border-white/10 pt-6 print:border-black"><GlassInput label="DETAILS (IF ANY)" placeholder="Enter details here..." /></div>
+        <div className="mt-8 border-t border-white/10 pt-6 print:border-black"><GlassInput label="DETAILS (IF ANY)" placeholder="Enter details here..." value={formData.photoDetails || ''} onChange={(e) => setFormData({...formData, photoDetails: e.target.value})} /></div>
       </GlassCard>
 
+      {/* ================= BOTTOM SECTION (Conclusion) ================= */}
       <GlassCard className={`print:border-t-2 print:border-black print:!bg-transparent print:rounded-none transition-all duration-1000 z-[20] ${isDocComplete ? '!bg-gradient-to-r from-[#170a30] to-[#05000a] border-fuchsia-500/40' : 'border-dashed border-white/20 opacity-90'}`}>
         <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
           <div className="flex gap-6 w-full md:w-2/3 items-end">
-            <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" placeholder="Enter Conclusion Result here..." gridClass="flex-1" />
+            <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" placeholder="Enter Conclusion Result here..." gridClass="flex-1" value={formData.conclusionResult || ''} onChange={(e) => setFormData({...formData, conclusionResult: e.target.value})} />
             
-            {/* 🌟 Custom Dropdown: สวยงาม คุม Style ได้ 100% และเซฟข้อมูลลง State ได้จริง */}
-            <div className="relative flex flex-col w-48 z-[999] no-print">
+            <div className="relative flex flex-col w-48 z-[900] no-print">
               <label className="text-[10px] font-bold text-white/50 mb-1 uppercase flex items-center gap-1">
                 Checked By <span className="text-[9px] text-white/30 font-normal">(ตรวจสอบโดย)</span>
               </label>
               
               <div 
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={(e) => { e.stopPropagation(); setIsDropdownOpen(!isDropdownOpen); }}
                 className="bg-[#0f111a] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold cursor-pointer flex justify-between items-center shadow-inner hover:border-[#6f7bf7]/50 transition-all"
               >
                 <span className={formData.checkedBy ? "text-white" : "text-white/40"}>
@@ -142,12 +215,13 @@ export default function PhotoPage({
                     animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, y: -10 }} 
                     transition={{ duration: 0.2 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[999]"
+                    className="absolute top-full left-0 right-0 mt-2 bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[900]"
                   >
                     {["Benyathip C.", "Sukkasem S.","Phanudet C.","Charukit Ch."].map((name) => (
                       <div 
                         key={name}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setFormData({ ...formData, checkedBy: name });
                           setIsDropdownOpen(false);
                         }}
@@ -160,13 +234,12 @@ export default function PhotoPage({
                 )}
               </AnimatePresence>
             </div>
-            {/* ตัวแสดงผลตอน Print เพื่อไม่ให้ Dropdown ไปโผล่ในกระดาษ */}
             <div className="hidden print:block w-48">
                <label className="text-[10px] font-bold text-black mb-1 uppercase block">Checked By (ตรวจสอบโดย)</label>
                <div className="border-b border-black text-sm font-bold pb-1">{formData.checkedBy || "-"}</div>
             </div>
             
-            <GlassInput label="Date" thLabel="(วันที่)" type="date" gridClass="w-36"/>
+            <GlassInput label="Date" thLabel="(วันที่)" type="date" gridClass="w-36" value={formData.date || ''} onChange={(e) => setFormData({...formData, date: e.target.value})} />
           </div>
           
           <div className={`relative p-5 rounded-2xl flex gap-10 print:bg-transparent print:border-none print:p-0 transition-all duration-500 ${isDocComplete ? 'bg-[#000000]/60 border border-fuchsia-500/20' : 'bg-[#000000]/40 border border-white/10'}`}>
@@ -219,6 +292,40 @@ export default function PhotoPage({
           {isSubmitting ? <Loader2 className="animate-spin" size={20}/> : <Save size={20}/>} {isSubmitting ? "SAVING TO DB..." : "SUBMIT TO SYSTEM"}
         </motion.button>
       </div>
+
+      {/* ================= 🌟 MODAL PREVIEW IMAGE (คลิกแล้วเด้งมาที่นี่) ================= */}
+      <AnimatePresence>
+        {previewImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreviewImage(null)} // กดที่พื้นหลังเพื่อปิด
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 cursor-zoom-out no-print"
+          >
+            {/* ปุ่มกากบาทขวาบน */}
+            <button
+              className="absolute top-6 right-6 text-white bg-white/10 hover:bg-rose-500 rounded-full p-2 transition-colors z-50 shadow-lg border border-white/20"
+              onClick={() => setPreviewImage(null)}
+            >
+              <X size={24} />
+            </button>
+            
+            {/* ตัวรูปภาพที่เด้งขึ้นมากลางจอ */}
+            <motion.img
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }} // เด้งแบบสมูทๆ
+              src={previewImage}
+              alt="Preview Fullsize"
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] cursor-default"
+              onClick={(e) => e.stopPropagation()} // ป้องกันไม่ให้กดโดนรูปแล้วปิด
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
