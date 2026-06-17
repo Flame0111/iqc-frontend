@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown, X } from 'lucide-react'; // 🌟 เพิ่ม X ไอคอน
+import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown } from 'lucide-react';
 import { GlassCard, ImageUploadBox, MultiImageUploadBox, CustomSelect, GlassInput } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -11,16 +11,17 @@ export default function PhotoPage({
 }) {
   const resultOptions = ["PASS", "FAIL"];
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
-  // 🌟 State สำหรับเก็บรูปที่จะเอามาโชว์ใน Popup
-  const [previewImage, setPreviewImage] = useState(null);
+  // 🌟 State สำหรับเปิด/ปิด Dropdown แบบ Custom
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const submitToDatabase = async () => {
     if (!isDocComplete) return;
     setIsSubmitting(true);
+
     try {
       const payload = new FormData();
+      
       const textData = { 
         ...formData, 
         finalResult: formData.finalResult || "PASS", 
@@ -68,42 +69,44 @@ export default function PhotoPage({
             <div className="flex bg-blue-900/10 border border-blue-500/20 rounded-3xl p-4 print:p-0 print:border-black print:bg-transparent">
               <div className="w-[45px] flex items-center justify-center border-r border-blue-500/20 pr-4 mr-4 print:border-black"><span className="-rotate-90 whitespace-nowrap font-black text-blue-400 text-xs print:text-black">FRONT / TOP</span></div>
               <div className="flex-1 grid grid-cols-8 gap-3">
-                 {/* 🌟 ส่ง onPreview ลงไปในทุกกล่อง */}
-                 <ImageUploadBox id="f1" label="Before unpack" image={uploadedImages.f1} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="f2" label="After unpack" image={uploadedImages.f2} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="f3" label="FRONT / TOP" image={uploadedImages.f3} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <MultiImageUploadBox id="f4" label="Out side" images={uploadedImages.f4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="f5" label="Serial & Ref" image={uploadedImages.f5} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="f6" label="Text on socket" image={uploadedImages.f6} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="f7" label="Contactor pin" image={uploadedImages.f7} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="f1" label="Before unpack" image={uploadedImages.f1} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="f2" label="After unpack" image={uploadedImages.f2} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="f3" label="FRONT / TOP" image={uploadedImages.f3} onChange={handleImageChange} onRemove={removeImage} />
+                 <MultiImageUploadBox id="f4" label="Out side" images={uploadedImages.f4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} />
+                 <ImageUploadBox id="f5" label="Serial & Ref" image={uploadedImages.f5} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="f6" label="Text on socket" image={uploadedImages.f6} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="f7" label="Contactor pin" image={uploadedImages.f7} onChange={handleImageChange} onRemove={removeImage} />
                  
+                 {/* 🌟 แก้ไข Layout ตรงนี้ (FRONT/TOP) */}
                  <div className="flex flex-col justify-center h-full border-l border-white/10 pl-4 print:border-black">
                    <label className="text-[10px] font-bold text-white/50 text-center mb-3 uppercase tracking-wider print:text-black w-full">Result</label>
                    <div className="w-full">
                       <CustomSelect options={resultOptions} />
                    </div>
                  </div>
+                 
               </div>
             </div>
 
             <div className="flex bg-amber-900/10 border border-amber-500/20 rounded-3xl p-4 print:p-0 print:border-black print:bg-transparent">
               <div className="w-[45px] flex items-center justify-center border-r border-amber-500/20 pr-4 mr-4 print:border-black"><span className="-rotate-90 whitespace-nowrap font-black text-amber-400 text-xs print:text-black">BACK / BOTTOM</span></div>
               <div className="flex-1 grid grid-cols-8 gap-3">
-                 {/* 🌟 ส่ง onPreview ลงไปในทุกกล่อง */}
-                 <ImageUploadBox id="b1" label="Before unpack" image={uploadedImages.b1} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="b2" label="After unpack" image={uploadedImages.b2} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="b3" label="BACK / BOTTOM" image={uploadedImages.b3} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <MultiImageUploadBox id="b4" label="Out side" images={uploadedImages.b4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="b5" label="Serial & Ref" image={uploadedImages.b5} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="b6" label="Text on socket" image={uploadedImages.b6} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
-                 <ImageUploadBox id="b7" label="Contactor pin" image={uploadedImages.b7} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
+                 <ImageUploadBox id="b1" label="Before unpack" image={uploadedImages.b1} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="b2" label="After unpack" image={uploadedImages.b2} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="b3" label="BACK / BOTTOM" image={uploadedImages.b3} onChange={handleImageChange} onRemove={removeImage} />
+                 <MultiImageUploadBox id="b4" label="Out side" images={uploadedImages.b4} onChange={handleMultiImageChange} onRemove={removeMultiImage} max={4} />
+                 <ImageUploadBox id="b5" label="Serial & Ref" image={uploadedImages.b5} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="b6" label="Text on socket" image={uploadedImages.b6} onChange={handleImageChange} onRemove={removeImage} />
+                 <ImageUploadBox id="b7" label="Contactor pin" image={uploadedImages.b7} onChange={handleImageChange} onRemove={removeImage} />
                  
+                 {/* 🌟 แก้ไข Layout ตรงนี้ (BACK/BOTTOM) */}
                  <div className="flex flex-col justify-center h-full border-l border-white/10 pl-4 print:border-black">
                    <label className="text-[10px] font-bold text-white/50 text-center mb-3 uppercase tracking-wider print:text-black w-full">Result</label>
                    <div className="w-full">
                       <CustomSelect options={resultOptions} />
                    </div>
                  </div>
+
               </div>
             </div>
           </div>
@@ -116,7 +119,8 @@ export default function PhotoPage({
           <div className="flex gap-6 w-full md:w-2/3 items-end">
             <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" placeholder="Enter Conclusion Result here..." gridClass="flex-1" />
             
-            <div className="relative flex flex-col w-48 z-[900] no-print">
+            {/* 🌟 Custom Dropdown: สวยงาม คุม Style ได้ 100% และเซฟข้อมูลลง State ได้จริง */}
+            <div className="relative flex flex-col w-48 z-[999] no-print">
               <label className="text-[10px] font-bold text-white/50 mb-1 uppercase flex items-center gap-1">
                 Checked By <span className="text-[9px] text-white/30 font-normal">(ตรวจสอบโดย)</span>
               </label>
@@ -138,7 +142,7 @@ export default function PhotoPage({
                     animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, y: -10 }} 
                     transition={{ duration: 0.2 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[900]"
+                    className="absolute top-full left-0 right-0 mt-2 bg-[#1a1f35] border border-[#6f7bf7]/30 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[999]"
                   >
                     {["Benyathip C.", "Sukkasem S.","Phanudet C.","Charukit Ch."].map((name) => (
                       <div 
@@ -156,6 +160,7 @@ export default function PhotoPage({
                 )}
               </AnimatePresence>
             </div>
+            {/* ตัวแสดงผลตอน Print เพื่อไม่ให้ Dropdown ไปโผล่ในกระดาษ */}
             <div className="hidden print:block w-48">
                <label className="text-[10px] font-bold text-black mb-1 uppercase block">Checked By (ตรวจสอบโดย)</label>
                <div className="border-b border-black text-sm font-bold pb-1">{formData.checkedBy || "-"}</div>
@@ -214,37 +219,6 @@ export default function PhotoPage({
           {isSubmitting ? <Loader2 className="animate-spin" size={20}/> : <Save size={20}/>} {isSubmitting ? "SAVING TO DB..." : "SUBMIT TO SYSTEM"}
         </motion.button>
       </div>
-
-      {/* 🌟 Popup Modal สำหรับโชว์รูปใหญ่ (Animation Spring เด้งสมูทๆ) */}
-      <AnimatePresence>
-        {previewImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setPreviewImage(null)} // คลิกพื้นหลังเพื่อปิด
-            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 cursor-zoom-out no-print"
-          >
-            <button
-              className="absolute top-6 right-6 text-white bg-white/10 hover:bg-rose-500 rounded-full p-2 transition-colors z-50 shadow-lg border border-white/20"
-              onClick={() => setPreviewImage(null)}
-            >
-              <X size={24} />
-            </button>
-            <motion.img
-              initial={{ scale: 0.8, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }} // Animation เด้งๆ สไตล์แอปมือถือ
-              src={previewImage}
-              alt="Preview Fullsize"
-              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] cursor-default"
-              onClick={(e) => e.stopPropagation()} // ป้องกันการกดโดนรูปแล้วปิด
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
     </div>
   );
 }
