@@ -77,7 +77,7 @@ export default function DatabaseListPage({ onAddNew, onEditRecord }) {
             <thead>
               <tr className="bg-white/[0.02] border-b border-white/10 text-[10px] font-bold text-white/40 uppercase tracking-wider">
                 {/* 🌟 ปรับ Layout ใหม่ กระจายความกว้างให้บาลานซ์ขึ้น */}
-                <th className="py-4 px-6 w-[25%]">Contactor Name</th>
+                <th className="py-4 px-6 w-[15%]">Contactor Name</th>
                 <th className="py-4 px-4 w-[10%]">Type</th>
                 <th className="py-4 px-4 w-[10%]">Supplier</th>
                 <th className="py-4 px-4 w-[10%]">Date Added</th>
