@@ -5,10 +5,10 @@ import logoUtac from './assets/logo-utac.png';
 
 // 🌟 นำเข้าหน้าต่างหลักทั้งหมด
 import HomePage from './pages/HomePage.jsx';
-import ContactorInfoPage from './pages/ContactorInfoPage.jsx'; 
-import DatabaseListPage from './pages/DatabaseListPage.jsx'; // <--- หน้าลิสของ Contactor DB
 import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
+import ContactorInfoPage from './pages/ContactorInfoPage.jsx'; 
+import DatabaseListPage from './pages/DatabaseListPage.jsx'; // 🌟 นำเข้าหน้า List ของ Contactor DB
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
 export const API_URL = "https://iqc-api-server.onrender.com";
@@ -22,11 +22,12 @@ export default function App() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
+  // 🌟 ปรับเงื่อนไขการดึง URL ให้รองรับทั้ง iqc และ contactor_info
   const [page, setPage] = useState(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.has('edit')) return 'iqc_form';
+    if (searchParams.has('edit')) return 'iqc';
     if (searchParams.has('contactor_id')) return 'contactor_info';
-    return 'home'; 
+    return 'home';
   });
 
   const [step, setStep] = useState(1);
@@ -97,14 +98,29 @@ export default function App() {
     } catch (err) { alert(err.message); }
   };
 
+  const resetFormAndGoHome = () => {
+    setFormData({
+      hwName: "", supplier: "", dateRecv: "", invoiceNo: "", hwDesc: "", poNo: "", serialNo: "", customer: "", owner: "Contactor", sendBy: "", location: "", checkedBy: "", finalResult: "PASS",
+      chk_pin1: "", part_pin1: "", qty_pin1: "", chk_sck1: "", part_sck1: "", qty_sck1: "", chk_aln1: "", part_align1: "", qty_align1: ""
+    });
+    setUploadedDocs({ pkg: [], sck: [], pin: [], mnt: [] });
+    setUploadedImages({});
+    setStep(1);
+    setPage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // ------------------------------------------
   // LOGIN UI
   // ------------------------------------------
   if (!auth) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center font-sans relative overflow-hidden">
-        {/* ... (UI ล็อกอิน คงเดิม) ... */}
-        <motion.div animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.05, 1] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
+        <motion.div 
+          animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.05, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none"
+        />
         <div className="z-10 w-full max-w-[400px] p-6">
           <div className="flex flex-col items-center mb-8">
             <motion.img initial={{ opacity: 0, scale: 0.9, y: 10 }} animate={{ opacity: 0.9, scale: 1, y: 0 }} transition={{ duration: 0.5 }} src={logoUtac} alt="UTAC" className="h-12 object-contain mb-6" />
@@ -144,7 +160,7 @@ export default function App() {
   }
 
   // ------------------------------------------
-  // MAIN APP ROUTING
+  // MAIN APP ROUTING (เมื่อ Login ผ่านแล้ว)
   // ------------------------------------------
   const pageVariants = {
     initial: (direction) => ({ opacity: 0, x: direction > 0 ? 25 : -30 }),
@@ -166,22 +182,23 @@ export default function App() {
             <h1 className="text-xl font-black text-white uppercase tracking-tighter hidden lg:block">IQC Hub</h1>
           </div>
           
+          {/* แถบเมนูกลาง */}
           <div className="flex justify-center items-center gap-3 w-[60%] flex-wrap">
             <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <LayoutDashboard size={14} /> Status Query
             </button>
+            
             <button onClick={() => setIsPinModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all bg-fuchsia-600/80 hover:bg-fuchsia-600 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)]">
               <Cpu size={14} /> Request Pin Changing
             </button>
             
-            {/* 🌟 1. ปุ่ม Contactor DB ชี้เป้าไปที่ "หน้าลิส" */}
-            <button onClick={() => { setPage('database_list'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'database_list' || page === 'contactor_info' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+            {/* 🌟 ปุ่ม Contactor DB ให้ไปที่หน้าลิส (contactor_list) ก่อน */}
+            <button onClick={() => { setPage('contactor_list'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'contactor_list' || page === 'contactor_info' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <Database size={14} /> Contactor DB
             </button>
             
-            {/* 🌟 2. ปุ่ม IQC ชี้เป้าไปที่ "หน้ากรอกฟอร์ม" ตามเดิม */}
             {auth.role !== 'viewer' && (
-              <button onClick={() => { setPage('iqc_form'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc_form' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+              <button onClick={() => { setPage('iqc'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
                 <ClipboardList size={14} /> + IQC Form
               </button>
             )}
@@ -208,48 +225,50 @@ export default function App() {
             </motion.div>
           )}
           
-          {/* 🌟 หน้า 1: แสดงลิสรายการของ Contactor DB (DatabaseListPage) */}
-          {page === 'database_list' && (
-            <motion.div key="database_list" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          {/* 🌟 1. หน้า Database List ของ Contactor DB */}
+          {page === 'contactor_list' && (
+            <motion.div key="contactor_list" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <DatabaseListPage 
                 onAddNew={() => {
-                  setPage('contactor_info'); // วิ่งไปหน้าสร้าง Contactor ใหม่
+                  setPage('contactor_info'); // วิ่งไปหน้าสร้างใหม่
                   window.history.pushState({}, '', window.location.pathname);
                 }} 
                 onEditRecord={(id) => {
-                  setPage('contactor_info'); // วิ่งไปหน้าแก้ Contactor
+                  setPage('contactor_info'); // วิ่งไปหน้าแก้ไข
                   window.history.pushState({}, '', `?contactor_id=${id}`);
                 }} 
               />
             </motion.div>
           )}
 
-          {/* 🌟 หน้า 2: แบบฟอร์มรายเอียด Contactor (ContactorInfoPage) */}
+          {/* 🌟 2. หน้า Contactor Info Page (หน้าแก้ไข/สร้างฟอร์ม) */}
           {page === 'contactor_info' && (
             <motion.div key="contactor_info" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <ContactorInfoPage />
+              {/* ส่ง prop ไปด้วยเผื่อมีการกดย้อนกลับหน้าตาราง */}
+              <ContactorInfoPage onBack={() => setPage('contactor_list')} />
             </motion.div>
           )}
 
-          {/* 🌟 หน้า 3: IQC Form และ Photo (กลับมาทำงานปกติเหมือนเดิม) */}
-          {page === 'iqc_form' && step === 1 && (
+          {/* หน้า IQC Form สเต็ป 1 (ไม่โดนแก้) */}
+          {page === 'iqc' && step === 1 && (
             <motion.div key="step1" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <FormPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
             </motion.div>
           )}
-          {page === 'iqc_form' && step === 2 && (
+          
+          {/* หน้า IQC Form สเต็ป 2 (Photo) (ไม่โดนแก้) */}
+          {page === 'iqc' && step === 2 && (
             <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <PhotoPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={() => { setFormData({}); setUploadedDocs({ pkg: [], sck: [], pin: [], mnt: [] }); setUploadedImages({}); setStep(1); setPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+              <PhotoPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
             </motion.div>
           )}
 
         </AnimatePresence>
       </main>
 
-      {/* PIN CHANGING MODAL (คงเดิม) */}
+      {/* PIN CHANGING MODAL */}
       <AnimatePresence>
         {isPinModalOpen && (
-          {/* ... โค้ด Modal เดิม ... */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="w-full max-w-md my-8">
               <GlassCard className="!p-8 relative border-fuchsia-500/30">
