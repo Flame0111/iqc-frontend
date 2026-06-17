@@ -8,7 +8,7 @@ export default function DatabaseListPage({ onAddNew, onEditRecord }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 📥 Fetch ข้อมูล (จิมมี่เสียบ API ดึงรายชื่อคอนแทคเตอร์มาลงตรงนี้ได้เลย)
+  // 📥 Fetch ข้อมูล (ลบ status ออกจาก mock data ด้วย)
   useEffect(() => {
     setTimeout(() => {
       setRecords([
@@ -23,11 +23,6 @@ export default function DatabaseListPage({ onAddNew, onEditRecord }) {
     (r.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (r.supplier || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const getStatusBadge = (status) => {
-    if (status === 'Pending') return <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">PENDING</span>;
-    return <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">ACTIVE</span>;
-  };
 
   if (loading) {
     return (
@@ -81,18 +76,19 @@ export default function DatabaseListPage({ onAddNew, onEditRecord }) {
           <table className="w-full text-sm text-left border-collapse">
             <thead>
               <tr className="bg-white/[0.02] border-b border-white/10 text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                <th className="py-4 px-6">Contactor Name</th>
-                <th className="py-4 px-4">Type</th>
-                <th className="py-4 px-4">Supplier</th>
-                <th className="py-4 px-4">Date Added</th>
-                <th className="py-4 px-4 text-center">Status</th>
-                <th className="py-4 px-6 text-right">Actions</th>
+                {/* 🌟 ปรับ Layout ใหม่ กระจายความกว้างให้บาลานซ์ขึ้น */}
+                <th className="py-4 px-6 w-[35%]">Contactor Name</th>
+                <th className="py-4 px-4 w-[20%]">Type</th>
+                <th className="py-4 px-4 w-[20%]">Supplier</th>
+                <th className="py-4 px-4 w-[15%]">Date Added</th>
+                <th className="py-4 px-6 text-right w-[10%]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-medium">
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="py-12 text-center text-white/30 font-bold text-xs uppercase tracking-wider">
+                  {/* 🌟 แก้ colSpan เป็น 5 เพราะลบคอลัมน์ออกไป 1 อัน */}
+                  <td colSpan="5" className="py-12 text-center text-white/30 font-bold text-xs uppercase tracking-wider">
                     No records found
                   </td>
                 </tr>
@@ -103,7 +99,6 @@ export default function DatabaseListPage({ onAddNew, onEditRecord }) {
                     <td className="py-4 px-4 text-xs font-bold text-white/60">{row.type}</td>
                     <td className="py-4 px-4 text-xs text-white/50">{row.supplier}</td>
                     <td className="py-4 px-4 text-xs text-white/50">{row.date}</td>
-                    <td className="py-4 px-4 text-center align-middle">{getStatusBadge(row.status)}</td>
                     <td className="py-4 px-6 text-right align-middle">
                       <motion.button
                         whileHover={{ scale: 1.1 }}
