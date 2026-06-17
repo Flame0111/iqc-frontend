@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ShieldAlert, Database } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
-
-// 🌟 นำเข้าหน้าต่างหลักทั้งหมด
 import HomePage from './pages/HomePage.jsx';
 import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
 import ContactorInfoPage from './pages/ContactorInfoPage.jsx'; 
-import DatabaseListPage from './pages/DatabaseListPage.jsx'; // 🌟 นำเข้าหน้า List ของ Contactor DB
+import DatabaseListPage from './pages/DatabaseListPage.jsx'; 
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
 export const API_URL = "https://iqc-api-server.onrender.com";
@@ -22,7 +20,6 @@ export default function App() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
-  // 🌟 ปรับเงื่อนไขการดึง URL ให้รองรับทั้ง iqc และ contactor_info
   const [page, setPage] = useState(() => {
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.has('edit')) return 'iqc';
@@ -68,6 +65,12 @@ export default function App() {
       if (data.success) {
         setAuth(data);
         localStorage.setItem('iqc_auth', JSON.stringify(data)); 
+        
+        // 🌟 1. บังคับให้วิ่งไปหน้า Status Query ทันทีที่ล็อกอินผ่าน
+        setPage('home');
+        setStep(1);
+        // 🌟 2. ล้างค่าบน URL (เผื่อมีค้างไว้จะได้ไม่พาไปหน้าอื่น)
+        window.history.pushState({}, '', window.location.pathname);
       } else {
         setLoginError("Invalid credentials. Please verify and try again.");
       }
@@ -77,6 +80,7 @@ export default function App() {
   const handleLogout = () => {
     setAuth(null);
     localStorage.removeItem('iqc_auth');
+    setLoginForm({ username: '', password: '' }); // ล้างฟอร์มล็อกอิน
   };
 
   const handlePinRequestSubmit = async (e) => {
@@ -182,17 +186,14 @@ export default function App() {
             <h1 className="text-xl font-black text-white uppercase tracking-tighter hidden lg:block">IQC Hub</h1>
           </div>
           
-          {/* แถบเมนูกลาง */}
           <div className="flex justify-center items-center gap-3 w-[60%] flex-wrap">
             <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <LayoutDashboard size={14} /> Status Query
             </button>
-            
             <button onClick={() => setIsPinModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all bg-fuchsia-600/80 hover:bg-fuchsia-600 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)]">
               <Cpu size={14} /> Request Pin Changing
             </button>
             
-            {/* 🌟 ปุ่ม Contactor DB ให้ไปที่หน้าลิส (contactor_list) ก่อน */}
             <button onClick={() => { setPage('contactor_list'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'contactor_list' || page === 'contactor_info' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <Database size={14} /> Contactor DB
             </button>
@@ -219,44 +220,44 @@ export default function App() {
       <main className="max-w-[1540px] mx-auto px-4 md:px-6 pt-32 pb-40 print:p-0">
         <AnimatePresence mode="wait" custom={step}>
           
+          {/* หน้า Status Query (HOME) */}
           {page === 'home' && (
             <motion.div key={`home_${triggerRefresh}`} custom={-1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <HomePage auth={auth} triggerRefresh={triggerRefresh} />
             </motion.div>
           )}
           
-          {/* 🌟 1. หน้า Database List ของ Contactor DB */}
+          {/* หน้า Database List ของ Contactor DB */}
           {page === 'contactor_list' && (
             <motion.div key="contactor_list" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <DatabaseListPage 
                 onAddNew={() => {
-                  setPage('contactor_info'); // วิ่งไปหน้าสร้างใหม่
+                  setPage('contactor_info'); 
                   window.history.pushState({}, '', window.location.pathname);
                 }} 
                 onEditRecord={(id) => {
-                  setPage('contactor_info'); // วิ่งไปหน้าแก้ไข
+                  setPage('contactor_info'); 
                   window.history.pushState({}, '', `?contactor_id=${id}`);
                 }} 
               />
             </motion.div>
           )}
 
-          {/* 🌟 2. หน้า Contactor Info Page (หน้าแก้ไข/สร้างฟอร์ม) */}
+          {/* หน้า Contactor Info Page */}
           {page === 'contactor_info' && (
             <motion.div key="contactor_info" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              {/* ส่ง prop ไปด้วยเผื่อมีการกดย้อนกลับหน้าตาราง */}
               <ContactorInfoPage onBack={() => setPage('contactor_list')} />
             </motion.div>
           )}
 
-          {/* หน้า IQC Form สเต็ป 1 (ไม่โดนแก้) */}
+          {/* หน้า IQC Form สเต็ป 1 */}
           {page === 'iqc' && step === 1 && (
             <motion.div key="step1" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <FormPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
             </motion.div>
           )}
           
-          {/* หน้า IQC Form สเต็ป 2 (Photo) (ไม่โดนแก้) */}
+          {/* หน้า IQC Form สเต็ป 2 (Photo) */}
           {page === 'iqc' && step === 2 && (
             <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <PhotoPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
