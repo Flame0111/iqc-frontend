@@ -12,8 +12,8 @@ export default function DatabaseListPage({ onAddNew, onEditRecord }) {
   useEffect(() => {
     setTimeout(() => {
       setRecords([
-        { id: 1, name: 'CONTACTOR-A01', type: 'Socket', supplier: 'Daiwa', status: 'Active', date: '2026-06-15' },
-        { id: 2, name: 'CONTACTOR-B05', type: 'Pogo Pin', supplier: 'KEYENCE', status: 'Pending', date: '2026-06-16' }
+        { id: 1, name: 'CT-EPSN0141', type: 'Socket', supplier: '-', date: '2026-06-15' },
+        { id: 2, name: 'CT-MTT0016', type: 'Socket', supplier: '-', date: '2026-06-16' }
       ]);
       setLoading(false);
     }, 1000);
