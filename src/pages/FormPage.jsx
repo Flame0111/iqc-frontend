@@ -109,7 +109,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     aiFormData.append('file', file);
 
     try {
-      // ลิงก์ยิงเข้า Localhost ที่จิมมี่ตั้งค่าไว้สปีดเร็วแรงที่สุด
+      // ลิงก์ยิงเข้า Localhost ที่ตั้งค่าไว้
       const N8N_WEBHOOK_URL = "http://127.0.0.1:5678/webhook/ai-drawing-reader";
       
       const res = await fetch(N8N_WEBHOOK_URL, {
@@ -120,7 +120,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
       const rawText = await res.text();
       console.log("📥 Raw response from n8n:", rawText); 
 
-      // ดักจับกรณีที่ n8n พ่นสเตตัสพังกลางทาง (เช่น 500)
       if (!res.ok) {
         throw new Error(`n8n Backend พังกลางทาง (HTTP ${res.status}). กรุณาเปิดหน้าดีบั๊กใน n8n เพื่อตรวจสอบการตั้งค่า AI Agent และการเชื่อมต่อ Memory`);
       }
@@ -131,7 +130,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
 
       let aiData;
       try {
-        // ใช้ Regex กวาดล้างแท็กครอบบล็อกข้อความแปลกปลอมออกให้สิ้นซาก
         const cleanText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
         aiData = JSON.parse(cleanText);
       } catch (parseError) {
@@ -246,6 +244,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           </h2>
           <div className="space-y-6 print:space-y-2">
             
+            {/* 🌟 ตารางที่ 1: DOCUMENTATION (แก้บั๊กโครงสร้าง td เรียบร้อยแล้ว) */}
             <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
               <table className="w-full text-sm glass-table print:text-[9px]">
                 <thead>
@@ -258,36 +257,70 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                 </thead>
                 <tbody>
                   {[
-                    { k: 'pkg', n: 'Package Outline Drawing', th: '(ภาพวาดโครงร่างแพ็กเกจ)', req: true, btnLabel: 'Attach' },
-                    { k: 'sck', n: 'Socket Drawing', th: '(ภาพวาดซ็อกเก็ต)', req: true, btnLabel: 'Attach' },
-                    { k: 'pin', n: 'Contact pin Drawing', th: '(ภาพวาดพินคอนแทค)', req: true, btnLabel: 'Attach' },
-                    { k: 'mnt', n: 'Maintenance guide line', th: '(คู่มือการบำรุงรักษา)', req: false, btnLabel: 'Optional' }
+                    { k: 'pkg', n: 'Package Outline Drawing', th: '(ภาพวาดโครงร่างแพ็กเกจ)', req: true },
+                    { k: 'sck', n: 'Socket Drawing', th: '(ภาพวาดซ็อกเก็ต)', req: true },
+                    { k: 'pin', n: 'Contact pin Drawing', th: '(ภาพวาดพินคอนแทค)', req: true },
+                    { k: 'mnt', n: 'Maintenance guide line', th: '(คู่มือการบำรุงรักษา)', req: false }
                   ].map((d) => (
-                    <tr key={d.k} className="hover:bg-white/5 print:hover:bg-transparent">
-                      <td className="pl-4 py-2 leading-tight">{d.n} {d.req && <span className="text-rose-500">*</span>}<span className="print-hide-th text-[9px] text-white/40 block">{d.th}</span></td>
-                      <GlassRadio name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} />
-                      <GlassRadio name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} />
-                      <td className="pl-4 pr-6 align-bottom pb-3 print:pb-0">
-                         <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-0.5 text-white/80" placeholder="Remarks..." />
+                    <tr key={d.k} className="hover:bg-white/5 border-b border-white/5 print:hover:bg-transparent print:border-black">
+                      
+                      <td className="pl-4 py-3 leading-tight">
+                        {d.n} {d.req && <span className="text-rose-500">*</span>}
+                        <span className="print-hide-th text-[9px] text-white/40 block mt-0.5 print:text-black/50">{d.th}</span>
                       </td>
-                      <td className="no-print pr-4 py-2 h-14 relative">
+                      
+                      <td className="text-center align-middle">
+                        <input 
+                          type="radio" 
+                          name={`doc_${d.k}`} 
+                          value="yes" 
+                          checked={formData[`doc_${d.k}`] === "yes"} 
+                          onChange={handleChange} 
+                          className="w-4 h-4 accent-emerald-500 cursor-pointer print:w-3 print:h-3" 
+                        />
+                      </td>
+                      
+                      <td className="text-center align-middle">
+                        <input 
+                          type="radio" 
+                          name={`doc_${d.k}`} 
+                          value="no" 
+                          checked={formData[`doc_${d.k}`] === "no"} 
+                          onChange={handleChange} 
+                          className="w-4 h-4 accent-rose-500 cursor-pointer print:w-3 print:h-3" 
+                        />
+                      </td>
+                      
+                      <td className="pl-4 pr-6 align-middle">
+                         <input 
+                           type="text" 
+                           name={`remark_doc_${d.k}`} 
+                           value={formData[`remark_doc_${d.k}`] || ""} 
+                           onChange={handleChange} 
+                           className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-1 text-white/80 focus:border-[#6f7bf7] transition-colors print:border-black print:text-black" 
+                           placeholder="Remarks..." 
+                         />
+                      </td>
+                      
+                      <td className="no-print pr-4 py-2 align-middle w-[220px]">
                         <FileUploadField 
-                          docId={d.k} 
-                          label={d.btnLabel} 
-                          onFileChange={(docId, files) => { 
+                          id={`file_${d.k}`} 
+                          accept=".pdf"
+                          file={uploadedDocs[d.k] && uploadedDocs[d.k].length > 0 ? uploadedDocs[d.k][0] : null}
+                          onChange={(e) => { 
+                            const files = e.target.files;
                             if(files.length === 0) {
-                              removeFile(docId); 
+                              removeFile(d.k); 
                             } else {
-                              handleFileChange(docId, files); 
-                              
-                              if (docId === 'pkg' || docId === 'sck' || docId === 'pin') {
+                              handleFileChange(d.k, files); 
+                              if (d.k === 'pkg' || d.k === 'sck' || d.k === 'pin') {
                                 triggerAIExtraction(files[0]);
                               }
                             }
                           }} 
-                          currentFiles={uploadedDocs[d.k]} 
                         />
                       </td>
+
                     </tr>
                   ))}
                 </tbody>
