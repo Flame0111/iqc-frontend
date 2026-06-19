@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown, X } from 'lucide-react'; // 🌟 นำเข้าไอคอน X สำหรับปุ่มปิด
+import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown, X } from 'lucide-react';
 import { GlassCard, ImageUploadBox, MultiImageUploadBox, GlassInput } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -13,40 +13,59 @@ export default function PhotoPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openResultDropdown, setOpenResultDropdown] = useState(null); 
-
-  // 🌟 State สำหรับเก็บรูปภาพที่จะนำมาโชว์ใน Popup ใหญ่
   const [previewImage, setPreviewImage] = useState(null);
 
-  const submitToDatabase = async () => {
-    if (!isDocComplete) return;
+  // ดึง ID ออกมาจาก URL เพื่อให้รู้ว่ากำลังแก้ไขงานไหน
+  const searchParams = new URLSearchParams(window.location.search);
+  const editId = searchParams.get('edit');
+
+  // 🌟 ฟังก์ชันรวมศูนย์สำหรับส่งข้อมูล (แยกแค่สถานะ Draft กับ Completed)
+  const sendDataToServer = async (jobStatusValue) => {
     setIsSubmitting(true);
     try {
       const payload = new FormData();
+      
+      // 🌟 ยัดชื่อ CheckedBy และสถานะงานเข้าไปใน textData
       const textData = { 
         ...formData, 
         finalResult: formData.finalResult || "PASS", 
-        checkedBy: formData.checkedBy || auth.name 
+        checkedBy: formData.checkedBy || auth.name,
+        jobStatus: jobStatusValue // 'Draft' หรือ 'Completed'
       };
       payload.append("iqcData", JSON.stringify(textData));
 
+      // 🌟 แปลงเอกสาร (PDF) ให้เป็น Array ก่อนวนลูป
       Object.keys(uploadedDocs).forEach(docKey => {
-        uploadedDocs[docKey].forEach(file => payload.append(`document_${docKey}`, file));
+        if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
+          Array.from(uploadedDocs[docKey]).forEach(file => payload.append(`document_${docKey}`, file));
+        }
       });
 
+      // 🌟 แปลงรูปภาพให้เป็น Array ก่อนวนลูปป้องกันบั๊ก
       Object.keys(uploadedImages).forEach(imgKey => {
          const imageFile = uploadedImages[imgKey]; 
-         if (Array.isArray(imageFile)) imageFile.forEach(img => payload.append(`image_${imgKey}`, img));
-         else payload.append(`image_${imgKey}`, imageFile);
+         if (imageFile) {
+           if (Array.isArray(imageFile) || imageFile instanceof FileList) {
+             Array.from(imageFile).forEach(img => payload.append(`image_${imgKey}`, img));
+           } else {
+             payload.append(`image_${imgKey}`, imageFile);
+           }
+         }
       });
       
-      const response = await fetch(`${API_URL}/api/submit-iqc`, {
-        method: "POST",
+      // 🌟 ถ้ามี editId ให้ใช้คำสั่ง PUT (อัปเดต) ถ้าไม่มีให้ใช้ POST (สร้างใหม่)
+      const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
+      const method = editId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
         headers: { 'Authorization': `Bearer ${auth.token}` },
         body: payload, 
       });
 
       if (response.ok) {
-        alert("✅ บันทึกข้อมูลและไฟล์ลงระบบเรียบร้อยแล้ว!");
+        if (jobStatusValue === 'Draft') alert("✅ บันทึกแบบร่าง (Save Draft) พร้อมรูปภาพเรียบร้อยแล้ว!");
+        else alert("✅ บันทึกข้อมูลเข้าสู่ระบบเรียบร้อยแล้ว!");
         onSuccess(); 
       } else {
         const errData = await response.json();
@@ -60,7 +79,7 @@ export default function PhotoPage({
   };
 
   return (
-    <div className="space-y-6 print:block w-full max-w-7xl mx-auto" onClick={() => setOpenResultDropdown(null)}> 
+    <div className="space-y-6 w-full max-w-7xl mx-auto print:block" onClick={() => setOpenResultDropdown(null)}> 
       <GlassCard>
         <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4"><ImagePlus className="text-[#6f7bf7] no-print" /><h2 className="text-sm font-black uppercase text-[#6f7bf7] print:text-black">Section 5: Photographic Evidence</h2></div>
         
@@ -71,7 +90,6 @@ export default function PhotoPage({
             <div className="flex bg-blue-900/10 border border-blue-500/20 rounded-3xl p-4 print:p-0 print:border-black print:bg-transparent">
               <div className="w-[45px] flex items-center justify-center border-r border-blue-500/20 pr-4 mr-4 print:border-black"><span className="-rotate-90 whitespace-nowrap font-black text-blue-400 text-xs print:text-black">FRONT / TOP</span></div>
               <div className="flex-1 grid grid-cols-8 gap-3">
-                 {/* 🌟 ส่ง onPreview={setPreviewImage} เข้าไปให้ทุกกล่อง เพื่อรับคำสั่งคลิก */}
                  <ImageUploadBox id="f1" label="Before unpack" image={uploadedImages.f1} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
                  <ImageUploadBox id="f2" label="After unpack" image={uploadedImages.f2} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
                  <ImageUploadBox id="f3" label="FRONT / TOP" image={uploadedImages.f3} onChange={handleImageChange} onRemove={removeImage} onPreview={setPreviewImage} />
@@ -184,14 +202,14 @@ export default function PhotoPage({
 
           </div>
         </div>
-        <div className="mt-8 border-t border-white/10 pt-6 print:border-black"><GlassInput label="DETAILS (IF ANY)" placeholder="Enter details here..." value={formData.photoDetails || ''} onChange={(e) => setFormData({...formData, photoDetails: e.target.value})} /></div>
+        <div className="mt-8 border-t border-white/10 pt-6 print:border-black"><GlassInput name="photoDetails" label="DETAILS (IF ANY)" placeholder="Enter details here..." value={formData.photoDetails || ''} onChange={(e) => setFormData({...formData, photoDetails: e.target.value})} /></div>
       </GlassCard>
 
       {/* ================= BOTTOM SECTION (Conclusion) ================= */}
       <GlassCard className={`print:border-t-2 print:border-black print:!bg-transparent print:rounded-none transition-all duration-1000 z-[20] ${isDocComplete ? '!bg-gradient-to-r from-[#170a30] to-[#05000a] border-fuchsia-500/40' : 'border-dashed border-white/20 opacity-90'}`}>
         <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
           <div className="flex gap-6 w-full md:w-2/3 items-end">
-            <GlassInput label="Conclusion result" thLabel="(ผลสรุป)" placeholder="Enter Conclusion Result here..." gridClass="flex-1" value={formData.conclusionResult || ''} onChange={(e) => setFormData({...formData, conclusionResult: e.target.value})} />
+            <GlassInput name="conclusionResult" label="Conclusion result" thLabel="(ผลสรุป)" placeholder="Enter Conclusion Result here..." gridClass="flex-1" value={formData.conclusionResult || ''} onChange={(e) => setFormData({...formData, conclusionResult: e.target.value})} />
             
             <div className="relative flex flex-col w-48 z-[900] no-print">
               <label className="text-[10px] font-bold text-white/50 mb-1 uppercase flex items-center gap-1">
@@ -239,7 +257,7 @@ export default function PhotoPage({
                <div className="border-b border-black text-sm font-bold pb-1">{formData.checkedBy || "-"}</div>
             </div>
             
-            <GlassInput label="Date" thLabel="(วันที่)" type="date" gridClass="w-36" value={formData.date || ''} onChange={(e) => setFormData({...formData, date: e.target.value})} />
+            <GlassInput name="date" label="Date" thLabel="(วันที่)" type="date" gridClass="w-36" value={formData.date || ''} onChange={(e) => setFormData({...formData, date: e.target.value})} />
           </div>
           
           <div className={`relative p-5 rounded-2xl flex gap-10 print:bg-transparent print:border-none print:p-0 transition-all duration-500 ${isDocComplete ? 'bg-[#000000]/60 border border-fuchsia-500/20' : 'bg-[#000000]/40 border border-white/10'}`}>
@@ -288,39 +306,56 @@ export default function PhotoPage({
         <motion.button whileHover={{ x: -5 }} onClick={onBack} className="bg-white/5 hover:bg-white/10 text-white font-bold py-4 px-8 rounded-2xl border border-white/10 flex items-center gap-3 transition-colors">
           <ArrowLeft size={20}/> BACK TO FORM
         </motion.button>
-        <motion.button onClick={submitToDatabase} disabled={!isDocComplete || isSubmitting} whileHover={isDocComplete && !isSubmitting ? { scale: 1.05, y: -5, boxShadow: "0 0 40px rgba(111,123,247,0.4)" } : {}} whileTap={isDocComplete && !isSubmitting ? { scale: 0.95 } : {}} className={`font-black py-4 px-12 rounded-2xl flex items-center gap-3 transition-all ${isDocComplete && !isSubmitting ? 'bg-white text-black shadow-2xl cursor-pointer' : 'bg-white/10 text-white/30 cursor-not-allowed border border-white/5'}`}>
-          {isSubmitting ? <Loader2 className="animate-spin" size={20}/> : <Save size={20}/>} {isSubmitting ? "SAVING TO DB..." : "SUBMIT TO SYSTEM"}
-        </motion.button>
+        <div className="flex gap-4">
+          {/* 🌟 ปุ่ม SAVE DRAFT ของหน้า Photo */}
+          <motion.button 
+            type="button"
+            onClick={() => sendDataToServer('Draft')}
+            disabled={isSubmitting}
+            whileHover={{ scale: 1.05 }} 
+            whileTap={{ scale: 0.95 }} 
+            className="bg-zinc-800 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black font-black py-4 px-8 rounded-2xl shadow-xl transition-all disabled:opacity-50"
+          >
+            SAVE AS DRAFT
+          </motion.button>
+          
+          <motion.button 
+            onClick={() => sendDataToServer('Completed')} 
+            disabled={!isDocComplete || isSubmitting} 
+            whileHover={isDocComplete && !isSubmitting ? { scale: 1.05, y: -5, boxShadow: "0 0 40px rgba(111,123,247,0.4)" } : {}} 
+            whileTap={isDocComplete && !isSubmitting ? { scale: 0.95 } : {}} 
+            className={`font-black py-4 px-12 rounded-2xl flex items-center gap-3 transition-all ${isDocComplete && !isSubmitting ? 'bg-white text-black shadow-2xl cursor-pointer' : 'bg-white/10 text-white/30 cursor-not-allowed border border-white/5'}`}
+          >
+            {isSubmitting ? <Loader2 className="animate-spin" size={20}/> : <Save size={20}/>} 
+            {isSubmitting ? "PROCESSING..." : "SUBMIT TO SYSTEM"}
+          </motion.button>
+        </div>
       </div>
 
-      {/* ================= 🌟 MODAL PREVIEW IMAGE (คลิกแล้วเด้งมาที่นี่) ================= */}
       <AnimatePresence>
         {previewImage && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setPreviewImage(null)} // กดที่พื้นหลังเพื่อปิด
+            onClick={() => setPreviewImage(null)}
             className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 cursor-zoom-out no-print"
           >
-            {/* ปุ่มกากบาทขวาบน */}
             <button
               className="absolute top-6 right-6 text-white bg-white/10 hover:bg-rose-500 rounded-full p-2 transition-colors z-50 shadow-lg border border-white/20"
               onClick={() => setPreviewImage(null)}
             >
               <X size={24} />
             </button>
-            
-            {/* ตัวรูปภาพที่เด้งขึ้นมากลางจอ */}
             <motion.img
               initial={{ scale: 0.8, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.8, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }} // เด้งแบบสมูทๆ
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
               src={previewImage}
               alt="Preview Fullsize"
               className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] cursor-default"
-              onClick={(e) => e.stopPropagation()} // ป้องกันไม่ให้กดโดนรูปแล้วปิด
+              onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
         )}
