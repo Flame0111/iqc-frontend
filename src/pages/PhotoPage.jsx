@@ -14,11 +14,12 @@ export default function PhotoPage({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openResultDropdown, setOpenResultDropdown] = useState(null); 
   const [previewImage, setPreviewImage] = useState(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false); 
 
   const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
+  // 🌟 ฟังก์ชันส่งข้อมูลและไฟล์ไปหาเซิร์ฟเวอร์
   const sendDataToServer = async (jobStatusValue) => {
     setIsSubmitting(true);
     try {
@@ -33,17 +34,17 @@ export default function PhotoPage({
       };
       payload.append("iqcData", JSON.stringify(textData));
 
-      // 🌟 ยิงเอกสารแนบแบบ Array
+      // 🌟 ยิงเอกสารแนบแบบเจาะจง (วนลูปจาก Array ที่ล็อกไว้แล้วใน App.jsx)
       Object.keys(uploadedDocs).forEach(docKey => {
         if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
           uploadedDocs[docKey].forEach(file => {
             payload.append(`document_${docKey}`, file);
-            payload.append(`documents`, file); // เผื่อ Backend รับเป็น Array ก้อนใหญ่ก้อนเดียว
+            payload.append(`documents`, file); // เผื่อ Backend รับคำนี้
           });
         }
       });
 
-      // 🌟 ยิงรูปภาพแบบ Array
+      // 🌟 ยิงรูปภาพ (วนลูปตรวจสอบให้มั่นใจว่าเป็นไฟล์จริง)
       Object.keys(uploadedImages).forEach(imgKey => {
          const imageFile = uploadedImages[imgKey]; 
          if (imageFile) {
@@ -69,7 +70,7 @@ export default function PhotoPage({
       });
 
       if (response.ok) {
-        setSaveSuccess(true); 
+        setSaveSuccess(true);
       } else {
         const errData = await response.json();
         throw new Error(errData.error || errData.message || `Server Error`);
@@ -219,15 +220,7 @@ export default function PhotoPage({
         </div>
       </div>
 
-      <AnimatePresence>
-        {previewImage && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPreviewImage(null)} className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 cursor-zoom-out no-print">
-            <button className="absolute top-6 right-6 text-white bg-white/10 hover:bg-rose-500 rounded-full p-2 transition-colors z-50 shadow-lg border border-white/20" onClick={() => setPreviewImage(null)}><X size={24} /></button>
-            <motion.img initial={{ scale: 0.8, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.8, opacity: 0, y: 20 }} src={previewImage} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] cursor-default" onClick={(e) => e.stopPropagation()} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+      {/* 🌟 Modal เซฟสำเร็จ เด้งกลับหน้าแรกทันที */}
       <AnimatePresence>
         {saveSuccess && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 no-print">
@@ -245,6 +238,14 @@ export default function PhotoPage({
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {previewImage && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPreviewImage(null)} className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 cursor-zoom-out no-print">
+            <button className="absolute top-6 right-6 text-white bg-white/10 hover:bg-rose-500 rounded-full p-2 transition-colors z-50 shadow-lg border border-white/20" onClick={() => setPreviewImage(null)}><X size={24} /></button>
+            <motion.img initial={{ scale: 0.8, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.8, opacity: 0, y: 20 }} src={previewImage} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] cursor-default" onClick={(e) => e.stopPropagation()} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
