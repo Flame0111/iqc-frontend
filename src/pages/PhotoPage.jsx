@@ -7,19 +7,18 @@ import { API_URL } from '../App.jsx';
 export default function PhotoPage({ 
   auth, formData, uploadedDocs, uploadedImages, 
   handleImageChange, removeImage, handleMultiImageChange, removeMultiImage, 
-  onBack, isDocComplete, onSuccess, setFormData 
+  onBack, isDocComplete, onSuccess, setFormData, onViewRecord
 }) {
   const resultOptions = ["PASS", "FAIL"];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openResultDropdown, setOpenResultDropdown] = useState(null); 
   const [previewImage, setPreviewImage] = useState(null);
-  const [saveSuccess, setSaveSuccess] = useState(false); 
+  const [saveSuccessObj, setSaveSuccessObj] = useState(null);
 
   const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
-  // 🌟 ฟังก์ชันส่งข้อมูลและไฟล์ไปหาเซิร์ฟเวอร์
   const sendDataToServer = async (jobStatusValue) => {
     setIsSubmitting(true);
     try {
@@ -34,22 +33,22 @@ export default function PhotoPage({
       };
       payload.append("iqcData", JSON.stringify(textData));
 
-      // 🌟 ยิงเอกสารแนบแบบเจาะจง (วนลูปจาก Array ที่ล็อกไว้แล้วใน App.jsx)
+      // แพ็กไฟล์ PDF
       Object.keys(uploadedDocs).forEach(docKey => {
         if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
-          uploadedDocs[docKey].forEach(file => {
+          Array.from(uploadedDocs[docKey]).forEach(file => {
             payload.append(`document_${docKey}`, file);
-            payload.append(`documents`, file); // เผื่อ Backend รับคำนี้
+            payload.append(`documents`, file); 
           });
         }
       });
 
-      // 🌟 ยิงรูปภาพ (วนลูปตรวจสอบให้มั่นใจว่าเป็นไฟล์จริง)
+      // แพ็กรูปภาพ
       Object.keys(uploadedImages).forEach(imgKey => {
          const imageFile = uploadedImages[imgKey]; 
          if (imageFile) {
-           if (Array.isArray(imageFile)) {
-             imageFile.forEach(img => {
+           if (Array.isArray(imageFile) || imageFile instanceof FileList) {
+             Array.from(imageFile).forEach(img => {
                payload.append(`image_${imgKey}`, img);
                payload.append(`images`, img);
              });
@@ -60,6 +59,12 @@ export default function PhotoPage({
          }
       });
       
+      // 🌟🌟 พิสูจน์ให้ดูใน Console ว่าหน้าบ้านมีไฟล์ส่งไปจริงๆ! 🌟🌟
+      console.log("📦 กำลังส่งข้อมูลไปที่ Backend:");
+      for (let [key, value] of payload.entries()) {
+        console.log(`- ${key}:`, value instanceof File ? `📁 ไฟล์: ${value.name} (${value.size} bytes)` : value);
+      }
+
       const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
       const method = editId ? 'PUT' : 'POST';
 
@@ -69,11 +74,13 @@ export default function PhotoPage({
         body: payload, 
       });
 
-      if (response.ok) {
-        setSaveSuccess(true);
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const savedId = editId || data.data?.id || data.id || data.iqc_id;
+        setSaveSuccessObj({ id: savedId, status: jobStatusValue });
       } else {
-        const errData = await response.json();
-        throw new Error(errData.error || errData.message || `Server Error`);
+        throw new Error(data.error || data.message || `Server Error`);
       }
     } catch (error) {
       alert("❌ ไม่สามารถบันทึกข้อมูลได้\n\n" + error.message);
@@ -220,24 +227,6 @@ export default function PhotoPage({
         </div>
       </div>
 
-      {/* 🌟 Modal เซฟสำเร็จ เด้งกลับหน้าแรกทันที */}
-      <AnimatePresence>
-        {saveSuccess && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 no-print">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-md">
-              <GlassCard className="text-center !p-10 border-emerald-500/30">
-                <CheckCircle2 className="w-24 h-24 text-emerald-400 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)]" />
-                <h2 className="text-3xl font-black text-white mb-3 tracking-tighter">SAVED!</h2>
-                <p className="text-white/60 text-sm mb-10">ข้อมูลและรูปภาพถูกบันทึกลงระบบเรียบร้อยแล้ว</p>
-                <button onClick={onSuccess} className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]">
-                  BACK TO DASHBOARD
-                </button>
-              </GlassCard>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <AnimatePresence>
         {previewImage && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPreviewImage(null)} className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 cursor-zoom-out no-print">
@@ -246,6 +235,39 @@ export default function PhotoPage({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {saveSuccessObj && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 no-print">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-md">
+              <GlassCard className="text-center !p-10 border-emerald-500/30">
+                <CheckCircle2 className="w-24 h-24 text-emerald-400 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)]" />
+                <h2 className="text-3xl font-black text-white mb-3 tracking-tighter">SAVED!</h2>
+                <p className="text-white/60 text-sm mb-10">
+                  ข้อมูลถูกบันทึกลงระบบในสถานะ <strong className="text-emerald-400 uppercase">{saveSuccessObj.status}</strong> เรียบร้อยแล้ว
+                </p>
+                <div className="flex flex-col gap-3">
+                  {saveSuccessObj.id && (
+                    <button
+                      onClick={() => {
+                         if(onViewRecord) onViewRecord(saveSuccessObj.id);
+                         else window.location.href = `/?edit=${saveSuccessObj.id}`;
+                      }}
+                      className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]"
+                    >
+                      🔍 VIEW RECORD
+                    </button>
+                  )}
+                  <button onClick={onSuccess} className="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl transition-all">
+                    BACK TO DASHBOARD
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
