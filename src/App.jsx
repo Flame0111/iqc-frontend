@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRound, ShieldAlert, Database } from 'lucide-react';
 import logoUtac from './assets/logo-utac.png';
+
 import HomePage from './pages/HomePage.jsx';
-import FormPage from './pages/FormPage.jsx';
-import PhotoPage from './pages/PhotoPage.jsx';
 import ContactorInfoPage from './pages/ContactorInfoPage.jsx'; 
 import DatabaseListPage from './pages/DatabaseListPage.jsx'; 
+import FormPage from './pages/FormPage.jsx';
+import PhotoPage from './pages/PhotoPage.jsx';
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
 export const API_URL = "https://iqc-api-server.onrender.com";
@@ -44,7 +45,12 @@ export default function App() {
 
   const isDocComplete = uploadedDocs.pkg.length > 0 || uploadedDocs.sck.length > 0 || uploadedDocs.pin.length > 0 || uploadedDocs.mnt.length > 0;
 
-  const handleFileChange = (docId, files) => { setUploadedDocs(p => ({ ...p, [docId]: files })); };
+  // 🌟 [แก้บั๊ก] บังคับแปลงก้อนไฟล์ให้เป็น Array ทันที เพื่อป้องกันไฟล์โดนทำลายทิ้งตอนสลับไปหน้า Photo
+  const handleFileChange = (docId, files) => { 
+    const fileArr = files ? Array.from(files) : [];
+    setUploadedDocs(p => ({ ...p, [docId]: fileArr })); 
+  };
+  
   const handleImageChange = (e, id) => { const file = e.target.files[0]; if (file) setUploadedImages(p => ({ ...p, [id]: file })); };
   const handleMultiImageChange = (e, id, max = 4) => {
     const files = Array.from(e.target.files);
@@ -65,11 +71,8 @@ export default function App() {
       if (data.success) {
         setAuth(data);
         localStorage.setItem('iqc_auth', JSON.stringify(data)); 
-        
-        // 🌟 1. บังคับให้วิ่งไปหน้า Status Query ทันทีที่ล็อกอินผ่าน
         setPage('home');
         setStep(1);
-        // 🌟 2. ล้างค่าบน URL (เผื่อมีค้างไว้จะได้ไม่พาไปหน้าอื่น)
         window.history.pushState({}, '', window.location.pathname);
       } else {
         setLoginError("Invalid credentials. Please verify and try again.");
@@ -80,7 +83,7 @@ export default function App() {
   const handleLogout = () => {
     setAuth(null);
     localStorage.removeItem('iqc_auth');
-    setLoginForm({ username: '', password: '' }); // ล้างฟอร์มล็อกอิน
+    setLoginForm({ username: '', password: '' });
   };
 
   const handlePinRequestSubmit = async (e) => {
@@ -114,17 +117,10 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // ------------------------------------------
-  // LOGIN UI
-  // ------------------------------------------
   if (!auth) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center font-sans relative overflow-hidden">
-        <motion.div 
-          animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.05, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none"
-        />
+        <motion.div animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.05, 1] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
         <div className="z-10 w-full max-w-[400px] p-6">
           <div className="flex flex-col items-center mb-8">
             <motion.img initial={{ opacity: 0, scale: 0.9, y: 10 }} animate={{ opacity: 0.9, scale: 1, y: 0 }} transition={{ duration: 0.5 }} src={logoUtac} alt="UTAC" className="h-12 object-contain mb-6" />
@@ -157,15 +153,11 @@ export default function App() {
               <motion.button whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }} type="submit" className="w-full mt-6 bg-white hover:bg-zinc-200 text-black text-sm font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">Sign In</motion.button>
             </form>
           </motion.div>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.6 }} className="mt-8 text-center"><p className="text-xs text-zinc-600">If you have any issues, please contact Rangsimont Jitrayont, Fame.</p></motion.div>
         </div>
       </div>
     );
   }
 
-  // ------------------------------------------
-  // MAIN APP ROUTING (เมื่อ Login ผ่านแล้ว)
-  // ------------------------------------------
   const pageVariants = {
     initial: (direction) => ({ opacity: 0, x: direction > 0 ? 25 : -30 }),
     animate: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 220, damping: 22 } },
@@ -178,14 +170,12 @@ export default function App() {
         <motion.div animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity }} className="absolute w-[80vw] h-[80vw] bg-gradient-to-tr from-[#3b82f6] to-[#a855f7] rounded-full blur-[120px] opacity-40" />
       </div>
 
-      {/* GLOBAL NAVBAR HEADER */}
       <header className="fixed top-0 inset-x-0 z-[999] bg-black/40 backdrop-blur-3xl border-b border-white/5 no-print shadow-sm">
         <div className="max-w-[1500px] mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4 w-[20%]">
             <img src={logoUtac} alt="UTAC" className="h-10 w-auto object-contain" />
             <h1 className="text-xl font-black text-white uppercase tracking-tighter hidden lg:block">IQC Hub</h1>
           </div>
-          
           <div className="flex justify-center items-center gap-3 w-[60%] flex-wrap">
             <button onClick={() => { setPage('home'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'home' ? 'bg-[#6f7bf7] text-white shadow-[0_0_15px_rgba(111,123,247,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <LayoutDashboard size={14} /> Status Query
@@ -193,18 +183,15 @@ export default function App() {
             <button onClick={() => setIsPinModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all bg-fuchsia-600/80 hover:bg-fuchsia-600 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)]">
               <Cpu size={14} /> Request Pin Changing
             </button>
-            
             <button onClick={() => { setPage('contactor_list'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'contactor_list' || page === 'contactor_info' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
               <Database size={14} /> Contactor DB
             </button>
-            
             {auth.role !== 'viewer' && (
               <button onClick={() => { setPage('iqc'); setStep(1); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${page === 'iqc' || page === 'photo' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(52,211,153,0.5)]' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
                 <ClipboardList size={14} /> + IQC Form
               </button>
             )}
           </div>
-          
           <div className="flex justify-end items-center gap-3 w-[20%]">
              <div className="hidden xl:flex flex-col text-right justify-center pr-3 border-r border-white/10">
                <span className="text-xs font-bold text-white leading-tight">{auth.name}</span>
@@ -216,58 +203,62 @@ export default function App() {
         </div>
       </header>
 
-      {/* VIEWPORT CONTROLLER */}
       <main className="max-w-[1540px] mx-auto px-4 md:px-6 pt-32 pb-40 print:p-0">
         <AnimatePresence mode="wait" custom={step}>
           
-          {/* หน้า Status Query (HOME) */}
           {page === 'home' && (
             <motion.div key={`home_${triggerRefresh}`} custom={-1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <HomePage auth={auth} triggerRefresh={triggerRefresh} />
             </motion.div>
           )}
           
-          {/* หน้า Database List ของ Contactor DB */}
           {page === 'contactor_list' && (
             <motion.div key="contactor_list" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <DatabaseListPage 
-                onAddNew={() => {
-                  setPage('contactor_info'); 
-                  window.history.pushState({}, '', window.location.pathname);
-                }} 
-                onEditRecord={(id) => {
-                  setPage('contactor_info'); 
-                  window.history.pushState({}, '', `?contactor_id=${id}`);
-                }} 
-              />
+              <DatabaseListPage onAddNew={() => { setPage('contactor_info'); window.history.pushState({}, '', window.location.pathname); }} onEditRecord={(id) => { setPage('contactor_info'); window.history.pushState({}, '', `?contactor_id=${id}`); }} />
             </motion.div>
           )}
 
-          {/* หน้า Contactor Info Page */}
           {page === 'contactor_info' && (
             <motion.div key="contactor_info" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <ContactorInfoPage onBack={() => setPage('contactor_list')} />
             </motion.div>
           )}
 
-          {/* หน้า IQC Form สเต็ป 1 */}
           {page === 'iqc' && step === 1 && (
             <motion.div key="step1" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <FormPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
             </motion.div>
           )}
           
-          {/* หน้า IQC Form สเต็ป 2 (Photo) */}
           {page === 'iqc' && step === 2 && (
             <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <PhotoPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
+              <PhotoPage 
+                auth={auth} 
+                formData={formData} 
+                setFormData={setFormData} 
+                uploadedDocs={uploadedDocs} 
+                uploadedImages={uploadedImages} 
+                handleImageChange={handleImageChange} 
+                removeImage={removeImage} 
+                handleMultiImageChange={handleMultiImageChange} 
+                removeMultiImage={removeMultiImage} 
+                onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
+                isDocComplete={isDocComplete} 
+                onSuccess={resetFormAndGoHome} 
+                // 🌟 [ระบบใหม่] โยนคำสั่งเข้าไปให้หน้า Photo เรียกว่าตอนกดปุ่ม View ให้ทำอะไร
+                onViewRecord={(id) => {
+                  setStep(1);
+                  setPage('iqc');
+                  window.history.pushState({}, '', `?edit=${id}`);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
             </motion.div>
           )}
 
         </AnimatePresence>
       </main>
 
-      {/* PIN CHANGING MODAL */}
       <AnimatePresence>
         {isPinModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
