@@ -55,10 +55,15 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               ...checklist
             }));
 
-            // 🌟🌟 ดึงรูปภาพเดิมกลับมาโชว์ 🌟🌟
-            if (r.image_paths && Array.isArray(r.image_paths) && setUploadedImages) {
+            // 🌟 ถอดรหัสรูปภาพ
+            let imgPaths = r.image_paths;
+            if (typeof imgPaths === 'string') {
+               try { imgPaths = JSON.parse(imgPaths); } catch(e) { console.error("พังตอนแปลงรูป:", e); }
+            }
+
+            if (imgPaths && Array.isArray(imgPaths) && setUploadedImages) {
               const loadedImages = {};
-              r.image_paths.forEach(img => {
+              imgPaths.forEach(img => {
                 const key = img.type.replace('image_', ''); 
                 const url = `${API_URL}/${img.path.replace(/\\/g, '/')}`; 
                 
@@ -72,10 +77,15 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               setUploadedImages(loadedImages);
             }
 
-            // 🌟🌟 ดึงไฟล์ PDF เดิมกลับมาโชว์ 🌟🌟
-            if (r.document_paths && Array.isArray(r.document_paths) && setUploadedDocs) {
+            // 🌟 ถอดรหัส PDF
+            let docPaths = r.document_paths;
+            if (typeof docPaths === 'string') {
+               try { docPaths = JSON.parse(docPaths); } catch(e) { console.error("พังตอนแปลง PDF:", e); }
+            }
+
+            if (docPaths && Array.isArray(docPaths) && setUploadedDocs) {
               const loadedDocs = { pkg: [], sck: [], pin: [], mnt: [] };
-              r.document_paths.forEach(doc => {
+              docPaths.forEach(doc => {
                 const key = doc.type.replace('document_', '');
                 if (loadedDocs[key]) {
                   loadedDocs[key].push({ 
@@ -111,7 +121,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     Object.keys(uploadedDocs).forEach(docKey => {
       if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
         Array.from(uploadedDocs[docKey]).forEach(file => {
-          if (!file.isExisting) { // 🌟 ไม่ส่งไฟล์เก่า(URL)กลับไป
+          if (!file.isExisting) { 
             submitData.append(`document_${docKey}`, file);
           }
         });
