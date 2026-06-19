@@ -33,37 +33,37 @@ export default function PhotoPage({
       };
       payload.append("iqcData", JSON.stringify(textData));
 
-      // แพ็กไฟล์ PDF
+      // 🌟 ส่งเฉพาะ PDF ที่ถูกเลือกมาใหม่เท่านั้น (ไม่ส่งรูปลิงก์ URL กลับไป)
       Object.keys(uploadedDocs).forEach(docKey => {
         if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
           Array.from(uploadedDocs[docKey]).forEach(file => {
-            payload.append(`document_${docKey}`, file);
-            payload.append(`documents`, file); 
+            if (!file.isExisting) { 
+              payload.append(`document_${docKey}`, file);
+              payload.append(`documents`, file); 
+            }
           });
         }
       });
 
-      // แพ็กรูปภาพ
+      // 🌟 ส่งเฉพาะรูปภาพที่อัปโหลดใหม่เท่านั้น
       Object.keys(uploadedImages).forEach(imgKey => {
          const imageFile = uploadedImages[imgKey]; 
          if (imageFile) {
            if (Array.isArray(imageFile) || imageFile instanceof FileList) {
              Array.from(imageFile).forEach(img => {
-               payload.append(`image_${imgKey}`, img);
-               payload.append(`images`, img);
+               if (typeof img !== 'string') { // กันไม่ให้ส่งลิงก์ URL เก่ากลับไป
+                 payload.append(`image_${imgKey}`, img);
+                 payload.append(`images`, img);
+               }
              });
            } else {
-             payload.append(`image_${imgKey}`, imageFile);
-             payload.append(`images`, imageFile);
+             if (typeof imageFile !== 'string') {
+               payload.append(`image_${imgKey}`, imageFile);
+               payload.append(`images`, imageFile);
+             }
            }
          }
       });
-      
-      // 🌟🌟 พิสูจน์ให้ดูใน Console ว่าหน้าบ้านมีไฟล์ส่งไปจริงๆ! 🌟🌟
-      console.log("📦 กำลังส่งข้อมูลไปที่ Backend:");
-      for (let [key, value] of payload.entries()) {
-        console.log(`- ${key}:`, value instanceof File ? `📁 ไฟล์: ${value.name} (${value.size} bytes)` : value);
-      }
 
       const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
       const method = editId ? 'PUT' : 'POST';
