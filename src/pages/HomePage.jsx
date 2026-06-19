@@ -1,282 +1,229 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play, FileText, Settings, Edit2 } from 'lucide-react';
+import { Search, Eye, Edit2, Loader2, CheckCircle2, XCircle, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { GlassCard } from '../components/UIComponents.jsx';
-import { API_URL } from '../App.jsx'; 
+import { API_URL } from '../App.jsx';
 
 export default function HomePage({ auth, triggerRefresh }) {
-  const [listData, setListData] = useState([]);
-  const [stats, setStats] = useState({ total: 0, pass_count: 0, fail_count: 0 });
+  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isCompact, setIsCompact] = useState(false);
-  const [pinChangeQueue, setPinChangeQueue] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('ALL'); // 'ALL' | 'PASS' | 'FAIL' | 'DRAFT'
 
-  const iqcStatusOptions = ["Awaiting", "Done", "Return to store", "waiting part", "Need more data", "Return to production"];
-  const pinStatusOptions = ["Pending", "Done"];
-
-  const fetchData = () => {
-    fetch(`${API_URL}/api/iqc-list`, { headers: { 'Authorization': `Bearer ${auth.token}` }})
-      .then(res => res.json())
-      .then(data => { if (data.success) { setListData(data.data); setStats(data.stats); } })
-      .catch(err => console.error(err));
-
-    fetch(`${API_URL}/api/pin-change-list`, { headers: { 'Authorization': `Bearer ${auth.token}` }})
-      .then(res => res.json())
-      .then(data => { if (data.success) { setPinChangeQueue(data.data); } setLoading(false); })
-      .catch(err => { console.error(err); setLoading(false); });
-  };
-
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 15000);
-    return () => clearInterval(interval);
-  }, [triggerRefresh]);
-
-  const handleDeleteMainIqc = async (id) => {
-    if(!window.confirm("Admin Warning: ยืนยันการลบ Record IQC นี้ถาวร?")) return;
+  // 📥 ฟังก์ชันดึงข้อมูล IQC ทั้งหมดจากเซิร์ฟเวอร์
+  const fetchRecords = async () => {
+    setLoading(true);
     try {
-      await fetch(`${API_URL}/api/iqc/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${auth.token}` }});
-      fetchData();
-    } catch(err) { console.error(err); }
-  };
-
-  const handleDeletePinRequest = async (id) => {
-    if(!window.confirm("Admin Warning: ยืนยันการลบคิว Request เปลี่ยนพินชิ้นนี้?")) return;
-    try {
-      await fetch(`${API_URL}/api/pin-change/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${auth.token}` }});
-      fetchData();
-    } catch (err) { console.error(err); }
-  };
-
-  const handleMainStatusChange = async (id, newStatus) => {
-    try {
-      await fetch(`${API_URL}/api/iqc-status/${id}`, { 
-        method: 'PUT', 
-        headers: { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ status: newStatus }) 
+      const token = auth?.token || localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/iqc`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      fetchData();
-    } catch(err) { console.error(err); }
-  };
-
-  const handleCompletePinRequest = async (id) => {
-    try {
-      await fetch(`${API_URL}/api/pin-change-complete/${id}`, { 
-        method: 'PUT', 
-        headers: { 'Authorization': `Bearer ${auth.token}` } 
-      });
-      fetchData();
-    } catch(err) { console.error(err); }
-  };
-
-  const getWW = (dateString) => {
-    if(!dateString) return "-";
-    const d = new Date(dateString);
-    const startOfYear = new Date(d.getFullYear(), 0, 1);
-    const startOfWW1 = new Date(startOfYear);
-    startOfWW1.setDate(startOfYear.getDate() - startOfYear.getDay());
-    
-    const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const base = new Date(startOfWW1.getFullYear(), startOfWW1.getMonth(), startOfWW1.getDate());
-    
-    const diffDays = Math.round((target - base) / (1000 * 60 * 60 * 24));
-    const ww = Math.floor(diffDays / 7) + 1;
-    return "WW" + ww.toString().padStart(2, '0');
-  };
-
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'Done': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'Pending': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      case 'Draft': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 animate-pulse'; 
-      case 'Return to store': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-      case 'Return to production': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-      default: return 'bg-blue-500/20 text-blue-400 border-blue-500/30'; 
+      const data = await res.json();
+      if (data.success) {
+        setRecords(data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching IQC records:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const unifiedQueue = [
-    ...listData.map(item => ({
-      ...item,
-      queueType: 'IQC Check',
-      displayId: `IQC-${item.id}`,
-      details: item.hw_name || item.invoice_no || '-',
-      subDetails: item.serial_no ? `S/N: ${item.serial_no}` : '-',
-      operator: item.owner || item.send_by || '-',
-      currentStatus: item.job_status || 'Awaiting',
-      remark: item.checklist_data?.probDesc || item.checklist_data?.preventAction || '-'
-    })),
-    ...pinChangeQueue.map(item => ({
-      ...item,
-      queueType: 'Pin Changing',
-      displayId: `PC-${item.id}`,
-      details: item.customer_name ? `Pin: ${item.pin_no} | Cust: ${item.customer_name}` : `Pin: ${item.pin_no}`,
-      subDetails: item.stock_pin_no ? `Stock: ${item.stock_pin_no} | Socket: ${item.name_socket}` : '-',
-      operator: item.req_name || item.requested_by || '-',
-      currentStatus: item.status || 'Pending',
-      remark: 'Auto-Accepted Queue'
-    }))
-  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  useEffect(() => {
+    fetchRecords();
+  }, [triggerRefresh]);
 
-  const pendingCount = unifiedQueue.filter(q => q.currentStatus !== 'Done').length;
+  // 📊 คำนวณตัวเลขสถิติสำหรับโชว์บนการ์ดสรุปผล
+  const totalCount = records.length;
+  const passCount = records.filter(r => r.job_status === 'Completed' && r.checklist_data?.finalResult === 'PASS').length;
+  const failCount = records.filter(r => r.job_status === 'Completed' && r.checklist_data?.finalResult === 'FAIL').length;
+  const draftCount = records.filter(r => r.job_status === 'Draft').length;
+
+  // 🔍 กรองข้อมูลตามแถบค้นหา (Search) และ แถบสถานะ (Tabs)
+  const filteredRecords = records.filter(row => {
+    const matchesSearch = 
+      (row.hw_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (row.serial_no || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (row.supplier || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (row.invoice_no || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    const finalRes = row.checklist_data?.finalResult || 'PASS';
+    if (activeTab === 'PASS') return matchesSearch && row.job_status === 'Completed' && finalRes === 'PASS';
+    if (activeTab === 'FAIL') return matchesSearch && row.job_status === 'Completed' && finalRes === 'FAIL';
+    if (activeTab === 'DRAFT') return matchesSearch && row.job_status === 'Draft';
+    return matchesSearch;
+  });
+
+  // ฟังก์ชันช่วยจัดการรูปแบบสีของ Badge สถานะในตาราง
+  const renderStatusBadge = (row) => {
+    if (row.job_status === 'Draft') {
+      return (
+        <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 tracking-wider">
+          DRAFT
+        </span>
+      );
+    }
+    if (row.checklist_data?.finalResult === 'FAIL') {
+      return (
+        <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 tracking-wider">
+          FAIL
+        </span>
+      );
+    }
+    return (
+      <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider">
+        PASS
+      </span>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 gap-3">
+        <Loader2 className="animate-spin text-[#6f7bf7]" size={36} />
+        <span className="text-xs font-black tracking-widest uppercase text-white/50 animate-pulse">Loading IQC Hub Database...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full space-y-6 fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-2">
-        <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <ListFilter className="text-[#6f7bf7]"/> 
-            Primary Centralized Queue
-            {pendingCount > 0 && (
-              <span className="text-xs bg-rose-500 text-white px-2.5 py-1 rounded-full font-black animate-pulse shadow-lg">
-                {pendingCount} ACTIVE QUEUES
-              </span>
-            )}
-          </h1>
-          <p className="text-white/40 text-sm mt-1">Central Que list</p>
+    <div className="space-y-8 w-full max-w-7xl mx-auto p-2">
+      
+      {/* ================= SECTION 1: STATS CARDS ================= */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <GlassCard className="!p-5 border-white/5 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Total Records</p>
+            <h3 className="text-2xl font-black text-white mt-1">{totalCount}</h3>
+          </div>
+          <div className="p-3 bg-white/5 rounded-xl text-white/60"><FileText size={20} /></div>
+        </GlassCard>
+
+        <GlassCard className="!p-5 border-emerald-500/20 bg-emerald-950/5 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-400/50 uppercase tracking-wider">Passed Lots</p>
+            <h3 className="text-2xl font-black text-emerald-400 mt-1">{passCount}</h3>
+          </div>
+          <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400"><CheckCircle2 size={20} /></div>
+        </GlassCard>
+
+        <GlassCard className="!p-5 border-rose-500/20 bg-rose-950/5 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-rose-400/50 uppercase tracking-wider">Defect / Failed</p>
+            <h3 className="text-2xl font-black text-rose-400 mt-1">{failCount}</h3>
+          </div>
+          <div className="p-3 bg-rose-500/10 rounded-xl text-rose-400"><XCircle size={20} /></div>
+        </GlassCard>
+
+        <GlassCard className="!p-5 border-yellow-500/20 bg-yellow-950/5 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-yellow-400/50 uppercase tracking-wider">Draft Records</p>
+            <h3 className="text-2xl font-black text-yellow-400 mt-1">{draftCount}</h3>
+          </div>
+          <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-400"><AlertCircle size={20} /></div>
+        </GlassCard>
+      </div>
+
+      {/* ================= SECTION 2: FILTERS & SEARCH ================= */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-2xl">
+        
+        {/* Tabs เปลี่ยนสถานะการกรอก */}
+        <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 w-full md:w-auto">
+          {[
+            { id: 'ALL', label: 'ALL LOTS' },
+            { id: 'PASS', label: 'PASS' },
+            { id: 'FAIL', label: 'FAIL' },
+            { id: 'DRAFT', label: 'DRAFTS' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all ${activeTab === tab.id ? 'bg-[#6f7bf7] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-end">
-          <div className="flex gap-3 bg-black/40 border border-white/5 rounded-2xl p-2 px-4 shadow-inner">
-            <div className="text-center px-3"><p className="text-[10px] font-bold text-white/40 uppercase">Total Items</p><p className="text-lg font-black text-white">{unifiedQueue.length}</p></div>
-            <div className="w-px bg-white/10"></div>
-            <div className="text-center px-3"><p className="text-[10px] font-bold text-emerald-400/70 uppercase">IQC Pass</p><p className="text-lg font-black text-emerald-400">{stats.pass_count}</p></div>
-            <div className="w-px bg-white/10"></div>
-            <div className="text-center px-3"><p className="text-[10px] font-bold text-rose-400/70 uppercase">IQC Fail</p><p className="text-lg font-black text-rose-400">{stats.fail_count}</p></div>
-          </div>
-
-          <button 
-            onClick={() => setIsCompact(!isCompact)} 
-            className={`flex items-center justify-center gap-2 h-[52px] px-4 rounded-xl text-xs font-black tracking-widest uppercase border transition-all no-print ${isCompact ? 'bg-[#6f7bf7]/20 border-[#6f7bf7] text-[#6f7bf7]' : 'bg-white/5 border-white/10 text-white/60 hover:text-white'}`}
-          >
-            {isCompact ? <Maximize2 size={14} /> : <Minimize2 size={14} />} 
-            <span className="hidden sm:block">{isCompact ? "NORMAL" : "COMPACT"}</span>
-          </button>
+        {/* ช่องค้นหาข้อมูลแบบเรียลไทม์ */}
+        <div className="relative w-full md:w-80">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"><Search size={15} /></span>
+          <input
+            type="text"
+            placeholder="Search HW, S/N, Supplier..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-black/20 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-xs font-bold text-white placeholder-white/20 focus:outline-none focus:border-[#6f7bf7]/50 transition-all"
+          />
         </div>
       </div>
 
-      <GlassCard className="!p-4 overflow-hidden flex flex-col">
-        <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/20 pb-2 custom-scrollbar">
-          <table className="w-full text-sm min-w-[1200px] transition-all">
+      {/* ================= SECTION 3: DATA TABLE ================= */}
+      <GlassCard className="p-0 overflow-hidden border-white/5 shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="bg-white/5 border-b border-white/10">
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Queue Type</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>M/C No.</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Queue ID</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>WW</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Date / Time</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Operator</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Primary Target Details</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Sub Identification</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-center font-black text-[#6f7bf7] uppercase tracking-wider bg-[#6f7bf7]/10`}>Status Workflow</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Completed At</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>Inspection By</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-left font-bold text-white/50 uppercase tracking-wider`}>System Remark</th>
-                <th className={`${isCompact ? 'py-1.5 px-3 text-[10px]' : 'py-3 px-4 text-[11px]'} text-right font-bold text-white/50 uppercase tracking-wider`}>Action</th>
+              <tr className="bg-white/[0.02] border-b border-white/10 text-[10px] font-black text-white/40 uppercase tracking-widest">
+                <th className="py-4 px-6 w-[25%]">Hardware Information</th>
+                <th className="py-4 px-4 w-[20%]">Supplier</th>
+                <th className="py-4 px-4 w-[20%]">Serial Number</th>
+                <th className="py-4 px-4 w-[15%]">Date Received</th>
+                <th className="py-4 px-4 text-center w-[10%]">Status</th>
+                <th className="py-4 px-6 text-right w-[10%]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
-              {loading ? (
+            <tbody className="divide-y divide-white/5 font-medium text-white/80">
+              {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan="13" className="py-16 text-center text-[#6f7bf7] font-medium">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <Loader2 className="animate-spin w-8 h-8" />
-                      <span className="text-white/40 text-xs tracking-widest uppercase">Fetching Live Stream Queues...</span>
-                    </div>
+                  <td colSpan="6" className="py-16 text-center text-white/20 font-black text-xs uppercase tracking-widest animate-pulse">
+                    No matching records found / ไม่พบข้อมูลในระบบ
                   </td>
                 </tr>
-              ) : unifiedQueue.length === 0 ? (
-                <tr><td colSpan="13" className="py-12 text-center text-white/30 font-medium">No records found inside centralized pool.</td></tr>
               ) : (
-                unifiedQueue.map((row) => (
-                  <tr key={row.displayId} className="hover:bg-white/[0.04] transition-all duration-200 group">
-                    <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-xs'} font-bold transition-all`}>
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-black tracking-wider uppercase text-[10px] ${row.queueType === 'IQC Check' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20'}`}>
-                        {row.queueType === 'IQC Check' ? <FileText size={10}/> : <Settings size={10}/>}
-                        {row.queueType}
-                      </span>
+                filteredRecords.map((row) => (
+                  <tr key={row.id} className="hover:bg-white/[0.01] transition-colors group">
+                    
+                    {/* ชื่อฮาร์ดแวร์ */}
+                    <td className="py-4 px-6">
+                      <div className="font-bold text-white text-sm group-hover:text-[#6f7bf7] transition-colors">{row.hw_name || '-'}</div>
+                      <div className="text-[10px] text-white/30 font-mono mt-0.5">{row.invoice_no ? `INV: ${row.invoice_no}` : 'No Invoice'}</div>
                     </td>
 
-                    <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80 font-black`}>{row.location || '-'}</td>
-                    
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} font-bold text-white/40`}>
-                      <div className="flex items-center gap-2">
-                        #{row.displayId}
-                        {/* 🌟 ซ่อนปุ่ม Edit สำหรับ Role: viewer */}
-                        {row.queueType === 'IQC Check' && row.currentStatus === 'Draft' && auth.role !== 'viewer' && (
-                          <button 
-                            onClick={() => window.location.href = `/?edit=${row.id}`}
-                            className="p-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 rounded hover:bg-yellow-500 hover:text-black transition-all inline-flex items-center"
-                            title="Edit Draft Data"
-                          >
-                            <Edit2 size={10} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} text-[#6f7bf7] font-black`}>{getWW(row.created_at)}</td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80 whitespace-nowrap`}>{new Date(row.created_at).toLocaleString('en-GB')}</td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white/80`}>{row.operator}</td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-white font-bold`}>{row.details}</td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-xs'} text-white/60`}>{row.subDetails}</td>
+                    {/* ผู้ผลิต */}
+                    <td className="py-4 px-4 text-xs font-bold text-white/60">{row.supplier || '-'}</td>
 
-                    <td className="py-1 px-2 text-center bg-black/20">
-                      {auth.role === 'viewer' ? (
-                        <span className={`inline-block px-2.5 py-1 rounded-lg text-[9px] font-black tracking-wider border ${getStatusColor(row.currentStatus)}`}>
-                          {row.currentStatus}
-                        </span>
-                      ) : row.queueType === 'IQC Check' ? (
-                        <select 
-                          value={row.currentStatus} 
-                          onChange={(e) => handleMainStatusChange(row.id, e.target.value)}
-                          className={`appearance-none outline-none cursor-pointer px-2.5 py-1 rounded-lg text-[9px] font-black tracking-wider border text-center transition-all ${getStatusColor(row.currentStatus)}`}
+                    {/* หมายเลขซีเรียล */}
+                    <td className="py-4 px-4 font-mono text-xs text-purple-300 tracking-tight">{row.serial_no || '-'}</td>
+
+                    {/* วันที่รับของ */}
+                    <td className="py-4 px-4 text-xs text-white/40">{row.date_recv ? row.date_recv.split('T')[0] : '-'}</td>
+
+                    {/* สเตตัสหลักผลสรุป */}
+                    <td className="py-4 px-4 text-center align-middle">{renderStatusBadge(row)}</td>
+
+                    {/* 🌟 บล็อกปุ่มควบคุม Actions: มีทั้ง EDIT และ VIEW อยู่เคียงข้างกันอย่างสวยงาม */}
+                    <td className="py-4 px-6 text-right align-middle whitespace-nowrap">
+                      <div className="inline-flex gap-2">
+                        
+                        {/* ปุ่ม VIEW */}
+                        <button
+                          onClick={() => { window.location.href = `/?edit=${row.id}`; }}
+                          className="p-2 bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500 hover:bg-emerald-500 hover:text-black rounded-xl text-emerald-400 transition-all inline-flex items-center gap-1 text-[11px] font-black cursor-pointer shadow-md"
                         >
-                          {row.currentStatus === 'Draft' && <option value="Draft" className="bg-[#1a1f35] text-yellow-400">Draft</option>}
-                          {iqcStatusOptions.map(opt => <option key={opt} value={opt} className="bg-[#1a1f35] text-white">{opt}</option>)}
-                        </select>
-                      ) : (
-                        row.currentStatus === 'Pending' ? (
-                          <button onClick={() => handleCompletePinRequest(row.id)} className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-lg hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center gap-1 mx-auto">
-                            <Check size={10} strokeWidth={3} /> Mark Done
-                          </button>
-                        ) : (
-                          <span className="inline-block px-2.5 py-1 rounded-lg text-[9px] font-black tracking-wider border bg-emerald-500/20 text-emerald-400 border-emerald-500/30 uppercase mx-auto">
-                            Finished
-                          </span>
-                        )
-                      )}
-                    </td>
+                          <Eye size={12} /> VIEW
+                        </button>
 
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} text-white/60 whitespace-nowrap`}>
-                      {row.currentStatus === 'Done' ? (row.completed_at ? new Date(row.completed_at).toLocaleDateString('en-GB') : new Date(row.created_at).toLocaleDateString('en-GB')) : '-'}
-                    </td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[11px]' : 'py-3 px-4 text-sm'} text-emerald-400 font-medium`}>{row.checked_by || row.accepted_by || '-'}</td>
-                    <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-xs'} text-white/50 max-w-[200px] truncate`} title={row.remark}>{row.remark}</td>
+                        {/* ปุ่ม EDIT */}
+                        <button
+                          onClick={() => { window.location.href = `/?edit=${row.id}`; }}
+                          className="p-2 bg-blue-500/10 border border-blue-500/20 hover:border-blue-500 hover:bg-blue-500 hover:text-white rounded-xl text-blue-400 transition-all inline-flex items-center gap-1 text-[11px] font-black cursor-pointer shadow-md"
+                        >
+                          <Edit2 size={11} /> EDIT
+                        </button>
 
-                    <td className="py-1 px-3 text-right">
-                      <div className="flex justify-end items-center gap-2 opacity-20 group-hover:opacity-100 transition-opacity">
-                        {/* 🌟 ซ่อนปุ่ม Edit หลัก สำหรับ Role: viewer */}
-                        {row.queueType === 'IQC Check' && auth.role !== 'viewer' && (
-                          <button 
-                            onClick={() => window.location.href = `/?edit=${row.id}`} 
-                            className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black p-1.5 px-2 rounded-lg transition-all"
-                            title="Edit Data"
-                          >
-                            <Edit2 size={12} /> <span className="text-[9px] font-bold uppercase tracking-wider">Edit</span>
-                          </button>
-                        )}
-                        {auth.role === 'admin' && (
-                          <button 
-                            onClick={() => row.queueType === 'IQC Check' ? handleDeleteMainIqc(row.id) : handleDeletePinRequest(row.id)} 
-                            className="text-white/30 hover:text-rose-500 p-1.5 rounded hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-all"
-                            title="Delete Record"
-                          >
-                            <Trash2 size={14}/>
-                          </button>
-                        )}
                       </div>
                     </td>
+
                   </tr>
                 ))
               )}
