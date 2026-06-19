@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-// 🌟 เพิ่มไอคอน Eye สำหรับปุ่ม View
+// 🌟 เพิ่มไอคอน Eye
 import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play, FileText, Settings, Edit2, Eye } from 'lucide-react';
 import { GlassCard } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx'; 
@@ -248,17 +248,18 @@ export default function HomePage({ auth, triggerRefresh }) {
                     <td className="py-1 px-3 text-right">
                       <div className="flex justify-end items-center gap-2 opacity-20 group-hover:opacity-100 transition-opacity">
                         
-                        {/* 🌟 ปุ่ม VIEW เพิ่มเข้ามาตรงนี้ครับ */}
+                        {/* 🌟 ปุ่ม VIEW */}
                         {row.queueType === 'IQC Check' && (
                           <button 
                             onClick={() => window.location.href = `/?edit=${row.id}`} 
-                            className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white p-1.5 px-2 rounded-lg transition-all"
+                            className="flex items-center gap-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black p-1.5 px-2 rounded-lg transition-all"
                             title="View Data"
                           >
                             <Eye size={12} /> <span className="text-[9px] font-bold uppercase tracking-wider">View</span>
                           </button>
                         )}
 
+                        {/* 🌟 ปุ่ม EDIT */}
                         {row.queueType === 'IQC Check' && auth.role !== 'viewer' && (
                           <button 
                             onClick={() => window.location.href = `/?edit=${row.id}`} 
