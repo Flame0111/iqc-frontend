@@ -45,20 +45,41 @@ export default function App() {
 
   const isDocComplete = uploadedDocs.pkg.length > 0 || uploadedDocs.sck.length > 0 || uploadedDocs.pin.length > 0 || uploadedDocs.mnt.length > 0;
 
-  // 🌟 [แก้บั๊ก] บังคับแปลงก้อนไฟล์ให้เป็น Array ทันที เพื่อป้องกันไฟล์โดนทำลายทิ้งตอนสลับไปหน้า Photo
+  // 🌟 [แก้บั๊ก] แปลงไฟล์เป็น Array ทันที เพื่อไม่ให้โดนลบทิ้งตอนเปลี่ยนหน้า
   const handleFileChange = (docId, files) => { 
-    const fileArr = files ? Array.from(files) : [];
-    setUploadedDocs(p => ({ ...p, [docId]: fileArr })); 
+    if (!files || files.length === 0) {
+      setUploadedDocs(p => ({ ...p, [docId]: [] }));
+      return;
+    }
+    const fileArray = Array.from(files); 
+    setUploadedDocs(p => ({ ...p, [docId]: fileArray })); 
   };
   
-  const handleImageChange = (e, id) => { const file = e.target.files[0]; if (file) setUploadedImages(p => ({ ...p, [id]: file })); };
-  const handleMultiImageChange = (e, id, max = 4) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    setUploadedImages(p => { const current = p[id] || []; const newFiles = files.slice(0, max - current.length); return { ...p, [id]: [...current, ...newFiles] }; });
+  const handleImageChange = (e, id) => { 
+    const file = e.target.files[0]; 
+    if (file) setUploadedImages(p => ({ ...p, [id]: file })); 
   };
+  
+  const handleMultiImageChange = (e, id, max = 4) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (!files.length) return;
+    setUploadedImages(p => { 
+      const current = p[id] || []; 
+      const newFiles = files.slice(0, max - current.length); 
+      return { ...p, [id]: [...current, ...newFiles] }; 
+    });
+  };
+  
   const removeImage = (id) => setUploadedImages(p => { const n={...p}; delete n[id]; return n; });
-  const removeMultiImage = (id, index) => { setUploadedImages(p => { const current = p[id] || []; const updated = current.filter((_, i) => i !== index); const n = { ...p, [id]: updated }; if (updated.length === 0) delete n[id]; return n; }); };
+  const removeMultiImage = (id, index) => { 
+    setUploadedImages(p => { 
+      const current = p[id] || []; 
+      const updated = current.filter((_, i) => i !== index); 
+      const n = { ...p, [id]: updated }; 
+      if (updated.length === 0) delete n[id]; 
+      return n; 
+    }); 
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -245,13 +266,6 @@ export default function App() {
                 onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
                 isDocComplete={isDocComplete} 
                 onSuccess={resetFormAndGoHome} 
-                // 🌟 [ระบบใหม่] โยนคำสั่งเข้าไปให้หน้า Photo เรียกว่าตอนกดปุ่ม View ให้ทำอะไร
-                onViewRecord={(id) => {
-                  setStep(1);
-                  setPage('iqc');
-                  window.history.pushState({}, '', `?edit=${id}`);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
               />
             </motion.div>
           )}
