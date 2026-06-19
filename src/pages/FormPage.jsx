@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { FileText, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -10,7 +10,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   const editId = searchParams.get('edit');
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
-  const [isAILoading, setIsAILoading] = useState(false);
 
   const getActiveToken = () => {
     if (auth?.token) return auth.token;
@@ -76,6 +75,13 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     const submitData = new FormData();
     submitData.append('iqcData', JSON.stringify({ ...formData, jobStatus: 'Draft' }));
 
+    // 🌟 หน้า Form ส่งไฟล์ PDF ไปด้วยตอนกด Save Draft
+    Object.keys(uploadedDocs).forEach(docKey => {
+      if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
+        Array.from(uploadedDocs[docKey]).forEach(file => submitData.append(`document_${docKey}`, file));
+      }
+    });
+
     const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
     const method = editId ? 'PUT' : 'POST';
 
@@ -98,61 +104,12 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     }
   };
 
-  // ==========================================
-  // 🌟 AI Extraction
-  // ==========================================
-  const triggerAIExtraction = async (file) => {
-    if (!file) return;
-    setIsAILoading(true);
-    
-    const aiFormData = new FormData();
-    aiFormData.append('file', file);
-
-    try {
-      const N8N_WEBHOOK_URL = "http://127.0.0.1:5678/webhook/ai-drawing-reader";
-      
-      const res = await fetch(N8N_WEBHOOK_URL, {
-        method: 'POST',
-        body: aiFormData
-      });
-      
-      const rawText = await res.text();
-      console.log("📥 Raw response from n8n:", rawText); 
-
-      if (!res.ok) {
-        throw new Error(`n8n Backend พังกลางทาง (HTTP ${res.status}). กรุณาเปิดหน้าดีบั๊กใน n8n เพื่อตรวจสอบการตั้งค่า AI Agent และการเชื่อมต่อ Memory`);
-      }
-
-      if (!rawText || rawText.trim() === "") {
-        throw new Error("n8n ทำงานผ่านแต่คายค่าว่างกลับมา ตรวจสอบโครงสร้างกล่อง Respond ย้ายสายให้ถูกตำแหน่ง");
-      }
-
-      let aiData;
-      try {
-        const cleanText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
-        aiData = JSON.parse(cleanText);
-      } catch (parseError) {
-        throw new Error("ระบบล้มเหลวในการแกะข้อมูล JSON โครงสร้าง Prompt ใน AI Agent อาจจะเบี่ยงเบนจากข้อตกลง");
-      }
-      
-      setFormData(prev => ({ ...prev, ...aiData }));
-      alert("✨ AI อ่านข้อมูลจากไฟล์ PDF และเติมลงฟอร์มให้เรียบร้อยแล้ว!");
-      
-    } catch (error) {
-      console.error("🚨 AI Extraction Failed:", error);
-      alert(`AI อ่านไฟล์ไม่สำเร็จ: ${error.message}`);
-    } finally {
-      setIsAILoading(false);
-    }
-  };
-
   const contactPinItems = [
     {id: 'pin1', en: '1.1 Signal pin#1', th: '(พินสัญญาณ#1)'},
     {id: 'pin2', en: '1.2 Signal pin#2', th: '(พินสัญญาณ#2)'}, 
     {id: 'pin3', en: '1.3 Signal pin#3', th: '(พินสัญญาณ#3)'}, 
     {id: 'pin4', en: '1.4 Ground pin#1', th: '(พินต่อลงดิน#1)'}
   ];
-  
   const socketItems = [
     {id: 'sck1', en: '2.1 Socket housing body', th: '(ตัวซ็อกเก็ต)'},
     {id: 'sck2', en: '2.2 Socket housing cover', th: '(ฝาซ็อกเก็ต)'}, 
@@ -160,7 +117,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     {id: 'sck4', en: '2.4 Socket housing guide', th: '(พินนำซ็อกเก็ต)'}, 
     {id: 'sck5', en: '2.5 Socket frame', th: '(โครงซ็อกเก็ต)'}
   ];
-  
   const alignmentItems = [
     {id: 'aln1', en: '3.1 Alignment plate', th: '(แผ่นจัดแนว)'},
     {id: 'aln2', en: '3.2 Alignment plate screw', th: '(สกรูแผ่นจัดแนว)'}
@@ -171,7 +127,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     { id: 'map2', label: '1.2 Fiducial', th: '(จุดอ้างอิง)' },
     { id: 'map3', label: '1.3 Step down', th: '(มีสเตปหรือไม่)', hint: 'Must be a step down of at least 1.5x of device thinness.' }
   ];
-
   const specificPnpItems = [
     { id: 'pnp1', label: '2.1 Slot for DDD function.', th: '(มีช่องสำหรับฟังก์ชั่น DDD)' },
     { id: 'pnp2', label: '2.2 Chamfer least 30 degree.', th: '(มีมุมเอียงอย่างน้อย 30 องศา)' },
@@ -192,7 +147,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         <div className="text-[10px] font-bold text-black uppercase">Serial : 05</div>
       </div>
 
-      {/* SECTION 1: RECEIVING PROFILE */}
       <GlassCard className="z-[50] print:border-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2 print:pb-0">
           <div className="flex items-center gap-3">
@@ -201,19 +155,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               Section 1: Receiving Profile <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 1: รับฮาร์ดแวร์)</span>
             </h2>
           </div>
-          
-          <AnimatePresence>
-            {isAILoading && (
-              <motion.div 
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                className="text-xs font-bold text-fuchsia-400 bg-fuchsia-500/10 border border-fuchsia-500/20 px-3 py-1.5 rounded-xl flex items-center gap-2 no-print"
-              >
-                <span className="inline-block animate-spin">⏳</span> AI is reading drawing file...
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 print:gap-x-4 print:gap-y-2">
@@ -234,10 +175,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </div>
       </GlassCard>
 
-      {/* 🌟 จุดที่แก้ Layout: ให้ Section 2 กับ 3 เรียงต่อกันแนวตั้งและกางเต็ม 100% */}
       <div className="flex flex-col gap-6 relative z-[40] print:block print:space-y-6">
-        
-        {/* SECTION 2: CHECKLIST */}
         <GlassCard className="h-full print:border-none">
           <h2 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0 print:border-none">
             <CheckCircle2 className="w-5 h-5 no-print inline-block mr-2 text-fuchsia-400" /> Section 2: Checklist <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 2: รายการตรวจสอบ)</span>
@@ -262,46 +200,21 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     { k: 'mnt', n: 'Maintenance guide line', th: '(คู่มือการบำรุงรักษา)', req: false }
                   ].map((d) => (
                     <tr key={d.k} className="hover:bg-white/5 border-b border-white/5 print:hover:bg-transparent print:border-black">
-                      
                       <td className="pl-4 py-3 leading-tight">
                         {d.n} {d.req && <span className="text-rose-500">*</span>}
                         <span className="print-hide-th text-[9px] text-white/40 block mt-0.5 print:text-black/50">{d.th}</span>
                       </td>
-                      
                       <td className="text-center align-middle">
-                        <input 
-                          type="radio" 
-                          name={`doc_${d.k}`} 
-                          value="yes" 
-                          checked={formData[`doc_${d.k}`] === "yes"} 
-                          onChange={handleChange} 
-                          className="w-4 h-4 accent-emerald-500 cursor-pointer print:w-3 print:h-3" 
-                        />
+                        <input type="radio" name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} className="w-4 h-4 accent-emerald-500 cursor-pointer print:w-3 print:h-3" />
                       </td>
-                      
                       <td className="text-center align-middle">
-                        <input 
-                          type="radio" 
-                          name={`doc_${d.k}`} 
-                          value="no" 
-                          checked={formData[`doc_${d.k}`] === "no"} 
-                          onChange={handleChange} 
-                          className="w-4 h-4 accent-rose-500 cursor-pointer print:w-3 print:h-3" 
-                        />
+                        <input type="radio" name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} className="w-4 h-4 accent-rose-500 cursor-pointer print:w-3 print:h-3" />
                       </td>
-                      
                       <td className="pl-4 pr-6 align-middle">
-                         <input 
-                           type="text" 
-                           name={`remark_doc_${d.k}`} 
-                           value={formData[`remark_doc_${d.k}`] || ""} 
-                           onChange={handleChange} 
-                           className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-1 text-white/80 focus:border-[#6f7bf7] transition-colors print:border-black print:text-black" 
-                           placeholder="Remarks..." 
-                         />
+                         <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-1 text-white/80 focus:border-[#6f7bf7] transition-colors print:border-black print:text-black" placeholder="Remarks..." />
                       </td>
-                      
                       <td className="no-print pr-4 py-2 align-middle w-[220px]">
+                        {/* 🌟 ลบคำสั่ง AI ออกแล้ว */}
                         <FileUploadField 
                           id={`file_${d.k}`} 
                           accept=".pdf"
@@ -312,14 +225,10 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                               removeFile(d.k); 
                             } else {
                               handleFileChange(d.k, files); 
-                              if (d.k === 'pkg' || d.k === 'sck' || d.k === 'pin') {
-                                triggerAIExtraction(files[0]);
-                              }
                             }
                           }} 
                         />
                       </td>
-
                     </tr>
                   ))}
                 </tbody>
@@ -376,7 +285,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           </div>
         </GlassCard>
 
-        {/* SECTION 3: VISUAL AUDIT */}
         <GlassCard className="h-full print:border-none">
           <h2 className="text-sm font-black text-cyan-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-4 print:text-black print:mb-1 print:pb-0 print:border-none">
             <Activity className="w-5 h-5 no-print inline-block mr-2 text-cyan-400" /> Section 3: Visual Inspection
@@ -459,9 +367,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </GlassCard>
       </div>
 
-      {/* SECTION 4: NON-CONFORMANCE & APPROVAL */}
       <GlassCard className="border-t-[3px] border-rose-500/50 print:border-none mt-6 z-[30] print:mt-1 print:pt-1 print:pb-0 print:mb-0">
-        
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 print:mb-1 print:flex-row">
           <h2 className="text-sm font-black text-rose-500 uppercase tracking-widest flex items-center gap-2 print:text-black print:text-[10px]">
             <AlertCircle className="w-5 h-5 no-print text-rose-500" /> Section 4: Non-Conformance Action
@@ -479,7 +385,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:gap-2 items-start">
-           
            <div className="lg:col-span-7 flex flex-col gap-5 print:gap-1">
               <div className="flex flex-col print:flex-row print:items-center gap-3 print:gap-1">
                  <label className="text-[10px] font-bold text-rose-300 uppercase tracking-widest block print:text-black print:text-[8px] min-w-[60px]">Action Taken :</label>
@@ -505,15 +410,12 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
            <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 items-end print:bg-transparent print:p-0 print:border-none print:rounded-none print:gap-x-2 print:gap-y-2 print:items-end">
               <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
               <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
-              
               <div className="col-span-2 print:border-none print:pt-1">
                 <CustomSelect name="approvalPE" value={formData.approvalPE || ''} onChange={handleChange} label="Approval (PE)" options={peList} />
               </div>
-              
               <CustomSelect name="ackManager" value={formData.ackManager || ''} onChange={handleChange} label="Acknowledge (Manager)" options={managerList} />
               <GlassInput name="empNo" label="Sign / Emp No." value={formData.empNo || ''} onChange={handleChange} />
            </div>
-           
         </div>
       </GlassCard>
 
