@@ -1,18 +1,12 @@
 import React from 'react';
 import { ImagePlus, X, ChevronDown, FileText } from 'lucide-react';
 
-// ---------------------------------------------
-// 1. GlassCard Component
-// ---------------------------------------------
 export const GlassCard = ({ children, className = "" }) => (
   <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl ${className}`}>
     {children}
   </div>
 );
 
-// ---------------------------------------------
-// 2. ImageUploadBox Component
-// ---------------------------------------------
 export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview }) => {
   return (
     <div className="flex flex-col h-[150px] print:h-[120px]">
@@ -57,9 +51,6 @@ export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview
   );
 };
 
-// ---------------------------------------------
-// 3. MultiImageUploadBox Component
-// ---------------------------------------------
 export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove, max = 4, onPreview }) => {
   const currentImages = Array.isArray(images) ? images : (images ? [images] : []);
 
@@ -117,9 +108,7 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
   );
 };
 
-// ---------------------------------------------
-// 4. CustomSelect Component (🌟 แก้ให้รับ label, name, gridClass)
-// ---------------------------------------------
+// 🌟 แก้ให้ CustomSelect รับค่า name, label, thLabel 
 export const CustomSelect = ({ name, label, thLabel, options = [], value, onChange, placeholder = "-- Select --", gridClass = "" }) => {
   return (
     <div className={`flex flex-col ${gridClass}`}>
@@ -130,7 +119,7 @@ export const CustomSelect = ({ name, label, thLabel, options = [], value, onChan
       )}
       <div className="relative w-full">
         <select
-          name={name} // 🌟 ดึง name มาใช้
+          name={name} // 🌟 ดึง name มาใช้งาน
           value={value || ""}
           onChange={onChange}
           className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-[#6f7bf7]/50 focus:bg-[#6f7bf7]/10 transition-colors cursor-pointer print:text-black print:border-b print:border-black print:bg-transparent print:rounded-none print:px-0"
@@ -150,9 +139,7 @@ export const CustomSelect = ({ name, label, thLabel, options = [], value, onChan
   );
 };
 
-// ---------------------------------------------
-// 5. GlassInput Component (🌟 แก้ให้รับ name)
-// ---------------------------------------------
+// 🌟 แก้ให้ GlassInput รับค่า name
 export const GlassInput = ({ name, label, thLabel, placeholder, type = "text", gridClass = "", value, onChange }) => {
   return (
     <div className={`flex flex-col ${gridClass}`}>
@@ -162,10 +149,10 @@ export const GlassInput = ({ name, label, thLabel, placeholder, type = "text", g
         </label>
       )}
       <input
-        name={name} // 🌟 ดึง name มาใช้ตรงนี้ (สำคัญมาก! ถ้าไม่มีตัวนี้จะพิมพ์ไม่ติด)
+        name={name} // 🌟 สำคัญมาก ตรงนี้คือตัวที่ทำให้พิมพ์ติด
         type={type}
         placeholder={placeholder}
-        value={value}
+        value={value || ""}
         onChange={onChange}
         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder-white/20 focus:outline-none focus:border-[#6f7bf7]/50 focus:bg-[#6f7bf7]/10 transition-all print:border-b print:border-black print:bg-transparent print:rounded-none print:text-black print:px-0"
       />
@@ -173,9 +160,6 @@ export const GlassInput = ({ name, label, thLabel, placeholder, type = "text", g
   );
 };
 
-// ---------------------------------------------
-// 6. GlassRadio Component
-// ---------------------------------------------
 export const GlassRadio = ({ label, name, options = [], value, onChange }) => {
   return (
     <div className="flex flex-col">
@@ -201,9 +185,6 @@ export const GlassRadio = ({ label, name, options = [], value, onChange }) => {
   );
 };
 
-// ---------------------------------------------
-// 7. FileUploadField Component
-// ---------------------------------------------
 export const FileUploadField = ({ id, label, thLabel, onChange, accept, file }) => {
   return (
     <div className="flex flex-col w-full">
