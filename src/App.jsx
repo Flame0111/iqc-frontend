@@ -4,10 +4,10 @@ import { Printer, LayoutDashboard, Cpu, Plus, LogOut, ClipboardList, User, KeyRo
 import logoUtac from './assets/logo-utac.png';
 
 import HomePage from './pages/HomePage.jsx';
-import ContactorInfoPage from './pages/ContactorInfoPage.jsx'; 
-import DatabaseListPage from './pages/DatabaseListPage.jsx'; 
 import FormPage from './pages/FormPage.jsx';
 import PhotoPage from './pages/PhotoPage.jsx';
+import ContactorInfoPage from './pages/ContactorInfoPage.jsx'; 
+import DatabaseListPage from './pages/DatabaseListPage.jsx'; 
 import { GlassCard, GlassInput } from './components/UIComponents.jsx';
 
 export const API_URL = "https://iqc-api-server.onrender.com";
@@ -45,7 +45,7 @@ export default function App() {
 
   const isDocComplete = uploadedDocs.pkg.length > 0 || uploadedDocs.sck.length > 0 || uploadedDocs.pin.length > 0 || uploadedDocs.mnt.length > 0;
 
-  // 🌟 [แก้บั๊ก] แปลงไฟล์เป็น Array ทันที เพื่อไม่ให้โดนลบทิ้งตอนเปลี่ยนหน้า
+  // 🌟 บังคับแปลงไฟล์เป็น Array ตั้งแต่ตอนเลือกไฟล์
   const handleFileChange = (docId, files) => { 
     if (!files || files.length === 0) {
       setUploadedDocs(p => ({ ...p, [docId]: [] }));
@@ -226,50 +226,31 @@ export default function App() {
 
       <main className="max-w-[1540px] mx-auto px-4 md:px-6 pt-32 pb-40 print:p-0">
         <AnimatePresence mode="wait" custom={step}>
-          
           {page === 'home' && (
             <motion.div key={`home_${triggerRefresh}`} custom={-1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <HomePage auth={auth} triggerRefresh={triggerRefresh} />
             </motion.div>
           )}
-          
           {page === 'contactor_list' && (
             <motion.div key="contactor_list" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <DatabaseListPage onAddNew={() => { setPage('contactor_info'); window.history.pushState({}, '', window.location.pathname); }} onEditRecord={(id) => { setPage('contactor_info'); window.history.pushState({}, '', `?contactor_id=${id}`); }} />
             </motion.div>
           )}
-
           {page === 'contactor_info' && (
             <motion.div key="contactor_info" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <ContactorInfoPage onBack={() => setPage('contactor_list')} />
             </motion.div>
           )}
-
           {page === 'iqc' && step === 1 && (
             <motion.div key="step1" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
               <FormPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} handleFileChange={handleFileChange} removeFile={(id)=>handleFileChange(id, [])} onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
             </motion.div>
           )}
-          
           {page === 'iqc' && step === 2 && (
             <motion.div key="step2" custom={1} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              <PhotoPage 
-                auth={auth} 
-                formData={formData} 
-                setFormData={setFormData} 
-                uploadedDocs={uploadedDocs} 
-                uploadedImages={uploadedImages} 
-                handleImageChange={handleImageChange} 
-                removeImage={removeImage} 
-                handleMultiImageChange={handleMultiImageChange} 
-                removeMultiImage={removeMultiImage} 
-                onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
-                isDocComplete={isDocComplete} 
-                onSuccess={resetFormAndGoHome} 
-              />
+              <PhotoPage auth={auth} formData={formData} setFormData={setFormData} uploadedDocs={uploadedDocs} uploadedImages={uploadedImages} handleImageChange={handleImageChange} removeImage={removeImage} handleMultiImageChange={handleMultiImageChange} removeMultiImage={removeMultiImage} onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} isDocComplete={isDocComplete} onSuccess={resetFormAndGoHome} />
             </motion.div>
           )}
-
         </AnimatePresence>
       </main>
 
