@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-// 🌟 เติม Activity เข้ามาตรงนี้แล้วครับ
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react'; 
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
-export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth }) {
+export default function FormPage({ formData, setFormData, uploadedDocs, handleFileChange, removeFile, onNext, auth, setUploadedImages, setUploadedDocs }) {
   
   const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
@@ -55,11 +54,44 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               location: r.location || '',
               ...checklist
             }));
+
+            // 🌟🌟 ดึงรูปภาพเดิมกลับมาโชว์ 🌟🌟
+            if (r.image_paths && Array.isArray(r.image_paths) && setUploadedImages) {
+              const loadedImages = {};
+              r.image_paths.forEach(img => {
+                const key = img.type.replace('image_', ''); 
+                const url = `${API_URL}/${img.path.replace(/\\/g, '/')}`; 
+                
+                if (key === 'f4' || key === 'b4') {
+                  if (!loadedImages[key]) loadedImages[key] = [];
+                  loadedImages[key].push(url);
+                } else {
+                  loadedImages[key] = url;
+                }
+              });
+              setUploadedImages(loadedImages);
+            }
+
+            // 🌟🌟 ดึงไฟล์ PDF เดิมกลับมาโชว์ 🌟🌟
+            if (r.document_paths && Array.isArray(r.document_paths) && setUploadedDocs) {
+              const loadedDocs = { pkg: [], sck: [], pin: [], mnt: [] };
+              r.document_paths.forEach(doc => {
+                const key = doc.type.replace('document_', '');
+                if (loadedDocs[key]) {
+                  loadedDocs[key].push({ 
+                    name: doc.path.split(/[/\\]/).pop(), 
+                    url: `${API_URL}/${doc.path.replace(/\\/g, '/')}`, 
+                    isExisting: true 
+                  });
+                }
+              });
+              setUploadedDocs(loadedDocs);
+            }
           }
           setIsLoadingDraft(false);
         }).catch(err => { console.error(err); setIsLoadingDraft(false); });
     }
-  }, [editId, activeToken, setFormData]);
+  }, [editId, activeToken, setFormData, setUploadedImages, setUploadedDocs]);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -78,7 +110,11 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
 
     Object.keys(uploadedDocs).forEach(docKey => {
       if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
-        Array.from(uploadedDocs[docKey]).forEach(file => submitData.append(`document_${docKey}`, file));
+        Array.from(uploadedDocs[docKey]).forEach(file => {
+          if (!file.isExisting) { // 🌟 ไม่ส่งไฟล์เก่า(URL)กลับไป
+            submitData.append(`document_${docKey}`, file);
+          }
+        });
       }
     });
 
@@ -125,18 +161,18 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   const specificMapItems = [
     { id: 'map1', label: '1.1 Color difference', th: '(สีแตกต่างกันหรือไม่)' },
     { id: 'map2', label: '1.2 Fiducial', th: '(จุดอ้างอิง)' },
-    { id: 'map3', label: '1.3 Step down', th: '(มีสเตปหรือไม่)', hint: 'Must be a step down of at least 1.5x of device thinness.' }
+    { id: 'map3', label: '1.3 Step down', th: '(มีสเตปหรือไม่)'}
   ];
   const specificPnpItems = [
     { id: 'pnp1', label: '2.1 Slot for DDD function.', th: '(มีช่องสำหรับฟังก์ชั่น DDD)' },
     { id: 'pnp2', label: '2.2 Chamfer least 30 degree.', th: '(มีมุมเอียงอย่างน้อย 30 องศา)' },
-    { id: 'pnp3', label: '2.3 Pocket size alignment', th: '', hint: "Must not deviated from 50% of device's width." }
+    { id: 'pnp3', label: '2.3 Pocket size alignment', th: '' }
   ];
 
   const peList = ["Yada Ch.", "Ekaphat W.", "Bhamornkiat Ch.","Kiattisak C.", "Natthakarn P.", "Natdanai Ch", "Weera T.", "Saranyu L.", "Kasipat M.", "Pakapol S.", "Jettanat P.", "Sasiwan L.", "Chayanon S.", "Phongphon P.", "Ekkaraj J.", "Alisa T.", "Warisa P.", "Orawan B.", "Thanapol Pu.", "Peephat Th.", "Kittisak Y.", "Jutamas Ch.", "Chollitha A.", "Kittithon T."];
   const managerList = ["Aroon S.", "Wichai M."];
 
-  if (isLoadingDraft) return <div className="text-white text-center py-20 font-black tracking-widest uppercase animate-pulse">Loading Draft Record...</div>;
+  if (isLoadingDraft) return <div className="text-white text-center py-20 font-black tracking-widest uppercase animate-pulse">Loading Record Data...</div>;
 
   return (
     <div className="space-y-6 print:block fade-in relative print:pt-6 w-full max-w-7xl mx-auto">
