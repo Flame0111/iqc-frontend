@@ -1,59 +1,67 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown, X } from 'lucide-react';
+import { ImagePlus, ArrowLeft, Save, Lock, Loader2, ChevronDown, X, CheckCircle2 } from 'lucide-react'; // 🌟 นำเข้า CheckCircle2
 import { GlassCard, ImageUploadBox, MultiImageUploadBox, GlassInput } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
 export default function PhotoPage({ 
   auth, formData, uploadedDocs, uploadedImages, 
   handleImageChange, removeImage, handleMultiImageChange, removeMultiImage, 
-  onBack, isDocComplete, onSuccess, setFormData 
+  onBack, isDocComplete, onSuccess, setFormData, onViewRecord // 🌟 รับคำสั่ง onViewRecord มาจาก App.jsx
 }) {
   const resultOptions = ["PASS", "FAIL"];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openResultDropdown, setOpenResultDropdown] = useState(null); 
   const [previewImage, setPreviewImage] = useState(null);
+  
+  // 🌟 สร้าง State สำหรับโชว์หน้าต่าง Success Modal 
+  const [saveSuccessObj, setSaveSuccessObj] = useState(null);
 
-  // ดึง ID ออกมาจาก URL เพื่อให้รู้ว่ากำลังแก้ไขงานไหน
   const searchParams = new URLSearchParams(window.location.search);
   const editId = searchParams.get('edit');
 
-  // 🌟 ฟังก์ชันรวมศูนย์สำหรับส่งข้อมูล (แยกแค่สถานะ Draft กับ Completed)
   const sendDataToServer = async (jobStatusValue) => {
     setIsSubmitting(true);
     try {
       const payload = new FormData();
       
-      // 🌟 ยัดชื่อ CheckedBy และสถานะงานเข้าไปใน textData
       const textData = { 
         ...formData, 
         finalResult: formData.finalResult || "PASS", 
+        // 🌟 ยิงชื่อคน Check ไปทั้ง 2 แบบ (checkedBy และ checked_by) ให้ Database มันจับคู่เจอแน่ๆ
         checkedBy: formData.checkedBy || auth.name,
-        jobStatus: jobStatusValue // 'Draft' หรือ 'Completed'
+        checked_by: formData.checkedBy || auth.name, 
+        jobStatus: jobStatusValue 
       };
       payload.append("iqcData", JSON.stringify(textData));
 
-      // 🌟 แปลงเอกสาร (PDF) ให้เป็น Array ก่อนวนลูป
+      // 🌟 ยิงเอกสารแนบไป 2 แบบกันพลาด (แบบชื่อเจาะจง และแบบ generic 'documents')
       Object.keys(uploadedDocs).forEach(docKey => {
         if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
-          Array.from(uploadedDocs[docKey]).forEach(file => payload.append(`document_${docKey}`, file));
+          Array.from(uploadedDocs[docKey]).forEach(file => {
+            payload.append(`document_${docKey}`, file);
+            payload.append(`documents`, file); // เผื่อ Backend รับเป็น Array ก้อนใหญ่ก้อนเดียว
+          });
         }
       });
 
-      // 🌟 แปลงรูปภาพให้เป็น Array ก่อนวนลูปป้องกันบั๊ก
+      // 🌟 ยิงรูปไป 2 แบบกันพลาด
       Object.keys(uploadedImages).forEach(imgKey => {
          const imageFile = uploadedImages[imgKey]; 
          if (imageFile) {
            if (Array.isArray(imageFile) || imageFile instanceof FileList) {
-             Array.from(imageFile).forEach(img => payload.append(`image_${imgKey}`, img));
+             Array.from(imageFile).forEach(img => {
+               payload.append(`image_${imgKey}`, img);
+               payload.append(`images`, img);
+             });
            } else {
              payload.append(`image_${imgKey}`, imageFile);
+             payload.append(`images`, imageFile);
            }
          }
       });
       
-      // 🌟 ถ้ามี editId ให้ใช้คำสั่ง PUT (อัปเดต) ถ้าไม่มีให้ใช้ POST (สร้างใหม่)
       const url = editId ? `${API_URL}/api/update-iqc/${editId}` : `${API_URL}/api/submit-iqc`;
       const method = editId ? 'PUT' : 'POST';
 
@@ -63,13 +71,16 @@ export default function PhotoPage({
         body: payload, 
       });
 
-      if (response.ok) {
-        if (jobStatusValue === 'Draft') alert("✅ บันทึกแบบร่าง (Save Draft) พร้อมรูปภาพเรียบร้อยแล้ว!");
-        else alert("✅ บันทึกข้อมูลเข้าสู่ระบบเรียบร้อยแล้ว!");
-        onSuccess(); 
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // 🌟 ดึง ID ของงานที่เพิ่งเซฟเสร็จออกมาจาก Backend (ดักไว้หลายแบบเผื่อ Backend ใช้ชื่อไหน)
+        const savedId = editId || data.data?.id || data.id || data.iqc_id;
+        
+        // โชว์หน้าต่าง Success Modal
+        setSaveSuccessObj({ id: savedId, status: jobStatusValue });
       } else {
-        const errData = await response.json();
-        throw new Error(errData.error || errData.message || `Server Error`);
+        throw new Error(data.error || data.message || `Server Error`);
       }
     } catch (error) {
       alert("❌ ไม่สามารถบันทึกข้อมูลได้\n\n" + error.message);
@@ -307,7 +318,6 @@ export default function PhotoPage({
           <ArrowLeft size={20}/> BACK TO FORM
         </motion.button>
         <div className="flex gap-4">
-          {/* 🌟 ปุ่ม SAVE DRAFT ของหน้า Photo */}
           <motion.button 
             type="button"
             onClick={() => sendDataToServer('Draft')}
@@ -357,6 +367,47 @@ export default function PhotoPage({
               className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] cursor-default"
               onClick={(e) => e.stopPropagation()}
             />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 🌟 🌟 เพิ่ม Popup โชว์ว่า Save สำเร็จ + ปุ่ม View Record ตรงนี้ครับ 🌟 🌟 */}
+      <AnimatePresence>
+        {saveSuccessObj && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 no-print"
+          >
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-md">
+              <GlassCard className="text-center !p-10 border-emerald-500/30">
+                <CheckCircle2 className="w-24 h-24 text-emerald-400 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)]" />
+                <h2 className="text-3xl font-black text-white mb-3 tracking-tighter">SAVED!</h2>
+                <p className="text-white/60 text-sm mb-10">
+                  ข้อมูลและรูปภาพของคุณถูกบันทึกลงระบบในสถานะ <strong className="text-emerald-400 uppercase">{saveSuccessObj.status}</strong> เรียบร้อยแล้ว
+                </p>
+                <div className="flex flex-col gap-3">
+                  {saveSuccessObj.id && (
+                    <button
+                      onClick={() => {
+                         if(onViewRecord) onViewRecord(saveSuccessObj.id);
+                         else window.location.href = `/?edit=${saveSuccessObj.id}`;
+                      }}
+                      className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]"
+                    >
+                      🔍 VIEW RECORD
+                    </button>
+                  )}
+                  <button
+                    onClick={onSuccess}
+                    className="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl transition-all"
+                  >
+                    BACK TO DASHBOARD
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
