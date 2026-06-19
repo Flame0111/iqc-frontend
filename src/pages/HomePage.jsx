@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Eye, Edit2, Loader2, CheckCircle2, XCircle, FileText, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Eye, Edit2, Loader2, CheckCircle2, XCircle, FileText, AlertCircle } from 'lucide-react';
 import { GlassCard } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -8,22 +8,31 @@ export default function HomePage({ auth, triggerRefresh }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('ALL'); // 'ALL' | 'PASS' | 'FAIL' | 'DRAFT'
+  const [activeTab, setActiveTab] = useState('ALL'); 
+  const [debugError, setDebugError] = useState(''); // 🌟 เพิ่มตัวเก็บ Error
 
-  // 📥 ฟังก์ชันดึงข้อมูล IQC ทั้งหมดจากเซิร์ฟเวอร์
   const fetchRecords = async () => {
     setLoading(true);
+    setDebugError('');
     try {
       const token = auth?.token || localStorage.getItem('token');
+      console.log("กำลังดึงข้อมูลด้วย Token:", token); // เช็ค Token
+
       const res = await fetch(`${API_URL}/api/iqc`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
       const data = await res.json();
+      console.log("🔥🔥 ข้อมูลที่ Render ส่งกลับมา:", data); // 🌟 กด F12 ดูใน Console ว่าหลังบ้านส่งอะไรมา!
+
       if (data.success) {
         setRecords(data.data || []);
+      } else {
+        setDebugError(`Backend Error: ${data.message || 'ดึงข้อมูลไม่สำเร็จ'}`);
       }
     } catch (err) {
       console.error("Error fetching IQC records:", err);
+      setDebugError("เชื่อมต่อ API Render ไม่ได้ (เซิร์ฟเวอร์อาจจะหลับอยู่ หรือ Link ผิด)");
     } finally {
       setLoading(false);
     }
@@ -33,19 +42,16 @@ export default function HomePage({ auth, triggerRefresh }) {
     fetchRecords();
   }, [triggerRefresh]);
 
-  // 📊 คำนวณตัวเลขสถิติสำหรับโชว์บนการ์ดสรุปผล
   const totalCount = records.length;
   const passCount = records.filter(r => r.job_status === 'Completed' && r.checklist_data?.finalResult === 'PASS').length;
   const failCount = records.filter(r => r.job_status === 'Completed' && r.checklist_data?.finalResult === 'FAIL').length;
   const draftCount = records.filter(r => r.job_status === 'Draft').length;
 
-  // 🔍 กรองข้อมูลตามแถบค้นหา (Search) และ แถบสถานะ (Tabs)
   const filteredRecords = records.filter(row => {
     const matchesSearch = 
       (row.hw_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (row.serial_no || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (row.supplier || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (row.invoice_no || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (row.supplier || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const finalRes = row.checklist_data?.finalResult || 'PASS';
     if (activeTab === 'PASS') return matchesSearch && row.job_status === 'Completed' && finalRes === 'PASS';
@@ -54,34 +60,17 @@ export default function HomePage({ auth, triggerRefresh }) {
     return matchesSearch;
   });
 
-  // ฟังก์ชันช่วยจัดการรูปแบบสีของ Badge สถานะในตาราง
   const renderStatusBadge = (row) => {
-    if (row.job_status === 'Draft') {
-      return (
-        <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 tracking-wider">
-          DRAFT
-        </span>
-      );
-    }
-    if (row.checklist_data?.finalResult === 'FAIL') {
-      return (
-        <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 tracking-wider">
-          FAIL
-        </span>
-      );
-    }
-    return (
-      <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider">
-        PASS
-      </span>
-    );
+    if (row.job_status === 'Draft') return <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 tracking-wider">DRAFT</span>;
+    if (row.checklist_data?.finalResult === 'FAIL') return <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 tracking-wider">FAIL</span>;
+    return <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider">PASS</span>;
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-3">
         <Loader2 className="animate-spin text-[#6f7bf7]" size={36} />
-        <span className="text-xs font-black tracking-widest uppercase text-white/50 animate-pulse">Loading IQC Hub Database...</span>
+        <span className="text-xs font-black tracking-widest uppercase text-white/50 animate-pulse">Loading IQC Database...</span>
       </div>
     );
   }
@@ -89,7 +78,14 @@ export default function HomePage({ auth, triggerRefresh }) {
   return (
     <div className="space-y-8 w-full max-w-7xl mx-auto p-2">
       
-      {/* ================= SECTION 1: STATS CARDS ================= */}
+      {/* 🌟 แจ้งเตือนถ้า Render API พัง */}
+      {debugError && (
+        <div className="bg-rose-500/20 border border-rose-500/50 p-4 rounded-xl text-rose-400 text-sm font-bold flex items-center gap-3">
+          <AlertCircle /> {debugError}
+        </div>
+      )}
+
+      {/* STATS CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <GlassCard className="!p-5 border-white/5 flex items-center justify-between">
           <div>
@@ -124,10 +120,8 @@ export default function HomePage({ auth, triggerRefresh }) {
         </GlassCard>
       </div>
 
-      {/* ================= SECTION 2: FILTERS & SEARCH ================= */}
+      {/* FILTERS & SEARCH */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-2xl">
-        
-        {/* Tabs เปลี่ยนสถานะการกรอก */}
         <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 w-full md:w-auto">
           {[
             { id: 'ALL', label: 'ALL LOTS' },
@@ -144,8 +138,6 @@ export default function HomePage({ auth, triggerRefresh }) {
             </button>
           ))}
         </div>
-
-        {/* ช่องค้นหาข้อมูลแบบเรียลไทม์ */}
         <div className="relative w-full md:w-80">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"><Search size={15} /></span>
           <input
@@ -158,7 +150,7 @@ export default function HomePage({ auth, triggerRefresh }) {
         </div>
       </div>
 
-      {/* ================= SECTION 3: DATA TABLE ================= */}
+      {/* DATA TABLE */}
       <GlassCard className="p-0 overflow-hidden border-white/5 shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
@@ -182,48 +174,30 @@ export default function HomePage({ auth, triggerRefresh }) {
               ) : (
                 filteredRecords.map((row) => (
                   <tr key={row.id} className="hover:bg-white/[0.01] transition-colors group">
-                    
-                    {/* ชื่อฮาร์ดแวร์ */}
                     <td className="py-4 px-6">
                       <div className="font-bold text-white text-sm group-hover:text-[#6f7bf7] transition-colors">{row.hw_name || '-'}</div>
                       <div className="text-[10px] text-white/30 font-mono mt-0.5">{row.invoice_no ? `INV: ${row.invoice_no}` : 'No Invoice'}</div>
                     </td>
-
-                    {/* ผู้ผลิต */}
                     <td className="py-4 px-4 text-xs font-bold text-white/60">{row.supplier || '-'}</td>
-
-                    {/* หมายเลขซีเรียล */}
                     <td className="py-4 px-4 font-mono text-xs text-purple-300 tracking-tight">{row.serial_no || '-'}</td>
-
-                    {/* วันที่รับของ */}
                     <td className="py-4 px-4 text-xs text-white/40">{row.date_recv ? row.date_recv.split('T')[0] : '-'}</td>
-
-                    {/* สเตตัสหลักผลสรุป */}
                     <td className="py-4 px-4 text-center align-middle">{renderStatusBadge(row)}</td>
-
-                    {/* 🌟 บล็อกปุ่มควบคุม Actions: มีทั้ง EDIT และ VIEW อยู่เคียงข้างกันอย่างสวยงาม */}
                     <td className="py-4 px-6 text-right align-middle whitespace-nowrap">
                       <div className="inline-flex gap-2">
-                        
-                        {/* ปุ่ม VIEW */}
                         <button
                           onClick={() => { window.location.href = `/?edit=${row.id}`; }}
                           className="p-2 bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500 hover:bg-emerald-500 hover:text-black rounded-xl text-emerald-400 transition-all inline-flex items-center gap-1 text-[11px] font-black cursor-pointer shadow-md"
                         >
                           <Eye size={12} /> VIEW
                         </button>
-
-                        {/* ปุ่ม EDIT */}
                         <button
                           onClick={() => { window.location.href = `/?edit=${row.id}`; }}
                           className="p-2 bg-blue-500/10 border border-blue-500/20 hover:border-blue-500 hover:bg-blue-500 hover:text-white rounded-xl text-blue-400 transition-all inline-flex items-center gap-1 text-[11px] font-black cursor-pointer shadow-md"
                         >
                           <Edit2 size={11} /> EDIT
                         </button>
-
                       </div>
                     </td>
-
                   </tr>
                 ))
               )}
