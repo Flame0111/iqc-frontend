@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+// 🌟 เติม Activity เข้ามาตรงนี้แล้วครับ
+import { FileText, CheckCircle2, AlertCircle, ArrowRight, Activity } from 'lucide-react'; 
 import { GlassCard, GlassInput, CustomSelect, GlassRadio, FileUploadField } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx';
 
@@ -75,7 +76,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     const submitData = new FormData();
     submitData.append('iqcData', JSON.stringify({ ...formData, jobStatus: 'Draft' }));
 
-    // 🌟 หน้า Form ส่งไฟล์ PDF ไปด้วยตอนกด Save Draft
     Object.keys(uploadedDocs).forEach(docKey => {
       if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
         Array.from(uploadedDocs[docKey]).forEach(file => submitData.append(`document_${docKey}`, file));
@@ -214,7 +214,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                          <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-1 text-white/80 focus:border-[#6f7bf7] transition-colors print:border-black print:text-black" placeholder="Remarks..." />
                       </td>
                       <td className="no-print pr-4 py-2 align-middle w-[220px]">
-                        {/* 🌟 ลบคำสั่ง AI ออกแล้ว */}
                         <FileUploadField 
                           id={`file_${d.k}`} 
                           accept=".pdf"
