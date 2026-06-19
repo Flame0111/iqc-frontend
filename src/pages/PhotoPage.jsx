@@ -33,7 +33,7 @@ export default function PhotoPage({
       };
       payload.append("iqcData", JSON.stringify(textData));
 
-      // 🌟 ส่งเฉพาะ PDF ที่ถูกเลือกมาใหม่เท่านั้น (ไม่ส่งรูปลิงก์ URL กลับไป)
+      // 🌟 ส่งเฉพาะ PDF ที่ถูกเลือกมาใหม่ (ไม่ส่งไฟล์เดิมที่เป็น URL)
       Object.keys(uploadedDocs).forEach(docKey => {
         if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
           Array.from(uploadedDocs[docKey]).forEach(file => {
@@ -45,7 +45,7 @@ export default function PhotoPage({
         }
       });
 
-      // 🌟 ส่งเฉพาะรูปภาพที่อัปโหลดใหม่เท่านั้น
+      // 🌟 ส่งเฉพาะรูปภาพที่อัปโหลดใหม่ (ไม่ส่งรูปลิงก์เดิมกลับไป)
       Object.keys(uploadedImages).forEach(imgKey => {
          const imageFile = uploadedImages[imgKey]; 
          if (imageFile) {
