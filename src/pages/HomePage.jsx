@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play, FileText, Settings, Edit2 } from 'lucide-react';
+// 🌟 เพิ่มไอคอน Eye สำหรับปุ่ม View
+import { Trash2, ListFilter, Loader2, Minimize2, Maximize2, Cpu, Bell, Check, Play, FileText, Settings, Edit2, Eye } from 'lucide-react';
 import { GlassCard } from '../components/UIComponents.jsx';
 import { API_URL } from '../App.jsx'; 
 
@@ -202,16 +203,6 @@ export default function HomePage({ auth, triggerRefresh }) {
                     <td className={`${isCompact ? 'py-1 px-3 text-[10px]' : 'py-3 px-4 text-sm'} font-bold text-white/40`}>
                       <div className="flex items-center gap-2">
                         #{row.displayId}
-                        {/* 🌟 ซ่อนปุ่ม Edit สำหรับ Role: viewer */}
-                        {row.queueType === 'IQC Check' && row.currentStatus === 'Draft' && auth.role !== 'viewer' && (
-                          <button 
-                            onClick={() => window.location.href = `/?edit=${row.id}`}
-                            className="p-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 rounded hover:bg-yellow-500 hover:text-black transition-all inline-flex items-center"
-                            title="Edit Draft Data"
-                          >
-                            <Edit2 size={10} />
-                          </button>
-                        )}
                       </div>
                     </td>
                     
@@ -256,7 +247,18 @@ export default function HomePage({ auth, triggerRefresh }) {
 
                     <td className="py-1 px-3 text-right">
                       <div className="flex justify-end items-center gap-2 opacity-20 group-hover:opacity-100 transition-opacity">
-                        {/* 🌟 ซ่อนปุ่ม Edit หลัก สำหรับ Role: viewer */}
+                        
+                        {/* 🌟 ปุ่ม VIEW เพิ่มเข้ามาตรงนี้ครับ */}
+                        {row.queueType === 'IQC Check' && (
+                          <button 
+                            onClick={() => window.location.href = `/?edit=${row.id}`} 
+                            className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white p-1.5 px-2 rounded-lg transition-all"
+                            title="View Data"
+                          >
+                            <Eye size={12} /> <span className="text-[9px] font-bold uppercase tracking-wider">View</span>
+                          </button>
+                        )}
+
                         {row.queueType === 'IQC Check' && auth.role !== 'viewer' && (
                           <button 
                             onClick={() => window.location.href = `/?edit=${row.id}`} 
