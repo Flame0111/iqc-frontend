@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImagePlus, X, ChevronDown, FileText } from 'lucide-react'; // 🌟 เพิ่ม FileText เข้ามาแล้ว
+import { ImagePlus, X, ChevronDown, FileText } from 'lucide-react';
 
 // ---------------------------------------------
 // 1. GlassCard Component
@@ -29,7 +29,7 @@ export const ImageUploadBox = ({ id, label, image, onChange, onRemove, onPreview
                 e.stopPropagation();
                 if (onPreview) onPreview(typeof image === 'string' ? image : URL.createObjectURL(image));
               }}
-              className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover cursor-zoom-in transition-transform duration-300"
             />
             <button
               onClick={(e) => { e.stopPropagation(); onRemove(id); }}
@@ -81,7 +81,7 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
                   e.stopPropagation();
                   if (onPreview) onPreview(url);
                 }}
-                className="w-full h-full object-cover cursor-zoom-in hover:scale-110 transition-transform duration-300"
+                className="w-full h-full object-cover cursor-zoom-in transition-transform duration-300"
               />
               <button 
                 onClick={(e) => { e.stopPropagation(); onRemove(id, idx); }} 
@@ -118,34 +118,42 @@ export const MultiImageUploadBox = ({ id, label, images = [], onChange, onRemove
 };
 
 // ---------------------------------------------
-// 4. CustomSelect Component (Dropdown)
+// 4. CustomSelect Component (🌟 แก้ให้รับ label, name, gridClass)
 // ---------------------------------------------
-export const CustomSelect = ({ options = [], value, onChange, placeholder = "-- Select --" }) => {
+export const CustomSelect = ({ name, label, thLabel, options = [], value, onChange, placeholder = "-- Select --", gridClass = "" }) => {
   return (
-    <div className="relative w-full h-[40px]">
-      <select
-        value={value || ""}
-        onChange={onChange}
-        className="w-full h-full appearance-none bg-white/5 border border-white/10 rounded-xl px-3 text-xs font-bold text-white focus:outline-none focus:border-[#6f7bf7] transition-colors cursor-pointer print:text-black print:border-black print:bg-transparent"
-      >
-        <option value="" disabled className="bg-[#1a1f35]">{placeholder}</option>
-        {options.map((opt, i) => (
-          <option key={i} value={opt} className="bg-[#1a1f35] text-white">
-            {opt}
-          </option>
-        ))}
-      </select>
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/50 print:hidden">
-        <ChevronDown size={14} />
+    <div className={`flex flex-col ${gridClass}`}>
+      {(label || thLabel) && (
+        <label className="text-[10px] font-bold text-white/50 mb-2 uppercase flex items-center gap-1 print:text-black">
+          {label} {thLabel && <span className="text-[9px] text-white/30 font-normal print:text-black">{thLabel}</span>}
+        </label>
+      )}
+      <div className="relative w-full">
+        <select
+          name={name} // 🌟 ดึง name มาใช้
+          value={value || ""}
+          onChange={onChange}
+          className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-[#6f7bf7]/50 focus:bg-[#6f7bf7]/10 transition-colors cursor-pointer print:text-black print:border-b print:border-black print:bg-transparent print:rounded-none print:px-0"
+        >
+          <option value="" disabled className="bg-[#1a1f35] text-white/50">{placeholder}</option>
+          {options.map((opt, i) => (
+            <option key={i} value={opt} className="bg-[#1a1f35] text-white">
+              {opt}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50 print:hidden">
+          <ChevronDown size={14} />
+        </div>
       </div>
     </div>
   );
 };
 
 // ---------------------------------------------
-// 5. GlassInput Component
+// 5. GlassInput Component (🌟 แก้ให้รับ name)
 // ---------------------------------------------
-export const GlassInput = ({ label, thLabel, placeholder, type = "text", gridClass = "", value, onChange }) => {
+export const GlassInput = ({ name, label, thLabel, placeholder, type = "text", gridClass = "", value, onChange }) => {
   return (
     <div className={`flex flex-col ${gridClass}`}>
       {(label || thLabel) && (
@@ -154,6 +162,7 @@ export const GlassInput = ({ label, thLabel, placeholder, type = "text", gridCla
         </label>
       )}
       <input
+        name={name} // 🌟 ดึง name มาใช้ตรงนี้ (สำคัญมาก! ถ้าไม่มีตัวนี้จะพิมพ์ไม่ติด)
         type={type}
         placeholder={placeholder}
         value={value}
@@ -193,7 +202,7 @@ export const GlassRadio = ({ label, name, options = [], value, onChange }) => {
 };
 
 // ---------------------------------------------
-// 7. FileUploadField Component (อัปเกรดเป็นปุ่ม Upload PDF แบบหล่อๆ)
+// 7. FileUploadField Component
 // ---------------------------------------------
 export const FileUploadField = ({ id, label, thLabel, onChange, accept, file }) => {
   return (
@@ -208,17 +217,15 @@ export const FileUploadField = ({ id, label, thLabel, onChange, accept, file }) 
           type="file"
           id={id}
           onChange={onChange}
-          accept={accept || ".pdf"} // 🌟 บังคับรับเฉพาะ PDF เป็นค่าเริ่มต้น
+          accept={accept || ".pdf"}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
         <div className="flex items-center gap-2 text-sm font-bold text-white/50 group-hover:text-rose-400 transition-colors print:text-black">
           {file ? (
-            // 🌟 ถ้ามีไฟล์แล้ว โชว์ไอคอนเอกสาร + ชื่อไฟล์
             <span className="text-rose-400 print:text-black truncate max-w-[150px] flex items-center gap-2">
               <FileText size={16} className="min-w-[16px]" /> {file.name}
             </span>
           ) : (
-            // 🌟 ถ้ายังไม่มีไฟล์ โชว์ไอคอนเอกสาร + คำว่า Upload PDF
             <>
               <FileText size={16} />
               <span className="text-xs tracking-wide">Upload PDF</span>
