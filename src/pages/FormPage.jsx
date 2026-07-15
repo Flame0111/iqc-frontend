@@ -55,7 +55,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               ...checklist
             }));
 
-            // 🌟 ถอดรหัสรูปภาพ
+            // 🌟🌟 ถอดรหัสรูปภาพ (แก้ลิงก์ซ้อน) 🌟🌟
             let imgPaths = r.image_paths;
             if (typeof imgPaths === 'string') {
                try { imgPaths = JSON.parse(imgPaths); } catch(e) { console.error("พังตอนแปลงรูป:", e); }
@@ -65,7 +65,9 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               const loadedImages = {};
               imgPaths.forEach(img => {
                 const key = img.type.replace('image_', ''); 
-                const url = `${API_URL}/${img.path.replace(/\\/g, '/')}`; 
+                
+                // 🌟 [แก้บั๊กตรงนี้!] ใช้ลิงก์ของ Supabase ตรงๆ เลย ไม่ต้องเอา API_URL มาต่อข้างหน้าแล้วครับ
+                const url = img.path; 
                 
                 if (key === 'f4' || key === 'b4') {
                   if (!loadedImages[key]) loadedImages[key] = [];
@@ -77,7 +79,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               setUploadedImages(loadedImages);
             }
 
-            // 🌟 ถอดรหัส PDF
+            // 🌟🌟 ถอดรหัส PDF (แก้ลิงก์ซ้อน) 🌟🌟
             let docPaths = r.document_paths;
             if (typeof docPaths === 'string') {
                try { docPaths = JSON.parse(docPaths); } catch(e) { console.error("พังตอนแปลง PDF:", e); }
@@ -89,8 +91,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                 const key = doc.type.replace('document_', '');
                 if (loadedDocs[key]) {
                   loadedDocs[key].push({ 
-                    name: doc.path.split(/[/\\]/).pop(), 
-                    url: `${API_URL}/${doc.path.replace(/\\/g, '/')}`, 
+                    name: doc.path.split('/').pop(), // ตัดชื่อไฟล์จาก URL
+                    url: doc.path, // 🌟 [แก้บั๊กตรงนี้!] ใช้ลิงก์ Supabase ตรงๆ เลย
                     isExisting: true 
                   });
                 }
