@@ -20,10 +20,8 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
          if (parsed.token) return parsed.token;
       }
     } catch(e) { console.error("Parse auth error", e); }
-    
     const justToken = localStorage.getItem('token');
     if (justToken) return justToken;
-    
     return null; 
   };
 
@@ -41,33 +39,23 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             
             setFormData(prev => ({
               ...prev,
-              hwName: r.hw_name || '',
-              supplier: r.supplier || '',
-              dateRecv: r.date_recv ? r.date_recv.split('T')[0] : '',
-              invoiceNo: r.invoice_no || '',
-              hwDesc: r.hw_desc || '',
-              poNo: r.po_no || '',
-              serialNo: r.serial_no || '',
-              customer: r.customer || '',
-              owner: r.owner || '',
-              sendBy: r.send_by || '',
-              location: r.location || '',
+              hwName: r.hw_name || '', supplier: r.supplier || '', dateRecv: r.date_recv ? r.date_recv.split('T')[0] : '',
+              invoiceNo: r.invoice_no || '', hwDesc: r.hw_desc || '', poNo: r.po_no || '',
+              serialNo: r.serial_no || '', customer: r.customer || '', owner: r.owner || '',
+              sendBy: r.send_by || '', location: r.location || '',
               ...checklist
             }));
 
-            // 🌟🌟 ถอดรหัสรูปภาพ (แก้ลิงก์ซ้อน) 🌟🌟
+            // 🌟 1. ดึงรูปลิงก์ตรงจาก Supabase
             let imgPaths = r.image_paths;
             if (typeof imgPaths === 'string') {
-               try { imgPaths = JSON.parse(imgPaths); } catch(e) { console.error("พังตอนแปลงรูป:", e); }
+               try { imgPaths = JSON.parse(imgPaths); } catch(e) { console.error(e); }
             }
-
             if (imgPaths && Array.isArray(imgPaths) && setUploadedImages) {
               const loadedImages = {};
               imgPaths.forEach(img => {
                 const key = img.type.replace('image_', ''); 
-                
-                // 🌟 [แก้บั๊กตรงนี้!] ใช้ลิงก์ของ Supabase ตรงๆ เลย ไม่ต้องเอา API_URL มาต่อข้างหน้าแล้วครับ
-                const url = img.path; 
+                const url = img.path; // ใช้ URL ลิงก์ตรงๆ ได้เลย
                 
                 if (key === 'f4' || key === 'b4') {
                   if (!loadedImages[key]) loadedImages[key] = [];
@@ -79,20 +67,19 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               setUploadedImages(loadedImages);
             }
 
-            // 🌟🌟 ถอดรหัส PDF (แก้ลิงก์ซ้อน) 🌟🌟
+            // 🌟 2. ดึง PDF ลิงก์ตรงจาก Supabase
             let docPaths = r.document_paths;
             if (typeof docPaths === 'string') {
-               try { docPaths = JSON.parse(docPaths); } catch(e) { console.error("พังตอนแปลง PDF:", e); }
+               try { docPaths = JSON.parse(docPaths); } catch(e) { console.error(e); }
             }
-
             if (docPaths && Array.isArray(docPaths) && setUploadedDocs) {
               const loadedDocs = { pkg: [], sck: [], pin: [], mnt: [] };
               docPaths.forEach(doc => {
                 const key = doc.type.replace('document_', '');
                 if (loadedDocs[key]) {
                   loadedDocs[key].push({ 
-                    name: doc.path.split('/').pop(), // ตัดชื่อไฟล์จาก URL
-                    url: doc.path, // 🌟 [แก้บั๊กตรงนี้!] ใช้ลิงก์ Supabase ตรงๆ เลย
+                    name: doc.path.split('/').pop(), 
+                    url: doc.path, // ใช้ URL ลิงก์ตรงๆ ได้เลย
                     isExisting: true 
                   });
                 }
@@ -112,10 +99,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
   const handleSaveDraft = async (e) => {
     e.preventDefault();
     const currentToken = getActiveToken(); 
-
-    if (!currentToken) {
-      return alert("Session expired! ระบบหาบัตรผ่านไม่เจอ รบกวนกลับไปล็อกอินใหม่อีกครั้งครับ");
-    }
+    if (!currentToken) return alert("Session expired!");
 
     const submitData = new FormData();
     submitData.append('iqcData', JSON.stringify({ ...formData, jobStatus: 'Draft' }));
@@ -123,9 +107,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     Object.keys(uploadedDocs).forEach(docKey => {
       if (uploadedDocs[docKey] && uploadedDocs[docKey].length > 0) {
         Array.from(uploadedDocs[docKey]).forEach(file => {
-          if (!file.isExisting) { 
-            submitData.append(`document_${docKey}`, file);
-          }
+          if (!file.isExisting) submitData.append(`document_${docKey}`, file);
         });
       }
     });
@@ -134,22 +116,13 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     const method = editId ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, { 
-        method: method, 
-        headers: { 'Authorization': `Bearer ${currentToken}` }, 
-        body: submitData 
-      });
+      const res = await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${currentToken}` }, body: submitData });
       const data = await res.json();
       if (data.success) {
         alert("บันทึกข้อมูลฉบับร่าง (Save Draft) สำเร็จเรียบร้อย!");
         window.location.href = '/'; 
-      } else {
-        alert("ไม่สามารถบันทึกได้: " + (data.error || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์"));
-      }
-    } catch(err) { 
-      console.error(err); 
-      alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้");
-    }
+      } else alert("ไม่สามารถบันทึกได้: " + (data.error || "เกิดข้อผิดพลาด"));
+    } catch(err) { console.error(err); alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้"); }
   };
 
   const contactPinItems = [
@@ -169,7 +142,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
     {id: 'aln1', en: '3.1 Alignment plate', th: '(แผ่นจัดแนว)'},
     {id: 'aln2', en: '3.2 Alignment plate screw', th: '(สกรูแผ่นจัดแนว)'}
   ];
-
   const specificMapItems = [
     { id: 'map1', label: '1.1 Color difference', th: '(สีแตกต่างกันหรือไม่)' },
     { id: 'map2', label: '1.2 Fiducial', th: '(จุดอ้างอิง)' },
@@ -188,13 +160,11 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
 
   return (
     <div className="space-y-6 print:block fade-in relative print:pt-6 w-full max-w-7xl mx-auto">
-      
       <div className="hidden print:flex flex-col items-end absolute top-0 right-0 z-50">
         <div className="mb-1"><span className="text-[10px] font-bold text-black uppercase">Verified By : DCC</span></div>
         <div className="text-[10px] font-bold text-black uppercase">Refer : TS-H/W-002</div>
         <div className="text-[10px] font-bold text-black uppercase">Serial : 05</div>
       </div>
-
       <GlassCard className="z-[50] print:border-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/5 pb-4 print:border-none print:mb-2 print:pb-0">
           <div className="flex items-center gap-3">
@@ -204,7 +174,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             </h2>
           </div>
         </div>
-        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 print:gap-x-4 print:gap-y-2">
           <GlassInput name="hwName" label="Hardware Name" thLabel="(ชื่อฮาร์ดแวร์)" value={formData.hwName || ''} onChange={handleChange} />
           <GlassInput name="supplier" label="Supplier" thLabel="(ผู้ผลิต)" value={formData.supplier || ''} onChange={handleChange} />
@@ -217,7 +186,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
           <GlassInput name="owner" label="Owner" thLabel="(เจ้าของฮาร์ดแวร์)" value={formData.owner || ''} onChange={handleChange} />
           <GlassInput name="sendBy" label="Send by" thLabel="(ส่งมาโดย)" value={formData.sendBy || ''} onChange={handleChange} />
           <div className="hidden md:block print:hidden"></div>
-          
           <CustomSelect name="peName" value={formData.peName || ''} onChange={handleChange} label="Engineer Name" thLabel="(ชื่อเอ็นจิเนียร์)" options={peList} gridClass="col-span-2" />
           <GlassInput name="location" label="HW Location" thLabel="(โลเคชั่น)" value={formData.location || ''} onChange={handleChange} gridClass="col-span-2" />
         </div>
@@ -229,15 +197,11 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
             <CheckCircle2 className="w-5 h-5 no-print inline-block mr-2 text-fuchsia-400" /> Section 2: Checklist <span className="print-hide-th text-[10px] font-normal opacity-50 tracking-normal">(ส่วนที่ 2: รายการตรวจสอบ)</span>
           </h2>
           <div className="space-y-6 print:space-y-2">
-            
             <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
               <table className="w-full text-sm glass-table print:text-[9px]">
                 <thead>
                   <tr>
-                    <th className="text-left pl-4 w-[35%]">Documentation</th>
-                    <th className="w-[10%]">Yes</th><th className="w-[10%]">No</th>
-                    <th className="text-left pl-4 w-[25%]">Remarks</th>
-                    <th className="no-print w-[20%] pr-4">Attach PDF</th>
+                    <th className="text-left pl-4 w-[35%]">Documentation</th><th className="w-[10%]">Yes</th><th className="w-[10%]">No</th><th className="text-left pl-4 w-[25%]">Remarks</th><th className="no-print w-[20%] pr-4">Attach PDF</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -248,33 +212,12 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                     { k: 'mnt', n: 'Maintenance guide line', th: '(คู่มือการบำรุงรักษา)', req: false }
                   ].map((d) => (
                     <tr key={d.k} className="hover:bg-white/5 border-b border-white/5 print:hover:bg-transparent print:border-black">
-                      <td className="pl-4 py-3 leading-tight">
-                        {d.n} {d.req && <span className="text-rose-500">*</span>}
-                        <span className="print-hide-th text-[9px] text-white/40 block mt-0.5 print:text-black/50">{d.th}</span>
-                      </td>
-                      <td className="text-center align-middle">
-                        <input type="radio" name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} className="w-4 h-4 accent-emerald-500 cursor-pointer print:w-3 print:h-3" />
-                      </td>
-                      <td className="text-center align-middle">
-                        <input type="radio" name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} className="w-4 h-4 accent-rose-500 cursor-pointer print:w-3 print:h-3" />
-                      </td>
-                      <td className="pl-4 pr-6 align-middle">
-                         <input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-1 text-white/80 focus:border-[#6f7bf7] transition-colors print:border-black print:text-black" placeholder="Remarks..." />
-                      </td>
+                      <td className="pl-4 py-3 leading-tight">{d.n} {d.req && <span className="text-rose-500">*</span>}<span className="print-hide-th text-[9px] text-white/40 block mt-0.5 print:text-black/50">{d.th}</span></td>
+                      <td className="text-center align-middle"><input type="radio" name={`doc_${d.k}`} value="yes" checked={formData[`doc_${d.k}`] === "yes"} onChange={handleChange} className="w-4 h-4 accent-emerald-500 cursor-pointer print:w-3 print:h-3" /></td>
+                      <td className="text-center align-middle"><input type="radio" name={`doc_${d.k}`} value="no" checked={formData[`doc_${d.k}`] === "no"} onChange={handleChange} className="w-4 h-4 accent-rose-500 cursor-pointer print:w-3 print:h-3" /></td>
+                      <td className="pl-4 pr-6 align-middle"><input type="text" name={`remark_doc_${d.k}`} value={formData[`remark_doc_${d.k}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 outline-none text-xs pb-1 text-white/80 focus:border-[#6f7bf7] transition-colors print:border-black print:text-black" placeholder="Remarks..." /></td>
                       <td className="no-print pr-4 py-2 align-middle w-[220px]">
-                        <FileUploadField 
-                          id={`file_${d.k}`} 
-                          accept=".pdf"
-                          file={uploadedDocs[d.k] && uploadedDocs[d.k].length > 0 ? uploadedDocs[d.k][0] : null}
-                          onChange={(e) => { 
-                            const files = e.target.files;
-                            if(files.length === 0) {
-                              removeFile(d.k); 
-                            } else {
-                              handleFileChange(d.k, files); 
-                            }
-                          }} 
-                        />
+                        <FileUploadField id={`file_${d.k}`} accept=".pdf" file={uploadedDocs[d.k] && uploadedDocs[d.k].length > 0 ? uploadedDocs[d.k][0] : null} onChange={(e) => { const files = e.target.files; if(files.length === 0) { removeFile(d.k); } else { handleFileChange(d.k, files); } }} />
                       </td>
                     </tr>
                   ))}
@@ -286,8 +229,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
               <table className="w-full text-sm glass-table print:text-[9px]">
                 <thead>
                   <tr>
-                    <th className="text-left pl-4 w-[40%]">Information of contactor</th>
-                    <th>Yes</th><th>No</th><th>Part number</th><th className="text-fuchsia-400 print:text-black">Stock No.</th><th className="w-12">Q'ty</th>
+                    <th className="text-left pl-4 w-[40%]">Information of contactor</th><th>Yes</th><th>No</th><th>Part number</th><th className="text-fuchsia-400 print:text-black">Stock No.</th><th className="w-12">Q'ty</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -302,7 +244,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                       <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
                     </tr>
                   ))}
-
                   <tr className="bg-white/5 print:bg-transparent"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">2.Socket /Housing</td></tr>
                   {socketItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
@@ -314,7 +255,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                       <td><input name={`qty_${i.id}`} value={formData[`qty_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent text-center text-[10px] text-white print:text-black" placeholder="0" /></td>
                     </tr>
                   ))}
-
                   <tr className="bg-white/5 print:bg-transparent"><td colSpan="6" className="pl-4 py-1 text-[10px] font-bold text-white print:text-black uppercase print:text-[9px]">3.Alignment plate</td></tr>
                   {alignmentItems.map(i => (
                     <tr key={i.id} className="hover:bg-white/5 print:hover:bg-transparent">
@@ -340,11 +280,7 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
              <div className="overflow-x-auto rounded-2xl border border-white/10 print:border-none print:rounded-none bg-white/[0.02] print:bg-transparent">
                 <table className="w-full text-sm glass-table print:text-[9px]">
                   <thead>
-                    <tr>
-                      <th className="text-left pl-4 w-[45%]">A. Standard</th>
-                      <th className="text-emerald-400">New</th><th className="text-blue-400">Used</th><th className="text-rose-400">Dmg</th>
-                      <th className="text-left pl-4">Remarks</th>
-                    </tr>
+                    <tr><th className="text-left pl-4 w-[45%]">A. Standard</th><th className="text-emerald-400">New</th><th className="text-blue-400">Used</th><th className="text-rose-400">Dmg</th><th className="text-left pl-4">Remarks</th></tr>
                   </thead>
                   <tbody>
                     <tr className="bg-white/5 print:bg-transparent"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">1.Contact pin</td></tr>
@@ -357,7 +293,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                         <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
-                    
                     <tr className="bg-white/5 print:bg-transparent"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">2.Socket /Housing</td></tr>
                     {socketItems.map(i => (
                       <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
@@ -368,7 +303,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                         <td className="pl-4 pr-2"><input type="text" name={`vis_remark_${i.id}`} value={formData[`vis_remark_${i.id}`] || ""} onChange={handleChange} className="w-full bg-transparent border-b border-white/20 text-white print:text-black text-[10px] pb-0.5" placeholder="Remarks..." /></td>
                       </tr>
                     ))}
-
                     <tr className="bg-white/5 print:bg-transparent"><td colSpan="5" className="pl-4 py-1.5 text-[10px] font-bold text-emerald-400 print:text-black uppercase print:text-[9px]">3.Alignment plate</td></tr>
                     {alignmentItems.map(i => (
                       <tr key={`vis_${i.id}`} className="hover:bg-white/5 print:hover:bg-transparent">
@@ -430,7 +364,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
              </label>
           </div>
         </div>
-        
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:gap-2 items-start">
            <div className="lg:col-span-7 flex flex-col gap-5 print:gap-1">
               <div className="flex flex-col print:flex-row print:items-center gap-3 print:gap-1">
@@ -453,7 +386,6 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
                  <GlassInput name="preventAction" label="Action Taken/Prevention" value={formData.preventAction || ''} onChange={handleChange} />
               </div>
            </div>
-           
            <div className="lg:col-span-5 grid grid-cols-2 gap-4 p-5 rounded-3xl bg-[#000000]/40 border border-white/5 items-end print:bg-transparent print:p-0 print:border-none print:rounded-none print:gap-x-2 print:gap-y-2 print:items-end">
               <CustomSelect name="reworkBy" value={formData.reworkBy || ''} onChange={handleChange} label="Rework By" options={peList} />
               <GlassInput name="ncDate" label="Date" type="date" value={formData.ncDate || ''} onChange={handleChange} />
@@ -468,25 +400,18 @@ export default function FormPage({ formData, setFormData, uploadedDocs, handleFi
 
       <div className="flex justify-end items-center gap-4 no-print pt-10 pb-10">
         <motion.button 
-          type="button"
-          onClick={handleSaveDraft}
-          whileHover={{ scale: 1.05 }} 
-          whileTap={{ scale: 0.95 }} 
+          type="button" onClick={handleSaveDraft} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} 
           className="bg-zinc-800 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black font-black py-4 px-8 rounded-2xl shadow-xl transition-all"
         >
           SAVE AS DRAFT
         </motion.button>
-        
         <motion.button 
-          onClick={onNext} 
-          whileHover={{ scale: 1.05, x: 5 }} 
-          whileTap={{ scale: 0.95 }} 
+          onClick={onNext} whileHover={{ scale: 1.05, x: 5 }} whileTap={{ scale: 0.95 }} 
           className="bg-[#6f7bf7] hover:bg-[#5b66e0] text-white font-black py-4 px-10 rounded-2xl shadow-xl flex items-center gap-3 transition-colors"
         >
           NEXT: PHOTO UPLOAD <ArrowRight size={20}/>
         </motion.button>
       </div>
-
     </div>
   );
 }
